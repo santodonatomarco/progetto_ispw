@@ -1,13 +1,10 @@
 package org.project.model;
 
-import org.project.ing.observer.StockObservable;
-import org.project.ing.observer.StockObserver;
+import org.project.ing.observer.StockSubject;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Stock implements StockObservable {
+public class Stock extends StockSubject {
 
     private String simbolo;
     private String nomeAzienda;
@@ -18,7 +15,6 @@ public class Stock implements StockObservable {
     private double marketCap;
     private double volumeSettimanale;
     private LocalDateTime ultimoAggiornamento;
-    private List<StockObserver> observers = new ArrayList<>();
 
 
     public Stock(String simbolo, String nomeAzienda, String settore, double prezzoAttuale) {
@@ -77,21 +73,5 @@ public class Stock implements StockObservable {
     public LocalDateTime ultimoAggiornamento() { return ultimoAggiornamento; }
 
 
-    @Override
-    public void aggiungiObserver(StockObserver o) {
-        observers.add(o);
-    }
-
-    @Override
-    public void rimuoviObserver(StockObserver o) {
-        observers.remove(o);
-    }
-
-    @Override
-    public void notificaObserver() {
-        for (StockObserver o : observers) {
-            o.aggiornamento(this);
-        }
-    }
 
 }

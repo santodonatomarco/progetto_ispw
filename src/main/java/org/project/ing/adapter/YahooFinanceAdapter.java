@@ -5,7 +5,12 @@ import yahoofinance.YahooFinance;
 
 import java.io.IOException;
 
-public class YahooFinanceAdapter {
+/**
+ * ADAPTER che implementa l'interfaccia Target (StockDataProvider)
+ * Contiene l'Adaptee (yahoofinance.Stock) e converte la sua interfaccia
+ * per renderla compatibile con il nostro modello (Stock)
+ */
+public class YahooFinanceAdapter implements StockDataProvider {
 
     // Recupera uno stock dall'API e lo converte nel nostro modello
     public Stock recuperaStock(String simbolo) throws IOException {

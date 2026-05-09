@@ -58,7 +58,7 @@ public class WalletPosition implements StockObserver {
     }
 
     @Override
-    public void aggiornamento(Stock stock) {
+    public void aggiornamento() {
         // quando lo stock cambia prezzo, ricalcola il valore
         this.valoreCorrente = stock.prezzoAttuale() * this.quantita;
     }
