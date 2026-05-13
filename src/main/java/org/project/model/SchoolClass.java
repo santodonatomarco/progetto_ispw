@@ -8,14 +8,13 @@ public class SchoolClass {
     private String nome;
     private Professore teacher;
     private List<Studente> studenti;
-    private List<Message> chat;
 
     public SchoolClass(String nome, Professore teacher) {
         this.battezzaClasse(nome);
         this.assegnaProfessore(teacher);
         this.studenti = new ArrayList<>();
-        this.chat = new ArrayList<>();
     }
+
 
     public final void battezzaClasse(String nome) {
         if (nome == null || nome.trim().isEmpty())
@@ -35,14 +34,9 @@ public class SchoolClass {
         this.studenti.add(s);
     }
 
-    public final void aggiungiMessaggio(Message m) {
-        if (m == null)
-            throw new IllegalArgumentException("Il messaggio non può essere nullo.");
-        this.chat.add(m);
-    }
+
 
     public String nome()                { return nome; }
     public Professore teacher()            { return teacher; }
     public List<Studente> studenti()     { return studenti; }
-    public List<Message> chat()         { return chat; }
 }

@@ -2,12 +2,12 @@ package org.project.model;
 
 public class RankingEntry {
 
-    private StudenteOAuth student;
+    private Studente student;
     private int posizione;
     private double valorePortafoglio;
     private double guadagnoSettimanalePercent;
 
-    public RankingEntry(StudenteOAuth student, int posizione,
+    public RankingEntry(Studente student, int posizione,
                         double valorePortafoglio, double guadagnoPercent) {
         this.collegaStudent(student);
         this.impostaPosizione(posizione);
@@ -15,7 +15,7 @@ public class RankingEntry {
         this.impostaGuadagno(guadagnoPercent);
     }
 
-    public final void collegaStudent(StudenteOAuth student) {
+    public final void collegaStudent(Studente student) {
         if (student == null)
             throw new IllegalArgumentException("Lo studente non può essere nullo.");
         this.student = student;
@@ -37,7 +37,7 @@ public class RankingEntry {
         this.guadagnoSettimanalePercent = percent;
     }
 
-    public StudenteOAuth student()                    { return student; }
+    public Studente student()                    { return student; }
     public int posizione()                      { return posizione; }
     public double valorePortafoglio()           { return valorePortafoglio; }
     public double guadagnoSettimanalePercent()  { return guadagnoSettimanalePercent; }
