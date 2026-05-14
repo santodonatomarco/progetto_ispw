@@ -8,6 +8,10 @@ import org.project.dao.studenti.StudenteDAO;
 import org.project.dao.studenti.StudenteDAODemo;
 import org.project.dao.wallets.PortafoglioDAO;
 import org.project.dao.wallets.PortafoglioDAODemo;
+import org.project.dao.transazioni.TransactionDAO;
+import org.project.dao.transazioni.TransactionDAODemo;
+import org.project.dao.posizioni.WalletPositionDAO;
+import org.project.dao.posizioni.WalletPositionDAODemo;
 import org.project.ing.factory.StockFactory;
 import org.project.ing.factory.StockFactoryDemo;
 
@@ -17,47 +21,55 @@ public class DemoDAOFactory extends DAOFactory {
     private SchoolClassDAO schoolClassDAOInstance;
     private StudenteDAO studenteDAOInstance;
     private PortafoglioDAO portafoglioDAOInstance;
+    private TransactionDAO transactionDAOInstance;
+    private WalletPositionDAO walletPositionDAOInstance;
     private StockFactory stockFactoryInstance;
 
     @Override
     public ProfessoreDAO createProfessoreDAO() {
-        if (professoreDAOInstance == null) {
+        if (professoreDAOInstance == null)
             professoreDAOInstance = new ProfessoreDAODemo();
-        }
         return professoreDAOInstance;
     }
 
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
-        if (schoolClassDAOInstance == null) {
-            // Inietto il ProfessoreDAO necessario per costruire la SchoolClass
+        if (schoolClassDAOInstance == null)
             schoolClassDAOInstance = new SchoolClassDAODemo(createProfessoreDAO());
-        }
         return schoolClassDAOInstance;
     }
 
     @Override
     public StudenteDAO createStudenteDAO() {
-        if (studenteDAOInstance == null) {
-            // Inietto lo SchoolClassDAO E ProfessoreDAO necessari per assegnare la classe allo studente
+        if (studenteDAOInstance == null)
             studenteDAOInstance = new StudenteDAODemo(createSchoolClassDAO(), createProfessoreDAO());
-        }
         return studenteDAOInstance;
     }
 
     @Override
     public PortafoglioDAO createPortafoglioDAO() {
-        if (portafoglioDAOInstance == null) {
-            // Inietto StudenteDAO e StockFactory necessari per il portafoglio
+        if (portafoglioDAOInstance == null)
             portafoglioDAOInstance = new PortafoglioDAODemo(createStudenteDAO(), createStockFactory());
-        }
         return portafoglioDAOInstance;
     }
 
+    @Override
+    public TransactionDAO createTransactionDAO() {
+        if (transactionDAOInstance == null)
+            transactionDAOInstance = new TransactionDAODemo();
+        return transactionDAOInstance;
+    }
+
+    @Override
+    public WalletPositionDAO createWalletPositionDAO() {
+        if (walletPositionDAOInstance == null)
+            walletPositionDAOInstance = new WalletPositionDAODemo();
+        return walletPositionDAOInstance;
+    }
+
     private StockFactory createStockFactory() {
-        if (stockFactoryInstance == null) {
+        if (stockFactoryInstance == null)
             stockFactoryInstance = new StockFactoryDemo();
-        }
         return stockFactoryInstance;
     }
 }
