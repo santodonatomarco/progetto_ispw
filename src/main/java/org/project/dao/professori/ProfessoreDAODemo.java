@@ -21,7 +21,7 @@ public class ProfessoreDAODemo extends ProfessoreDAO {
 
     private void popolaDBFittizio() {
         ProfessoreLocale p1 = new ProfessoreLocale("mario.rossi@univ.it", "Mario", "Rossi");
-        p1.inserisciHashPassword("hash_mario_123");
+        p1.inserisciHashPassword("isson_oiraM"); // "Mario_rossi" invertito
         fintoDatabase.add(p1);
 
         ProfessoreOAuth p2 = new ProfessoreOAuth("lucia.bianchi@univ.it", "Lucia", "Bianchi", AuthProvider.GOOGLE);
@@ -31,10 +31,18 @@ public class ProfessoreDAODemo extends ProfessoreDAO {
     @Override
     protected Professore doRetrieveProfessoreByEmail(String email) throws DAOException {
         for (Professore p : fintoDatabase) {
-            if (p.presentaEmail().equals(email)) {
-                return p;
-            }
+            if (p.presentaEmail().equals(email)) return p;
         }
         return null;
+    }
+
+    @Override
+    protected void doSaveProfessore(Professore professore) throws DAOException {
+        for (Professore p : fintoDatabase) {
+            if (p.presentaEmail().equals(professore.presentaEmail())) {
+                throw new DAOException("Esiste già un professore con questa email.");
+            }
+        }
+        fintoDatabase.add(professore);
     }
 }

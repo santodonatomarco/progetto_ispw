@@ -6,6 +6,10 @@ import org.project.dao.professori.ProfessoreDAO;
 import org.project.dao.professori.ProfessoreDAOFile;
 import org.project.dao.studenti.StudenteDAO;
 import org.project.dao.studenti.StudenteDAOFile;
+import org.project.dao.wallets.PortafoglioDAO;
+import org.project.dao.wallets.PortafoglioDAOFile;
+import org.project.ing.factory.StockFactory;
+import org.project.ing.factory.StockFactoryFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,11 +20,16 @@ public class FileDAOFactory extends DAOFactory {
     private ProfessoreDAO professoreDAOInstance;
     private SchoolClassDAO schoolClassDAOInstance;
     private StudenteDAO studenteDAOInstance;
+    private PortafoglioDAO portafoglioDAOInstance;
+    private StockFactory stockFactoryInstance;
 
     // Variabili per memorizzare i percorsi letti dal config
     private String professoriFile;
     private String classiFile;
     private String studentiFile;
+    private String walletFile;
+    private String posizioniFile;
+    private String transazioniFile;
 
     public FileDAOFactory() {
         Properties prop = new Properties();
@@ -40,6 +49,9 @@ public class FileDAOFactory extends DAOFactory {
         this.professoriFile = prop.getProperty("file.professori", "professori.csv");
         this.classiFile = prop.getProperty("file.classi", "classi.csv");
         this.studentiFile = prop.getProperty("file.studenti", "studenti.csv");
+        this.walletFile = prop.getProperty("file.wallet", "wallet.csv");
+        this.posizioniFile = prop.getProperty("file.posizioni", "posizioni.csv");
+        this.transazioniFile = prop.getProperty("file.transazioni", "transazioni.csv");
     }
     @Override
     public ProfessoreDAO createProfessoreDAO() {
@@ -60,8 +72,24 @@ public class FileDAOFactory extends DAOFactory {
     @Override
     public StudenteDAO createStudenteDAO() {
         if (studenteDAOInstance == null) {
-            studenteDAOInstance = new StudenteDAOFile(studentiFile, createSchoolClassDAO());
+            studenteDAOInstance = new StudenteDAOFile(studentiFile, createSchoolClassDAO(), createProfessoreDAO());
         }
         return studenteDAOInstance;
+    }
+
+    @Override
+    public PortafoglioDAO createPortafoglioDAO() {
+        if (portafoglioDAOInstance == null) {
+            portafoglioDAOInstance = new PortafoglioDAOFile(walletFile, posizioniFile, transazioniFile,
+                    createStudenteDAO(), createStockFactory());
+        }
+        return portafoglioDAOInstance;
+    }
+
+    private StockFactory createStockFactory() {
+        if (stockFactoryInstance == null) {
+            stockFactoryInstance = new StockFactoryFile("stocks.csv");
+        }
+        return stockFactoryInstance;
     }
 }

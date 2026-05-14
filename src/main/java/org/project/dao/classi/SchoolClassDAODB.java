@@ -23,25 +23,26 @@ public class SchoolClassDAODB extends SchoolClassDAO {
     }
 
     @Override
-    protected SchoolClass doRetrieveClasseByNome(String nomeClasse) throws DAOException {
-        String sql = "SELECT nome, professore_email FROM schoolclass WHERE nome = ?";
+    protected SchoolClass doRetrieveClasseByNomeEProfessore(String nomeClasse, Professore professore) throws DAOException {
+        if (nomeClasse == null || nomeClasse.trim().isEmpty()) {
+            throw new DAOException("Nome classe non valido");
+        }
+        if (professore == null) {
+            throw new DAOException("Professore non può essere nullo");
+        }
+
+        String sql = "SELECT nome, professore_email FROM schoolclass WHERE nome = ? AND professore_email = ?";
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, nomeClasse);
+            ps.setString(2, professore.presentaEmail());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String nome = rs.getString("nome");
-                    String professoreEmail = rs.getString("professore_email");
-
-                    // Deleghiamo la creazione/recupero del professore
-                    Professore professore = professoreDAO.getProfessoreByEmail(professoreEmail);
-                    if (professore == null) {
-                        throw new DAOException("Impossibile caricare il professore della classe " + nome);
-                    }
-
+                    // Usiamo direttamente l'oggetto professore passato come parametro
                     return new SchoolClass(nome, professore);
                 }
             }
@@ -85,14 +86,6 @@ public class SchoolClassDAODB extends SchoolClassDAO {
 
 
 
-
-
-
-
-
-
-
-
     @Override
     public void salvaClasse(SchoolClass classe) throws DAOException {
         if (classe == null) throw new DAOException("La classe non può essere nulla");
@@ -107,8 +100,6 @@ public class SchoolClassDAODB extends SchoolClassDAO {
             ps.setString(2, classe.teacher() != null ? classe.teacher().presentaEmail() : null);
 
             ps.executeUpdate();
-
-            // Sincronizziamo la Cache ereditata da CachedDAO
             addToCache(classe);
 
         } catch (SQLException e) {

@@ -8,10 +8,12 @@ public class SchoolClass {
     private String nome;
     private Professore teacher;
     private List<Studente> studenti;
+    private double budgetIniziale;
 
     public SchoolClass(String nome, Professore teacher) {
         this.battezzaClasse(nome);
         this.assegnaProfessore(teacher);
+        this.impostaBudget(0.0); // Budget di default per la classe
         this.studenti = new ArrayList<>();
     }
 
@@ -34,9 +36,16 @@ public class SchoolClass {
         this.studenti.add(s);
     }
 
+    public final void impostaBudget(double budget) {
+        if (budget < 0) throw new IllegalArgumentException("Il budget non può essere negativo.");
+        this.budgetIniziale = budget;
+    }
+
+
 
 
     public String nome()                { return nome; }
     public Professore teacher()            { return teacher; }
     public List<Studente> studenti()     { return studenti; }
+    public double budgetIniziale() { return budgetIniziale; }
 }

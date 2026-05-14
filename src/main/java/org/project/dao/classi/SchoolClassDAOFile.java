@@ -25,7 +25,11 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
     }
 
     @Override
-    protected SchoolClass doRetrieveClasseByNome(String nomeCercato) throws DAOException {
+    protected SchoolClass doRetrieveClasseByNomeEProfessore(String nomeCercato, Professore professore) throws DAOException {
+        if (professore == null) {
+            throw new DAOException("Professore non può essere nullo");
+        }
+
         File file = new File(fileName);
         if (!file.exists()) throw new DAOException("File classi non trovato");
 
@@ -37,14 +41,10 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
                 String[] parts = line.split(CSV_SEPARATOR, -1);
                 if (parts.length >= 2) {
                     String nome = parts[0].trim();
-                    if (nome.equals(nomeCercato)) {
-                        String emailProfessore = parts[1].trim();
+                    String emailProfessore = parts[1].trim();
 
-                        // Ora il ProfessoreDAO esiste e lo usiamo!
-                        Professore professore = professoreDAO.getProfessoreByEmail(emailProfessore);
-                        if (professore == null) {
-                            throw new DAOException("Professore inesistente per la classe: " + nome);
-                        }
+                    // Confronto nome CLASSE e EMAIL PROFESSORE
+                    if (nome.equals(nomeCercato) && emailProfessore.equals(professore.presentaEmail())) {
                         return new SchoolClass(nome, professore);
                     }
                 }

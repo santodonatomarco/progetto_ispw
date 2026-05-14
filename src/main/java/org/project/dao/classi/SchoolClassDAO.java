@@ -12,19 +12,24 @@ public abstract class SchoolClassDAO extends CachedDAO<SchoolClass> {
 
     @Override
     protected String ottieniChiave(SchoolClass c) {
-        return c.nome();
+        // Chiave unica: nome della classe + email del professore
+        return c.nome() + "|" + c.teacher().presentaEmail();
     }
 
-    public SchoolClass getClasseByNome(String nomeClasse) throws DAOException {
+    public SchoolClass getClasseByNomeEProfessore(String nomeClasse, Professore professore) throws DAOException {
         if (nomeClasse == null || nomeClasse.trim().isEmpty()) {
             throw new DAOException("Nome classe non valido");
         }
+        if (professore == null) {
+            throw new DAOException("Professore non valido");
+        }
 
+        String chiave = nomeClasse + "|" + professore.presentaEmail();
         SchoolClass c;
-        if (inCache(nomeClasse)) {
-            c = fetchFromCache(nomeClasse);
+        if (inCache(chiave)) {
+            c = fetchFromCache(chiave);
         } else {
-            c = doRetrieveClasseByNome(nomeClasse);
+            c = doRetrieveClasseByNomeEProfessore(nomeClasse, professore);
             if (c != null) {
                 addToCache(c);
             }
@@ -34,7 +39,7 @@ public abstract class SchoolClassDAO extends CachedDAO<SchoolClass> {
 
     public abstract List<SchoolClass> getClassiByProfessore(Professore professore) throws DAOException;
 
-    protected abstract SchoolClass doRetrieveClasseByNome(String nomeClasse) throws DAOException;
+    protected abstract SchoolClass doRetrieveClasseByNomeEProfessore(String nomeClasse, Professore professore) throws DAOException;
 
     public abstract void salvaClasse(SchoolClass classe) throws DAOException;
 }

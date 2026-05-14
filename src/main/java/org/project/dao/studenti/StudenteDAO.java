@@ -8,31 +8,32 @@ import org.project.model.Studente;
 import java.util.List;
 
 public abstract class StudenteDAO extends CachedDAO<Studente> {
+
     @Override
     protected String ottieniChiave(Studente s) {
         return s.presentaEmail();
     }
 
     public Studente getStudenteByEmail(String mail) throws DAOException {
-        Studente s;
-        if(inCache(mail)){
-            s = fetchFromCache(mail);
-        } else {
-
-            s = doRetrieveStudenteByEmail(mail);
-
-            if(s != null){
-                addToCache(s);
-            }
-        }
+        if (inCache(mail)) return fetchFromCache(mail);
+        Studente s = doRetrieveStudenteByEmail(mail);
+        if (s != null) addToCache(s);
         return s;
     }
 
-    public List<Studente> getStudentiClasse(SchoolClass classe) throws  DAOException {
+    public List<Studente> getStudentiClasse(SchoolClass classe) throws DAOException {
         return doRetrieveStudentiClasse(classe.nome());
     }
 
-    protected abstract List<Studente> doRetrieveStudentiClasse(String nomeClasse) throws  DAOException;
-    protected abstract Studente doRetrieveStudenteByEmail(String mail) throws DAOException;
+    /**
+     * Salva un nuovo studente in persistenza e lo aggiunge alla cache.
+     */
+    public void salvaStudente(Studente studente) throws DAOException {
+        doSaveStudente(studente);
+        addToCache(studente);
+    }
 
+    protected abstract Studente doRetrieveStudenteByEmail(String mail) throws DAOException;
+    protected abstract List<Studente> doRetrieveStudentiClasse(String nomeClasse) throws DAOException;
+    protected abstract void doSaveStudente(Studente studente) throws DAOException;
 }

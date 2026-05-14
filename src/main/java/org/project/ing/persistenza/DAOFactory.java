@@ -4,6 +4,7 @@ package org.project.ing.persistenza;
 import org.project.dao.professori.ProfessoreDAO;
 import org.project.dao.studenti.StudenteDAO;
 import org.project.dao.classi.SchoolClassDAO;
+import org.project.dao.wallets.PortafoglioDAO;
 import org.project.ing.enumerations.PersistenzaSupportata;
 
 import java.io.IOException;
@@ -30,8 +31,8 @@ public abstract class DAOFactory {
                 PersistenzaSupportata version = PersistenzaSupportata.valueOf(daoType);
                 me = switch (version) {
                     case FILESYSTEM -> new FileDAOFactory();
-                    case DATABASE   -> new DBDAOFactory();
-                    case DEMO       -> new DemoDAOFactory();
+                    case DATABASE -> new DBDAOFactory();
+                    case DEMO -> new DemoDAOFactory();
                 };
             } catch (IllegalArgumentException | IOException e) {
                 me = new DemoDAOFactory();
@@ -41,6 +42,10 @@ public abstract class DAOFactory {
     }
 
     public abstract StudenteDAO createStudenteDAO();
+
     public abstract SchoolClassDAO createSchoolClassDAO();
+
     public abstract ProfessoreDAO createProfessoreDAO();
+
+    public abstract PortafoglioDAO createPortafoglioDAO();
 }

@@ -2,14 +2,11 @@ package org.project.dao.professori;
 
 import org.project.exceptions.DAOException;
 import org.project.ing.enumerations.AuthProvider;
-import org.project.model.Professore;
-import org.project.model.ProfessoreLocale;
-import org.project.model.ProfessoreOAuth;
+import org.project.model.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfessoreDAOFile extends ProfessoreDAO {
 
@@ -30,30 +27,79 @@ public class ProfessoreDAOFile extends ProfessoreDAO {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-
                 String[] parts = line.split(CSV_SEPARATOR, -1);
                 // Formato: email;nome;cognome;passwordHash;authProvider
-                if (parts.length >= 5) {
-                    String email = parts[0].trim();
-                    if (email.equals(emailCercata)) {
-                        String nome = parts[1].trim();
-                        String cognome = parts[2].trim();
-                        String pwdHash = parts[3].trim();
-                        String authProv = parts[4].trim();
-
-                        if (AuthProvider.LOCAL.toString().equals(authProv)) {
-                            ProfessoreLocale prof = new ProfessoreLocale(email, nome, cognome);
-                            prof.inserisciHashPassword(pwdHash);
-                            return prof;
-                        } else {
-                            return new ProfessoreOAuth(email, nome, cognome, AuthProvider.valueOf(authProv));
-                        }
-                    }
+                if (parts.length >= 5 && parts[0].trim().equals(emailCercata)) {
+                    return parseProfessore(parts);
                 }
             }
         } catch (IOException | IllegalArgumentException e) {
             throw new DAOException("Errore lettura file professori: " + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Aggiunge il professore in fondo al CSV.
+     * Lancia DAOException se esiste già una riga con la stessa email.
+     */
+    @Override
+    protected void doSaveProfessore(Professore professore) throws DAOException {
+        File file = new File(fileName);
+
+        // Verifica duplicato
+        if (file.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+                    String[] parts = line.split(CSV_SEPARATOR, -1);
+                    if (parts.length > 0 && parts[0].trim().equals(professore.presentaEmail())) {
+                        throw new DAOException("Esiste già un professore con questa email.");
+                    }
+                }
+            } catch (IOException e) {
+                throw new DAOException("Errore lettura file professori: " + e.getMessage());
+            }
+        }
+
+        // Aggiunge in append
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
+            bw.write(toCSV(professore));
+            bw.newLine();
+        } catch (IOException e) {
+            throw new DAOException("Errore scrittura file professori: " + e.getMessage());
+        }
+    }
+
+    // ── Metodi privati ────────────────────────────────────────────────────────
+
+    private Professore parseProfessore(String[] parts) {
+        String email       = parts[0].trim();
+        String nome        = parts[1].trim();
+        String cognome     = parts[2].trim();
+        String pwdHash     = parts[3].trim();
+        String authProv    = parts[4].trim();
+
+        if (AuthProvider.LOCAL.toString().equals(authProv)) {
+            ProfessoreLocale prof = new ProfessoreLocale(email, nome, cognome);
+            prof.inserisciHashPassword(pwdHash);
+            return prof;
+        } else {
+            return new ProfessoreOAuth(email, nome, cognome, AuthProvider.valueOf(authProv));
+        }
+    }
+
+    private String toCSV(Professore professore) {
+        String passwordHash = "";
+        if (professore instanceof AutenticazioneLocale) {
+            passwordHash = ((AutenticazioneLocale) professore).passwordHash();
+        }
+        return String.join(CSV_SEPARATOR,
+                professore.presentaEmail(),
+                professore.presentaNome(),
+                professore.presentaCognome(),
+                passwordHash,
+                professore.comeAccede().toString());
     }
 }

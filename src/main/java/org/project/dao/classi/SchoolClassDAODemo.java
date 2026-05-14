@@ -20,9 +20,9 @@ public class SchoolClassDAODemo extends SchoolClassDAO {
     }
 
     @Override
-    protected SchoolClass doRetrieveClasseByNome(String nomeClasse) throws DAOException {
+    protected SchoolClass doRetrieveClasseByNomeEProfessore(String nomeClasse, Professore professore) throws DAOException {
         for (SchoolClass c : fintoDatabase) {
-            if (c.nome().equals(nomeClasse)) {
+            if (c.nome().equals(nomeClasse) && c.teacher().presentaEmail().equals(professore.presentaEmail())) {
                 return c;
             }
         }
