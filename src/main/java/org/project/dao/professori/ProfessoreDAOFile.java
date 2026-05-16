@@ -5,8 +5,7 @@ import org.project.ing.enumerations.AuthProvider;
 import org.project.model.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+
 
 public class ProfessoreDAOFile extends ProfessoreDAO {
 

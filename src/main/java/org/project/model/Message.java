@@ -35,5 +35,5 @@ public class Message {
     public Utente mittente()          { return mittente; }
     public String testo()           { return testo; }
     public LocalDateTime quando()   { return timestamp; }
-    public boolean èLetto()         { return letto; }
+    public boolean isRead()         { return letto; }
 }

@@ -15,11 +15,8 @@ import java.util.List;
 
 public class SchoolClassDAODB extends SchoolClassDAO {
 
-    private ProfessoreDAO professoreDAO;
-
-    public SchoolClassDAODB(ProfessoreDAO professoreDAO) {
+    public SchoolClassDAODB() {
         super();
-        this.professoreDAO = professoreDAO;
     }
 
     @Override

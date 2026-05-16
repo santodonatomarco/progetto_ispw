@@ -73,16 +73,22 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
+
                 String[] parts = line.split(SEP, -1);
-                if (parts.length >= 2 && parts[1].trim().equals(p.stock().simbolo())) continue;
-                righe.add(line);
+
+                if (parts.length < 2 || !parts[1].trim().equals(p.stock().simbolo())) {
+                    righe.add(line);
+                }
             }
         } catch (IOException e) {
             throw new DAOException("Errore lettura file posizioni: " + e.getMessage());
         }
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
-            for (String r : righe) { bw.write(r); bw.newLine(); }
+            for (String r : righe) {
+                bw.write(r);
+                bw.newLine();
+            }
         } catch (IOException e) {
             throw new DAOException("Errore eliminazione posizione: " + e.getMessage());
         }

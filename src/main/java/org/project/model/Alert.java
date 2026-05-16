@@ -42,5 +42,5 @@ public class Alert {
     public Stock stock()                { return stock; }
     public double profittoPerdita()     { return profittoPerdita; }
     public LocalDateTime quando()       { return inviatoAlle; }
-    public boolean èVisualizzato()      { return visualizzato; }
+    public boolean isVisualized()      { return visualizzato; }
 }

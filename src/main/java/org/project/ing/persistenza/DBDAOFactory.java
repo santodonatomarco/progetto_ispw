@@ -35,7 +35,7 @@ public class DBDAOFactory extends DAOFactory {
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
         if (schoolClassDAOInstance == null)
-            schoolClassDAOInstance = new SchoolClassDAODB(createProfessoreDAO());
+            schoolClassDAOInstance = new SchoolClassDAODB();
         return schoolClassDAOInstance;
     }
 

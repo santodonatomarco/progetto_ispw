@@ -1,10 +1,6 @@
 package org.project.model;
 
 import org.project.ing.enumerations.AuthProvider;
-import org.project.ing.enumerations.Ruolo;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class ProfessoreLocale extends Professore implements AutenticazioneLocale {
 

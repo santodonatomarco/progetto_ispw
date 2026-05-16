@@ -7,6 +7,8 @@ import org.project.ing.factory.StockFactory;
 import org.project.model.*;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class PortafoglioDAOFile extends PortafoglioDAO {
@@ -79,7 +81,9 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                     wallet.aggiungiPosizione(new WalletPosition(stock, quantita, prezzoMedio));
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // da fare
+        }
     }
 
     private void popolaTransazioni(VirtualWallet wallet, String mailCercata) {
@@ -102,7 +106,9 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                     wallet.aggiungiTransazione(t);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // da fare
+        }
     }
 
     @Override
@@ -137,7 +143,10 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
 
         try {
             if (!originalFile.exists()) {
-                originalFile.createNewFile();
+                boolean creato = originalFile.createNewFile();
+                if (!creato) {
+                    throw new IOException("Impossibile creare il file wallet base: " + originalFile.getName());
+                }
             }
 
             try (BufferedReader br = new BufferedReader(new FileReader(originalFile));
@@ -183,8 +192,12 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         File tempFile = new File(posizioniFile + ".tmp");
 
         try {
-            if (!originalFile.exists()) originalFile.createNewFile();
-
+            if (!originalFile.exists()) {
+                boolean creato = originalFile.createNewFile();
+                if (!creato) {
+                    throw new IOException("Impossibile creare il file posizioni: " + originalFile.getName());
+                }
+            }
             try (BufferedReader br = new BufferedReader(new FileReader(originalFile));
                  BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile))) {
 
@@ -225,8 +238,12 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         File tempFile = new File(transazioniFile + ".tmp");
 
         try {
-            if (!originalFile.exists()) originalFile.createNewFile();
-
+            if (!originalFile.exists()) {
+                boolean creato = originalFile.createNewFile();
+                if (!creato) {
+                    throw new IOException("Impossibile creare il file transazioni: " + originalFile.getName());
+                }
+            }
             try (BufferedReader br = new BufferedReader(new FileReader(originalFile));
                  BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile))) {
 
@@ -263,12 +280,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
      * Helper per gestire l'operazione sicura di rinomina/sovrascrittura del file
      */
     private void sostituisciFile(File originale, File temporaneo) throws IOException {
-        if (originale.exists() && !originale.delete()) {
-            throw new IOException("Impossibile eliminare il file originale per la sovrascrittura.");
-        }
-        if (!temporaneo.renameTo(originale)) {
-            throw new IOException("Impossibile rinominare il file temporaneo.");
-        }
+        Files.move(temporaneo.toPath(), originale.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
 

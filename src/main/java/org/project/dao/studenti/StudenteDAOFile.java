@@ -7,8 +7,6 @@ import org.project.dao.classi.SchoolClassDAO;
 import org.project.dao.professori.ProfessoreDAO;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,32 +69,47 @@ public class StudenteDAOFile extends StudenteDAO {
         List<String> righe = new ArrayList<>();
         boolean aggiornato = false;
 
-        // Leggi le righe esistenti
+        // 1. Lettura e aggiornamento in memoria
         if (file.exists()) {
-            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (line.trim().isEmpty()) continue;
-                    String[] parts = line.split(CSV_SEPARATOR, -1);
-                    if (parts.length > 0 && parts[0].trim().equals(studente.presentaEmail())) {
-                        // Sostituisce la riga del pending con i dati completi
-                        righe.add(toCSV(studente));
-                        aggiornato = true;
-                    } else {
-                        righe.add(line);
-                    }
-                }
-            } catch (IOException e) {
-                throw new DAOException("Errore lettura file studenti: " + e.getMessage());
-            }
+            aggiornato = leggiEAggiornaRighe(file, studente, righe);
         }
 
-        // Se non trovato, aggiunge come nuova riga
+        // 2. Se non trovato, aggiunge come nuova riga
         if (!aggiornato) {
             righe.add(toCSV(studente));
         }
 
-        // Riscrive il file
+        // 3. Riscrive il file
+        scriviRigheSuFile(file, righe);
+    }
+
+// ── Metodi di utilità estratti ─────────────────────────────────────────────
+
+    private boolean leggiEAggiornaRighe(File file, Studente studente, List<String> righe) throws DAOException {
+        boolean aggiornato = false;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+
+                String[] parts = line.split(CSV_SEPARATOR, -1);
+                if (parts.length > 0 && parts[0].trim().equals(studente.presentaEmail())) {
+                    // Sostituisce la riga del pending con i dati completi
+                    righe.add(toCSV(studente));
+                    aggiornato = true;
+                } else {
+                    righe.add(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura file studenti: " + e.getMessage());
+        }
+
+        return aggiornato;
+    }
+
+    private void scriviRigheSuFile(File file, List<String> righe) throws DAOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
             for (String riga : righe) {
                 bw.write(riga);
@@ -115,8 +128,8 @@ public class StudenteDAOFile extends StudenteDAO {
      */
     private String toCSV(Studente studente) {
         String passwordHash = "";
-        if (studente instanceof AutenticazioneLocale) {
-            passwordHash = ((AutenticazioneLocale) studente).passwordHash();
+        if (studente instanceof AutenticazioneLocale autenticazioneLocale) {
+            passwordHash = autenticazioneLocale.passwordHash();
         }
         String nomeClasse = studente.classeFrequentata() != null ? studente.classeFrequentata().nome() : "";
         String emailProf = (studente.classeFrequentata() != null && studente.classeFrequentata().teacher() != null)
@@ -133,6 +146,7 @@ public class StudenteDAOFile extends StudenteDAO {
                 provider);
     }
 
+    // Sostituisci il vecchio metodo con questo
     private Studente parseStudenteSeCorrisponde(String line, String filtro, boolean filterByClass) {
         if (line.trim().isEmpty()) return null;
         String[] parts = line.split(CSV_SEPARATOR, -1);
@@ -148,36 +162,49 @@ public class StudenteDAOFile extends StudenteDAO {
             String profEmail    = parts[5].trim();
             String authProvider = parts[6].trim();
 
-            if (filterByClass) {
-                if (!nomeClasse.equals(filtro)) return null;
-            } else {
-                if (!email.equals(filtro)) return null;
-            }
+            // 1. Verifica della corrispondenza (semplificata senza if annidati)
+            boolean corrisponde = filterByClass ? nomeClasse.equals(filtro) : email.equals(filtro);
+            if (!corrisponde) return null;
 
-            Studente studente;
-            if (AuthProvider.LOCAL.toString().equals(authProvider)) {
-                studente = new StudenteLocale(email, nome, cognome);
-                ((StudenteLocale) studente).inserisciHashPassword(passwordHash);
-            } else {
-                studente = new StudenteOAuth(email, nome, cognome, AuthProvider.valueOf(authProvider));
-            }
+            // 2. Creazione dell'istanza Studente
+            Studente studente = creaIstanzaStudente(email, nome, cognome, passwordHash, authProvider);
 
-            if (!nomeClasse.isEmpty() && !profEmail.isEmpty()) {
-                try {
-                    Professore professore = professoreDAO.getProfessoreByEmail(profEmail);
-                    if (professore != null) {
-                        SchoolClass classe = schoolClassDAO.getClasseByNomeEProfessore(nomeClasse, professore);
-                        if (classe != null) studente.iscriviClasse(classe);
-                    }
-                } catch (DAOException e) {
-                    // Classe non caricabile — lo studente rimane senza classe
-                }
-            }
+            // 3. Assegnazione della classe
+            assegnaClasseSePresente(studente, nomeClasse, profEmail);
 
             return studente;
 
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
             return null;
+        }
+    }
+
+    // ── Nuovi metodi di utilità da aggiungere sotto ───────────────────────────
+
+    private Studente creaIstanzaStudente(String email, String nome, String cognome, String passwordHash, String authProvider) {
+        if (AuthProvider.LOCAL.toString().equals(authProvider)) {
+            StudenteLocale studenteLocale = new StudenteLocale(email, nome, cognome);
+            studenteLocale.inserisciHashPassword(passwordHash);
+            return studenteLocale;
+        } else {
+            return new StudenteOAuth(email, nome, cognome, AuthProvider.valueOf(authProvider));
+        }
+    }
+
+    private void assegnaClasseSePresente(Studente studente, String nomeClasse, String profEmail) {
+        // Guard clause: se mancano i dati della classe, esci subito
+        if (nomeClasse.isEmpty() || profEmail.isEmpty()) return;
+
+        try {
+            Professore professore = professoreDAO.getProfessoreByEmail(profEmail);
+            if (professore == null) return;
+
+            SchoolClass classe = schoolClassDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            if (classe != null) {
+                studente.iscriviClasse(classe);
+            }
+        } catch (DAOException e) {
+            // Classe non caricabile — lo studente rimane senza classe
         }
     }
 }

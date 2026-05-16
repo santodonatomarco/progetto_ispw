@@ -62,7 +62,7 @@ public class FileDAOFactory extends DAOFactory {
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
         if (schoolClassDAOInstance == null)
-            schoolClassDAOInstance = new SchoolClassDAOFile(classiFile, createProfessoreDAO());
+            schoolClassDAOInstance = new SchoolClassDAOFile(classiFile);
         return schoolClassDAOInstance;
     }
 

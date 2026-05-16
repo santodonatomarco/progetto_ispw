@@ -6,6 +6,11 @@ import org.project.model.VirtualWallet;
 
 public class WalletFactory {
 
+    // Costruttore privato per nascondere quello pubblico implicito
+    private WalletFactory() {
+        throw new IllegalStateException("Utility class - Non istanziare");
+    }
+
     /**
      * Crea un nuovo portafoglio per lo studente, prelevando
      * automaticamente il budget iniziale stabilito dal professore per quella classe.

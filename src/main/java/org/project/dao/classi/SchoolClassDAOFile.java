@@ -16,12 +16,10 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
 
     private String fileName;
     private static final String CSV_SEPARATOR = ";";
-    private ProfessoreDAO professoreDAO;
 
-    public SchoolClassDAOFile(String fileName, ProfessoreDAO professoreDAO) {
+    public SchoolClassDAOFile(String fileName) {
         super();
         this.fileName = fileName;
-        this.professoreDAO = professoreDAO;
     }
 
     @Override

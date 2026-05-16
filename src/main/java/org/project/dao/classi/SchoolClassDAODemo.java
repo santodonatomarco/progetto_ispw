@@ -11,12 +11,10 @@ import java.util.List;
 public class SchoolClassDAODemo extends SchoolClassDAO {
 
     private List<SchoolClass> fintoDatabase;
-    private ProfessoreDAO professoreDAO;
 
-    public SchoolClassDAODemo(ProfessoreDAO professoreDAO) {
+    public SchoolClassDAODemo() {
         super();
         this.fintoDatabase = new ArrayList<>();
-        this.professoreDAO = professoreDAO;
     }
 
     @Override

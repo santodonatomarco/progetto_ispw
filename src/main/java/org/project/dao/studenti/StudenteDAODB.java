@@ -78,8 +78,8 @@ public class StudenteDAODB extends StudenteDAO {
                 "classe = EXCLUDED.classe, professore_email = EXCLUDED.professore_email";
 
         String passwordHash = "";
-        if (studente instanceof AutenticazioneLocale) {
-            passwordHash = ((AutenticazioneLocale) studente).passwordHash();
+        if (studente instanceof AutenticazioneLocale autenticazioneLocale) {
+            passwordHash = autenticazioneLocale.passwordHash();
         }
         String nomeClasse = studente.classeFrequentata() != null ? studente.classeFrequentata().nome() : null;
         String emailProf  = (studente.classeFrequentata() != null && studente.classeFrequentata().teacher() != null)

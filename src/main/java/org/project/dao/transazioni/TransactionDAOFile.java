@@ -3,13 +3,11 @@ package org.project.dao.transazioni;
 import org.project.exceptions.DAOException;
 import org.project.ing.enumerations.StatoTransazione;
 import org.project.ing.enumerations.TipoTransazione;
-import org.project.ing.factory.StockFactoryProducer;
 import org.project.ing.service.StockService;
 import org.project.model.Stock;
 import org.project.model.Transaction;
 
 import java.io.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

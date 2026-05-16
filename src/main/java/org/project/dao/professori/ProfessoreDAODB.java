@@ -55,8 +55,8 @@ public class ProfessoreDAODB extends ProfessoreDAO {
                 "password_hash = EXCLUDED.password_hash, auth_provider = EXCLUDED.auth_provider";
 
         String passwordHash = "";
-        if (professore instanceof AutenticazioneLocale) {
-            passwordHash = ((AutenticazioneLocale) professore).passwordHash();
+        if (professore instanceof AutenticazioneLocale autenticazioneLocale) {
+            passwordHash = autenticazioneLocale.passwordHash();
         }
 
         try (Connection conn = DBConnection.getInstance().getConnection();
