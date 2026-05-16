@@ -3,7 +3,6 @@ package org.project.dao.classi;
 import org.project.exceptions.DAOException;
 import org.project.model.SchoolClass;
 import org.project.model.Professore;
-import org.project.dao.professori.ProfessoreDAO;
 
 import java.io.BufferedReader;
 import java.io.File;

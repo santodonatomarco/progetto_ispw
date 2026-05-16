@@ -91,8 +91,8 @@ public class ProfessoreDAOFile extends ProfessoreDAO {
 
     private String toCSV(Professore professore) {
         String passwordHash = "";
-        if (professore instanceof AutenticazioneLocale) {
-            passwordHash = ((AutenticazioneLocale) professore).passwordHash();
+        if (professore instanceof AutenticazioneLocale autenticazioneLocale) {
+            passwordHash = autenticazioneLocale.passwordHash();
         }
         return String.join(CSV_SEPARATOR,
                 professore.presentaEmail(),

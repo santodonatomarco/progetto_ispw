@@ -4,7 +4,6 @@ import org.project.exceptions.DAOException;
 import org.project.ing.persistenza.DBConnection;
 import org.project.model.Professore;
 import org.project.model.SchoolClass;
-import org.project.dao.professori.ProfessoreDAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
