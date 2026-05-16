@@ -18,7 +18,6 @@ public class Sessione {
     private VirtualWallet walletCorrente;
     private SchoolClass classeCorrente;
     private Stock stockCorrente;
-    private Ranking rankingCorrente;
     private List<WalletPosition> posizioniCaricate;
 
     // ── Ordine in corso (timeout 5 minuti) ───────────────────────────────────
@@ -50,8 +49,6 @@ public class Sessione {
     public Stock getStockCorrente()                                     { return stockCorrente; }
     public void setStockCorrente(Stock stockCorrente)                   { this.stockCorrente = stockCorrente; }
 
-    public Ranking getRankingCorrente()                                 { return rankingCorrente; }
-    public void setRankingCorrente(Ranking rankingCorrente)             { this.rankingCorrente = rankingCorrente; }
 
     public List<WalletPosition> getPosizioniCaricate()                  { return posizioniCaricate; }
     public void setPosizioniCaricate(List<WalletPosition> posizioni)    { this.posizioniCaricate = posizioni; }

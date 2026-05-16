@@ -5,12 +5,11 @@ import org.project.dao.transazioni.TransactionDAO;
 import org.project.dao.wallets.PortafoglioDAO;
 import org.project.exceptions.ControllerException;
 import org.project.exceptions.DAOException;
-import org.project.ing.enumerations.TipoTransazione;
 import org.project.ing.persistenza.DAOFactory;
 import org.project.model.*;
 import org.project.view.bean.SessioneBean;
-import org.project.view.bean.TransactionBean;
 import org.project.view.bean.StockBean;
+import org.project.view.bean.TransactionBean;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -18,11 +17,8 @@ import java.time.temporal.ChronoUnit;
 /**
  * Controller applicativo per la conferma (o annullamento) di un ordine.
  *
- * Responsabilità:
- *  - verificare che la transazione PENDING non sia scaduta (> 5 minuti)
- *  - aggiornare quantita e importo in base alla scelta finale dello studente
- *  - scalare il saldo, aggiornare/creare la WalletPosition, completare la transazione
- *  - persistere tutto (transazione, posizione, wallet)
+ * Stateless e "stupido" (GRASP): orchestra DAO e model, non contiene
+ * logica di business — quella sta in VirtualWallet.eseguiAcquisto().
  */
 public class OrdineAppController {
 
@@ -31,24 +27,22 @@ public class OrdineAppController {
     /**
      * Conferma l'ordine di acquisto.
      *
-     * @param sessione        sessione corrente
-     * @param quantitaScelta  quantità di azioni che lo studente ha deciso di acquistare
+     * @param sessione       sessione corrente
+     * @param quantitaScelta quantità di azioni scelta dallo studente
      * @return TransactionBean con stato DONE
      */
     public TransactionBean confermaAcquisto(SessioneBean sessione, double quantitaScelta)
             throws ControllerException {
 
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
-        if (sessioneModel == null) {
+        if (sessioneModel == null)
             throw new ControllerException("Sessione non valida o scaduta.");
-        }
 
         Transaction transazione = sessioneModel.getTransazionePending();
-        if (transazione == null) {
+        if (transazione == null)
             throw new ControllerException("Nessun ordine pending trovato. Riprova.");
-        }
 
-        // 1. Verifica timeout — controlla passivamente al momento della conferma
+        // 1. Verifica timeout passivamente al momento della conferma
         long minutiTrascorsi = ChronoUnit.MINUTES.between(transazione.quando(), LocalDateTime.now());
         if (minutiTrascorsi > TIMEOUT_MINUTI) {
             sessioneModel.setTransazionePending(null);
@@ -56,20 +50,18 @@ public class OrdineAppController {
                     "Il tempo per confermare l'ordine è scaduto (limite: " + TIMEOUT_MINUTI + " minuti). Riprova.");
         }
 
-        // 2. Aggiorna quantita e importo con la scelta finale dello studente
+        // 2. Aggiorna la quantità con la scelta finale dello studente
         transazione.impostaQuantita(quantitaScelta);
 
         VirtualWallet wallet = sessioneModel.getWalletCorrente();
-        if (wallet == null) {
+        if (wallet == null)
             throw new ControllerException("Wallet non trovato per lo studente.");
-        }
 
         // 3. Verifica saldo sufficiente
-        if (wallet.saldoDisponibile() < transazione.importoTotale()) {
+        if (wallet.saldoDisponibile() < transazione.importoTotale())
             throw new ControllerException(
                     "Saldo insufficiente. Disponibile: " + wallet.saldoDisponibile() +
                             ", richiesto: " + transazione.importoTotale());
-        }
 
         DAOFactory factory = DAOFactory.getDAOFactory();
         TransactionDAO transactionDAO = factory.createTransactionDAO();
@@ -77,34 +69,25 @@ public class OrdineAppController {
         PortafoglioDAO walletDAO = factory.createPortafoglioDAO();
 
         try {
-            Stock stock = transazione.stock();
+            // 4. Delega tutta la logica di acquisto al wallet (Expert Pattern)
+            boolean posizioneEsisteva = wallet.trovaPosizione(transazione.stock()) != null;
+            WalletPosition posizione = wallet.eseguiAcquisto(
+                    transazione.stock(), quantitaScelta, transazione.prezzoAlMomento());
 
-            // 4. Scala il saldo
-            wallet.scalaSaldo(transazione.importoTotale());
-
-            // 5. Aggiorna o crea la WalletPosition
-            WalletPosition posizione = wallet.trovaPosizione(stock);
-            if (posizione == null) {
-                // Primo acquisto di questo stock
-                posizione = new WalletPosition(stock, quantitaScelta, transazione.prezzoAlMomento());
-                stock.aggiungiObserver(posizione);   // registra come observer per aggiornamenti prezzo
-                wallet.aggiungiPosizione(posizione);
-                posizioneDAO.salvaPosizione(posizione);
-            } else {
-                // Acquisto aggiuntivo — aggiorna prezzo medio
-                posizione.aggiungiAzioni(quantitaScelta, transazione.prezzoAlMomento());
-                posizioneDAO.aggiornaPosizione(posizione);
-            }
-
-            // 6. Completa la transazione
+            // 5. Completa la transazione e aggiungila al wallet
             transazione.completaTransazione();
             wallet.aggiungiTransazione(transazione);
 
-            // 7. Persisti transazione e wallet
+            // 6. Persisti
             transactionDAO.salvaTransazione(transazione);
+            if (posizioneEsisteva) {
+                posizioneDAO.aggiornaPosizione(posizione);
+            } else {
+                posizioneDAO.salvaPosizione(posizione);
+            }
             walletDAO.aggiornaPortafoglio(wallet);
 
-            // 8. Pulisce la pending dalla sessione
+            // 7. Pulisce la pending dalla sessione
             sessioneModel.setTransazionePending(null);
 
             return toTransactionBean(transazione);
@@ -119,9 +102,8 @@ public class OrdineAppController {
      */
     public void annullaOrdine(SessioneBean sessione) throws ControllerException {
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
-        if (sessioneModel == null) {
+        if (sessioneModel == null)
             throw new ControllerException("Sessione non valida o scaduta.");
-        }
         sessioneModel.setTransazionePending(null);
         sessioneModel.setStockCorrente(null);
     }

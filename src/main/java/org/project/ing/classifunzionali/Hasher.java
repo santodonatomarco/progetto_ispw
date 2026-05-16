@@ -7,7 +7,7 @@ package org.project.ing.classifunzionali;
  *
  * DA SOSTITUIRE con bcrypt o Argon2 prima di andare in produzione.
  */
-public class Hasher {
+public final class Hasher {
 
     private Hasher() {}
 
