@@ -19,6 +19,4 @@ public enum Schermate {
     GESTIONE_CLASSE,    // crea classe, aggiunge studenti pending
     ELENCO_STUDENTI,    // lista studenti della classe
 
-    // ── Comune studente/professore ────────────────────────────────────────────
-    RANKING             // classifica portafogli della classe
 }

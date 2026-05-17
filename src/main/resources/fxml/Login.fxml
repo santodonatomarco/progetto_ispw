@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns:fx="http://javafx.com/fxml"
+      stylesheets="@../style.css"
+      styleClass="schermata-scura"
+      prefWidth="900" prefHeight="600">
+
+    <!-- ══ LATO SINISTRO — branding ══════════════════════════════════════════ -->
+    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" styleClass="schermata-scura">
+        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label text="Investi, impara, cresci." styleClass="sottotitolo-app"/>
+    </VBox>
+
+    <!-- ══ PANNELLO BIANCO — form login ══════════════════════════════════════ -->
+    <VBox alignment="TOP_CENTER" minWidth="540" styleClass="pannello-bianco-sinistra">
+        <padding><Insets top="50" right="50" bottom="50" left="50"/></padding>
+
+        <Label text="Accedi" styleClass="titolo-schermata"/>
+        <Label text="Scegli il tuo ruolo e inserisci le credenziali"
+               styleClass="sottotitolo-schermata"/>
+
+        <VBox minHeight="20"/>
+
+        <!-- ── Due colonne: Studente | Professore ────────────────────────── -->
+        <HBox spacing="20" alignment="TOP_CENTER">
+
+            <!-- COLONNA STUDENTE -->
+            <VBox spacing="10" HBox.hgrow="ALWAYS" alignment="TOP_LEFT"
+                  styleClass="card-studente">
+
+                <Label text="👨‍🎓  Studente" styleClass="titolo-sezione-studente"/>
+
+                <Label text="Email" styleClass="label-campo"/>
+                <TextField fx:id="txtEmailStudente"
+                           promptText="email@studente.it"
+                           styleClass="campo-testo"/>
+
+                <Label text="Password" styleClass="label-campo"/>
+                <PasswordField fx:id="txtPasswordStudente"
+                               promptText="••••••••"
+                               styleClass="campo-password"/>
+
+                <Label fx:id="lblErroreStudente"
+                       styleClass="label-errore"
+                       visible="false"
+                       managed="false"/>
+
+                <Button text="Accedi come Studente"
+                        onAction="#clickLoginStudente"
+                        maxWidth="Infinity"
+                        styleClass="btn-primario-studente"/>
+
+                <Label text="Sei un nuovo studente? Registrati"
+                       onMouseClicked="#clickRegistratiStudente"
+                       styleClass="link-studente"/>
+            </VBox>
+
+            <!-- COLONNA PROFESSORE -->
+            <VBox spacing="10" HBox.hgrow="ALWAYS" alignment="TOP_LEFT"
+                  styleClass="card-professore">
+
+                <Label text="👨‍🏫  Professore" styleClass="titolo-sezione-professore"/>
+
+                <Label text="Email" styleClass="label-campo"/>
+                <TextField fx:id="txtEmailProfessore"
+                           promptText="email@universita.it"
+                           styleClass="campo-testo"/>
+
+                <Label text="Password" styleClass="label-campo"/>
+                <PasswordField fx:id="txtPasswordProfessore"
+                               promptText="••••••••"
+                               styleClass="campo-password"/>
+
+                <Label fx:id="lblErroreProfessore"
+                       styleClass="label-errore"
+                       visible="false"
+                       managed="false"/>
+
+                <Button text="Accedi come Professore"
+                        onAction="#clickLoginProfessore"
+                        maxWidth="Infinity"
+                        styleClass="btn-primario-professore"/>
+
+                <Label text="Sei un nuovo professore? Registrati"
+                       onMouseClicked="#clickRegistratiProfessore"
+                       styleClass="link-professore"/>
+            </VBox>
+
+        </HBox>
+    </VBox>
+
+</HBox>

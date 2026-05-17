@@ -20,31 +20,44 @@ public class StudenteDAODemo extends StudenteDAO {
         this.fintoDatabase = new ArrayList<>();
         this.schoolClassDAO = schoolClassDAO;
         this.professoreDAO = professoreDAO;
-        this.popolaDBFittizio();
+        try {
+            this.popolaDBFittizio();
+        } catch (DAOException e) {
+            // Se il DB demo non si popola correttamente, partiamo con lista vuota
+            // e logghiamo il problema — non crashiamo l'app
+            System.err.println("[StudenteDAODemo] Avviso: impossibile popolare il DB fittizio: " + e.getMessage());
+        }
     }
 
-    private void popolaDBFittizio() {
+    private void popolaDBFittizio() throws DAOException {
         try {
             Professore marioRossi = professoreDAO.getProfessoreByEmail("mario.rossi@univ.it");
             Professore luciaBianchi = professoreDAO.getProfessoreByEmail("lucia.bianchi@univ.it");
 
             if (marioRossi == null || luciaBianchi == null) {
-                throw new DAOException("Impossibile caricare i professori per il DB demo");
+                throw new DAOException("Professori demo non trovati — verifica ProfessoreDAODemo");
             }
 
             SchoolClass classe1A = schoolClassDAO.getClasseByNomeEProfessore("1A", marioRossi);
             SchoolClass classe1B = schoolClassDAO.getClasseByNomeEProfessore("1B", luciaBianchi);
 
+            if (classe1A == null || classe1B == null) {
+                throw new DAOException("Classi demo non trovate — verifica SchoolClassDAODemo");
+            }
+
+            // Studente locale
             StudenteLocale s1 = new StudenteLocale("alice.verdi@student.it", "Alice", "Verdi");
-            s1.inserisciHashPassword("idreV_ecilA"); // "Alice_Verdi" invertito (Hasher.codifica)
+            s1.inserisciHashPassword(org.project.ing.classifunzionali.Hasher.codifica("alice123"));
             s1.iscriviClasse(classe1A);
             fintoDatabase.add(s1);
 
+            // Studente locale
             StudenteLocale s2 = new StudenteLocale("bob.neri@student.it", "Bob", "Neri");
-            s2.inserisciHashPassword("ireN_boB");
+            s2.inserisciHashPassword(org.project.ing.classifunzionali.Hasher.codifica("bob123"));
             s2.iscriviClasse(classe1A);
             fintoDatabase.add(s2);
 
+            // Studente OAuth
             StudenteOAuth s3 = new StudenteOAuth("carlo.smith@student.it", "Carlo", "Smith", AuthProvider.GOOGLE);
             s3.iscriviClasse(classe1B);
             fintoDatabase.add(s3);
@@ -53,8 +66,9 @@ public class StudenteDAODemo extends StudenteDAO {
             s4.iscriviClasse(classe1B);
             fintoDatabase.add(s4);
 
-        } catch (DAOException e) {
-            throw new RuntimeException("Errore caricamento classi nel DB demo", e);
+        } catch (IllegalArgumentException e) {
+            // Exception chaining: wrappa l'eccezione di dominio in DAOException
+            throw new DAOException("Errore nella creazione degli studenti demo: " + e.getMessage(), e);
         }
     }
 
@@ -78,12 +92,10 @@ public class StudenteDAODemo extends StudenteDAO {
 
     @Override
     protected void doSaveStudente(Studente studente) throws DAOException {
-        // Verifica duplicati
-        for (Studente s : fintoDatabase) {
-            if (s.presentaEmail().equals(studente.presentaEmail())) {
-                // Studente già presente (pending) — aggiorna i dati
-                fintoDatabase.remove(s);
-                break;
+        for (int i = 0; i < fintoDatabase.size(); i++) {
+            if (fintoDatabase.get(i).presentaEmail().equals(studente.presentaEmail())) {
+                fintoDatabase.set(i, studente);
+                return;
             }
         }
         fintoDatabase.add(studente);

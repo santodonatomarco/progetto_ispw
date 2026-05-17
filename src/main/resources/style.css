@@ -1,0 +1,423 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   UniFinance — Global Stylesheet
+   Struttura:
+     1. Variabili colori (simulate con classi root)
+     2. Layout e sfondo
+     3. Tipografia
+     4. Form (TextField, PasswordField, Label errore)
+     5. Bottoni
+     6. Card / Pannelli
+     7. Navigazione e link
+     8. Utility
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 1. COLORI BASE ──────────────────────────────────────────────────────── */
+/*
+   Palette:
+   Sfondo scuro:       #1a1a2e
+   Viola (studente):   #7c4dff
+   Viola chiaro:       #ede7ff
+   Blu scuro (prof):   #1a237e
+   Blu chiaro:         #e8eaf6
+   Testo primario:     #1a1a2e
+   Testo secondario:   #757575
+   Errore:             #d32f2f
+   Bianco:             #ffffff
+   Bordo:              #dddddd
+*/
+
+
+/* ── 2. LAYOUT E SFONDO ──────────────────────────────────────────────────── */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+}
+
+.schermata-scura {
+    -fx-background-color: #1a1a2e;
+}
+
+.schermata-chiara {
+    -fx-background-color: #f5f5f5;
+}
+
+.pannello-bianco {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16;
+}
+
+.pannello-bianco-sinistra {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16 0 0 16;
+}
+
+.pannello-bianco-destra {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0 16 16 0;
+}
+
+.separatore-verticale {
+    -fx-border-color: #eeeeee;
+    -fx-border-width: 0 1 0 0;
+}
+
+
+/* ── 3. TIPOGRAFIA ───────────────────────────────────────────────────────── */
+
+.titolo-app {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+.sottotitolo-app {
+    -fx-font-size: 13px;
+    -fx-text-fill: #9b8ec4;
+}
+
+.titolo-schermata {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.sottotitolo-schermata {
+    -fx-font-size: 12px;
+    -fx-text-fill: #757575;
+}
+
+.titolo-sezione-studente {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7c4dff;
+}
+
+.titolo-sezione-professore {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a237e;
+}
+
+.label-campo {
+    -fx-font-size: 11px;
+    -fx-text-fill: #555555;
+}
+
+.testo-normale {
+    -fx-font-size: 13px;
+    -fx-text-fill: #1a1a2e;
+}
+
+.testo-secondario {
+    -fx-font-size: 12px;
+    -fx-text-fill: #757575;
+}
+
+.testo-bianco {
+    -fx-text-fill: #ffffff;
+}
+
+
+/* ── 4. FORM ─────────────────────────────────────────────────────────────── */
+
+.campo-testo {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddddd;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 9 12 9 12;
+    -fx-font-size: 12px;
+    -fx-text-fill: #1a1a2e;
+}
+
+.campo-testo:focused {
+    -fx-border-color: #7c4dff;
+    -fx-border-width: 1.5;
+}
+
+.campo-testo-professore:focused {
+    -fx-border-color: #1a237e;
+    -fx-border-width: 1.5;
+}
+
+.campo-password {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddddd;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 9 12 9 12;
+    -fx-font-size: 12px;
+}
+
+.campo-password:focused {
+    -fx-border-color: #7c4dff;
+    -fx-border-width: 1.5;
+}
+
+.campo-password-professore:focused {
+    -fx-border-color: #1a237e;
+    -fx-border-width: 1.5;
+}
+
+.label-errore {
+    -fx-font-size: 11px;
+    -fx-text-fill: #d32f2f;
+    -fx-wrap-text: true;
+}
+
+.label-successo {
+    -fx-font-size: 11px;
+    -fx-text-fill: #2e7d32;
+    -fx-wrap-text: true;
+}
+
+
+/* ── 5. BOTTONI ──────────────────────────────────────────────────────────── */
+
+/* Bottone primario viola (studente) */
+.btn-primario-studente {
+    -fx-background-color: #7c4dff;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 11 0 11 0;
+    -fx-cursor: hand;
+}
+
+.btn-primario-studente:hover {
+    -fx-background-color: #6a3de8;
+}
+
+.btn-primario-studente:pressed {
+    -fx-background-color: #5c2fc0;
+}
+
+/* Bottone primario blu scuro (professore) */
+.btn-primario-professore {
+    -fx-background-color: #1a237e;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 11 0 11 0;
+    -fx-cursor: hand;
+}
+
+.btn-primario-professore:hover {
+    -fx-background-color: #151c6b;
+}
+
+.btn-primario-professore:pressed {
+    -fx-background-color: #0f1452;
+}
+
+/* Bottone secondario (outline viola) */
+.btn-secondario {
+    -fx-background-color: transparent;
+    -fx-border-color: #7c4dff;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #7c4dff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 10 0 10 0;
+    -fx-cursor: hand;
+}
+
+.btn-secondario:hover {
+    -fx-background-color: #ede7ff;
+}
+
+/* Bottone neutro (grigio) */
+.btn-neutro {
+    -fx-background-color: #eeeeee;
+    -fx-text-fill: #424242;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+.btn-neutro:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+/* Bottone pericoloso (rosso — es. logout, annulla ordine) */
+.btn-pericolo {
+    -fx-background-color: #d32f2f;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+.btn-pericolo:hover {
+    -fx-background-color: #b71c1c;
+}
+
+/* Bottone positivo (verde — es. conferma acquisto) */
+.btn-positivo {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+.btn-positivo:hover {
+    -fx-background-color: #1b5e20;
+}
+
+
+/* ── 6. CARD / PANNELLI ──────────────────────────────────────────────────── */
+
+/* Card generica */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+    -fx-padding: 20;
+}
+
+/* Card sezione studente (bordo viola) */
+.card-studente {
+    -fx-background-color: #f8f6ff;
+    -fx-background-radius: 12;
+    -fx-border-color: #7c4dff;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-padding: 20;
+}
+
+/* Card sezione professore (bordo blu scuro) */
+.card-professore {
+    -fx-background-color: #f0f4ff;
+    -fx-background-radius: 12;
+    -fx-border-color: #1a237e;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-padding: 20;
+}
+
+/* Card stock nel mercato */
+.card-stock {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #eeeeee;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+    -fx-cursor: hand;
+}
+
+.card-stock:hover {
+    -fx-border-color: #7c4dff;
+    -fx-effect: dropshadow(gaussian, rgba(124,77,255,0.15), 6, 0, 0, 2);
+}
+
+/* Card transazione nello storico */
+.card-transazione {
+    -fx-background-color: #fafafa;
+    -fx-background-radius: 8;
+    -fx-border-color: #eeeeee;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 12;
+}
+
+
+/* ── 7. NAVIGAZIONE E LINK ───────────────────────────────────────────────── */
+
+.link-studente {
+    -fx-text-fill: #7c4dff;
+    -fx-font-size: 11px;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.link-studente:hover {
+    -fx-text-fill: #6a3de8;
+}
+
+.link-professore {
+    -fx-text-fill: #1a237e;
+    -fx-font-size: 11px;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.link-professore:hover {
+    -fx-text-fill: #151c6b;
+}
+
+/* Tag variazione positiva (es. +1.5%) */
+.tag-positivo {
+    -fx-background-color: #e8f5e9;
+    -fx-background-radius: 4;
+    -fx-text-fill: #2e7d32;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+}
+
+/* Tag variazione negativa (es. -0.8%) */
+.tag-negativo {
+    -fx-background-color: #ffebee;
+    -fx-background-radius: 4;
+    -fx-text-fill: #d32f2f;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+}
+
+/* Tag stato transazione */
+.tag-pending {
+    -fx-background-color: #fff8e1;
+    -fx-background-radius: 4;
+    -fx-text-fill: #f57f17;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+}
+
+.tag-done {
+    -fx-background-color: #e8f5e9;
+    -fx-background-radius: 4;
+    -fx-text-fill: #2e7d32;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6 2 6;
+}
+
+
+/* ── 8. UTILITY ──────────────────────────────────────────────────────────── */
+
+.divider {
+    -fx-border-color: #eeeeee;
+    -fx-border-width: 1 0 0 0;
+}
+
+.saldo-grande {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.valore-stock {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.simbolo-stock {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7c4dff;
+}
