@@ -15,7 +15,7 @@ public class NavigatorCLI extends Navigator {
      * private HomeStudenteGraphicControllerCLI homeStudente;
      * private HomeProfessoreGraphicControllerCLI homeProfessore;
      * ecc.
-     */.
+     */
 
     public NavigatorCLI() {
         super();
