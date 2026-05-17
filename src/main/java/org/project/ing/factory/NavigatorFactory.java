@@ -5,8 +5,6 @@ import org.project.view.Navigator;
 import org.project.view.NavigatorCLI;
 import org.project.view.NavigatorGUI;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -50,7 +48,6 @@ public class NavigatorFactory {
             }
         } catch (Exception e) {
             System.err.println("Si è verificato un errore durante la lettura delle impostazioni della UI:");
-            e.printStackTrace();
         }
 
         return toRet;

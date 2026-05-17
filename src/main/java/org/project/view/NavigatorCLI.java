@@ -10,10 +10,12 @@ public class NavigatorCLI extends Navigator {
 
     private LoginGraphicControllerCLI login;
 
-    // Le altre schermate verranno aggiunte man mano
-    // private HomeStudenteGraphicControllerCLI homeStudente;
-    // private HomeProfessoreGraphicControllerCLI homeProfessore;
-    // ecc.
+    /**
+     * Le altre schermate verranno aggiunte man mano
+     * private HomeStudenteGraphicControllerCLI homeStudente;
+     * private HomeProfessoreGraphicControllerCLI homeProfessore;
+     * ecc.
+     */.
 
     public NavigatorCLI() {
         super();

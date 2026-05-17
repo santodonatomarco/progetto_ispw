@@ -3,7 +3,6 @@ package org.project.view;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import org.project.view.NavigatorGUI;
 
 /**
  * Implementazione GUI (JavaFX) della schermata di login.
