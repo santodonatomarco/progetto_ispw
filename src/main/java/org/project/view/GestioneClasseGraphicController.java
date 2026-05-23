@@ -97,6 +97,23 @@ public abstract class GestioneClasseGraphicController {
         }
     }
 
+    protected boolean eseguiAggiungiStudente(String email, String nomeClasse) {
+        SessioneBean sessione = navigator.getSessione();
+        if (sessione == null) {
+            mostraErrore("Sessione non valida.");
+            return false;
+        }
+        try {
+            new GestioneClasseAppController().aggiungiStudente(sessione, email, nomeClasse);
+            mostraSuccesso("Studente " + email + " aggiunto alla classe " + nomeClasse
+                    + ". Potrà registrarsi con questa email.");
+            return true;
+        } catch (ControllerException e) {
+            mostraErrore(e.getMessage());
+            return false;
+        }
+    }
+
     // ── Navigazione ───────────────────────────────────────────────────────────
 
     protected void tornaDashboard() {

@@ -7,7 +7,7 @@
 <!--
     GestioneClasse.fxml
     Il professore può: selezionare una classe esistente, impostarne il budget,
-    oppure creare una nuova classe con un budget iniziale.
+    aggiungere studenti, oppure creare una nuova classe.
 -->
 <HBox xmlns:fx="http://javafx.com/fxml"
       stylesheets="@../style.css"
@@ -49,7 +49,7 @@
 
         <!-- Header -->
         <Label text="Gestione Classi" style="-fx-font-size:26px; -fx-font-weight:bold; -fx-text-fill:#1a237e;"/>
-        <Label text="Crea nuove classi o modifica il budget iniziale per i tuoi studenti"
+        <Label text="Crea nuove classi, modifica il budget e aggiungi studenti"
                style="-fx-font-size:13px; -fx-text-fill:#666; -fx-padding:4 0 24 0;"/>
 
         <!-- Messaggio feedback -->
@@ -68,9 +68,9 @@
             <Button text="Carica" onAction="#clickCaricaClasse" styleClass="btn-neutro"/>
         </HBox>
 
-        <!-- Pannello modifica budget classe selezionata -->
-        <VBox fx:id="panelModificaBudget" spacing="10"
-              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8; -fx-padding:20;"
+        <!-- Pannello classe selezionata: budget + aggiungi studente -->
+        <VBox fx:id="panelModificaBudget" spacing="12"
+              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8;"
               managed="false" visible="false">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
@@ -79,33 +79,51 @@
             <Label fx:id="lblBudgetAttuale" text="Budget attuale: —"
                    style="-fx-font-size:13px; -fx-text-fill:#666;"/>
 
+            <!-- Modifica budget -->
+            <Label text="MODIFICA BUDGET"
+                   style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#5c6bc0;"/>
             <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="Nuovo budget (€):" style="-fx-font-size:13px; -fx-text-fill:#333;"/>
+                <Label text="Nuovo budget (€):" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:130;"/>
                 <TextField fx:id="txtNuovoBudget" promptText="es. 10000" prefWidth="160"
                            styleClass="campo-testo"/>
                 <Button text="💾  Salva budget" onAction="#clickSalvaBudget"
                         styleClass="btn-primario-professore"/>
             </HBox>
+
+            <Separator/>
+
+            <!-- Aggiungi studente -->
+            <Label text="AGGIUNGI STUDENTE"
+                   style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#5c6bc0;"/>
+            <Label text="Lo studente riceverà un account pending e potrà completare la registrazione con questa email."
+                   style="-fx-font-size:11px; -fx-text-fill:#888; -fx-wrap-text:true;"/>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Email studente:" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:130;"/>
+                <TextField fx:id="txtEmailStudente" promptText="es. mario.rossi@student.it" prefWidth="240"
+                           styleClass="campo-testo"/>
+                <Button text="➕  Aggiungi" onAction="#clickAggiungiStudente"
+                        styleClass="btn-primario-professore"/>
+            </HBox>
         </VBox>
 
-        <VBox minHeight="30"/>
+        <VBox minHeight="24"/>
 
         <!-- ── SEZIONE: Crea nuova classe ──────────────────────────────────── -->
         <Label text="CREA NUOVA CLASSE"
                style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#5c6bc0; -fx-padding:0 0 8 0;"/>
 
         <VBox spacing="10"
-              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8; -fx-padding:20;">
+              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8;">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
             <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="Nome classe:" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:110;"/>
+                <Label text="Nome classe:" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:130;"/>
                 <TextField fx:id="txtNomeNuovaClasse" promptText="es. 3A" prefWidth="160"
                            styleClass="campo-testo"/>
             </HBox>
 
             <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="Budget iniziale (€):" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:110;"/>
+                <Label text="Budget iniziale (€):" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:130;"/>
                 <TextField fx:id="txtBudgetNuovaClasse" promptText="es. 10000" prefWidth="160"
                            styleClass="campo-testo"/>
             </HBox>

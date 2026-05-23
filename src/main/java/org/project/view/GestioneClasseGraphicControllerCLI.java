@@ -114,26 +114,40 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
     }
 
     private void flussoModificaBudget(SchoolClassBean classe) {
-        System.out.println("\n  ── MODIFICA BUDGET ──────────────────────────");
-        System.out.printf("  Classe: %s%n", classe.getNome());
+        System.out.println("\n  ── CLASSE: " + classe.getNome() + " ─────────────────────────");
         System.out.printf("  Budget attuale: € %.2f%n", classe.getBudgetIniziale());
+        int numStudenti = (classe.getStudenti() != null) ? classe.getStudenti().size() : 0;
+        System.out.println("  Studenti iscritti: " + numStudenti);
 
-        double nuovoBudget = leggiImporto("  Nuovo budget (€): ", -1);
-        if (nuovoBudget < 0) {
-            mostraErrore("Budget non valido.");
-            start();
-            return;
-        }
+        System.out.println("\n  ── AZIONI ───────────────────────────────────");
+        System.out.println("  [B] Modifica budget");
+        System.out.println("  [A] Aggiungi studente alla classe");
+        System.out.println("  [I] Indietro");
+        System.out.print("\n  Scelta: ");
 
-        SchoolClassBean aggiornata = eseguiImpostaBudget(classe.getNome(), nuovoBudget);
-        if (aggiornata != null) {
-            // Ricarica la lista aggiornata di classi nella sessione
-            List<SchoolClassBean> classiAggiornate = caricaClassi();
-            if (classiAggiornate != null) {
-                navigator.getSessione().setListaClassi(classiAggiornate);
+        String scelta = sc.nextLine().trim().toUpperCase();
+        switch (scelta) {
+            case "B" -> {
+                double nuovoBudget = leggiImporto("  Nuovo budget (€): ", -1);
+                if (nuovoBudget < 0) { mostraErrore("Budget non valido."); start(); return; }
+                SchoolClassBean aggiornata = eseguiImpostaBudget(classe.getNome(), nuovoBudget);
+                if (aggiornata != null) {
+                    List<SchoolClassBean> classiAggiornate = caricaClassi();
+                    if (classiAggiornate != null) navigator.getSessione().setListaClassi(classiAggiornate);
+                }
+                start();
             }
+            case "A" -> {
+                System.out.print("  Email dello studente da aggiungere: ");
+                String email = sc.nextLine().trim();
+                if (!email.isEmpty()) {
+                    eseguiAggiungiStudente(email, classe.getNome());
+                }
+                flussoModificaBudget(classe); // torna al menu della classe
+            }
+            case "I" -> start();
+            default  -> { mostraErrore("Scelta non valida."); flussoModificaBudget(classe); }
         }
-        start();
     }
 
     // ── Utility input ─────────────────────────────────────────────────────────

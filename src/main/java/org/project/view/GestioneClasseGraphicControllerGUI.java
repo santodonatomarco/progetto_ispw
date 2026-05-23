@@ -16,7 +16,6 @@ import java.util.Locale;
 
 /**
  * Controller GUI per la schermata Gestione Classe (professore).
- *
  * Permette di:
  *  - Selezionare una classe esistente e modificarne il budget
  *  - Creare una nuova classe con budget iniziale
@@ -33,6 +32,7 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
     @FXML private Label            lblNomeClasseSelezionata;
     @FXML private Label            lblBudgetAttuale;
     @FXML private TextField        txtNuovoBudget;
+    @FXML private TextField        txtEmailStudente;
 
     // ── Nuova classe ──────────────────────────────────────────────────────────
     @FXML private TextField txtNomeNuovaClasse;
@@ -164,6 +164,25 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
             txtNomeNuovaClasse.clear();
             txtBudgetNuovaClasse.clear();
             caricaClassiInComboBox();
+        }
+    }
+
+    @FXML
+    private void clickAggiungiStudente() {
+        nascondiMessaggio();
+        SchoolClassBean classeCorrente = navigator.getClasseCorrente();
+        if (classeCorrente == null) {
+            mostraErrore("Seleziona prima una classe.");
+            return;
+        }
+        String email = txtEmailStudente.getText().trim();
+        if (email.isEmpty()) {
+            mostraErrore("Inserisci l'email dello studente.");
+            return;
+        }
+        boolean ok = eseguiAggiungiStudente(email, classeCorrente.getNome());
+        if (ok) {
+            txtEmailStudente.clear();
         }
     }
 
