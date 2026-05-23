@@ -9,13 +9,9 @@ package org.project.view;
 public class NavigatorCLI extends Navigator {
 
     private LoginGraphicControllerCLI login;
-
-    /**
-     * Le altre schermate verranno aggiunte man mano
-     * private HomeStudenteGraphicControllerCLI homeStudente;
-     * private HomeProfessoreGraphicControllerCLI homeProfessore;
-     * ecc.
-     */
+    private HomeStudenteGraphicControllerCLI homeStudente;
+    private HomeProfessoreGraphicControllerCLI homeProfessore;
+    private MercatoGraphicControllerCLI mercato;
 
     public NavigatorCLI() {
         super();
@@ -45,13 +41,18 @@ public class NavigatorCLI extends Navigator {
 
     @Override
     protected void visualizzaHomeStudente() {
-        // TODO: new HomeStudenteGraphicControllerCLI(this).start();
-        System.out.println("[Home Studente CLI — da implementare]");
+        if (this.homeStudente == null) {
+            this.homeStudente = new HomeStudenteGraphicControllerCLI(this);
+        }
+        this.homeStudente.start();
     }
 
     @Override
     protected void visualizzaMercato() {
-        System.out.println("[Mercato CLI — da implementare]");
+        if (this.mercato == null) {
+            this.mercato = new MercatoGraphicControllerCLI(this);
+        }
+        this.mercato.start();
     }
 
     @Override
@@ -76,12 +77,15 @@ public class NavigatorCLI extends Navigator {
 
     @Override
     protected void visualizzaHomeProfessore() {
-        System.out.println("[Home Professore CLI — da implementare]");
+        if (this.homeProfessore == null) {
+            this.homeProfessore = new HomeProfessoreGraphicControllerCLI(this);
+        }
+        this.homeProfessore.start();
     }
 
     @Override
     protected void visualizzaGestioneClasse() {
-        System.out.println("[Gestione Classe CLI — da implementare]");
+        new GestioneClasseGraphicControllerCLI(this).start();
     }
 
     @Override
@@ -93,6 +97,8 @@ public class NavigatorCLI extends Navigator {
     @Override
     public void logout() {
         this.login = null;
-        // azzera gli altri controller quando li aggiungi
+        this.homeStudente = null;
+        this.homeProfessore = null;
+        this.mercato = null;
     }
 }

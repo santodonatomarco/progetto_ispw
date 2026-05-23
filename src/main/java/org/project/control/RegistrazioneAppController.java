@@ -6,6 +6,7 @@ import org.project.exceptions.ControllerException;
 import org.project.exceptions.CredenzialNonValideException;
 import org.project.exceptions.DAOException;
 import org.project.ing.classifunzionali.Hasher;
+import org.project.ing.enumerations.AuthProvider;
 import org.project.ing.persistenza.DAOFactory;
 import org.project.model.*;
 import org.project.view.bean.ProfessoreBean;
@@ -18,18 +19,17 @@ public class RegistrazioneAppController {
 
     /**
      * Registrazione studente.
-     * Il bean deve contenere: email, nome, cognome, nomeClasse.
-     * - Locale:  password valorizzata, authProvider null
-     * - OAuth:   authProvider valorizzato, password ignorata
+     * Il bean deve contenere: email, nome, cognome, nomeClasse, password.
+     * authProvider nel bean indica il metodo: LOCAL (default) o OAuth (non implementato).
      */
     public SessioneBean registraStudente(StudenteBean bean)
             throws CredenzialNonValideException, ControllerException {
 
         DAOFactory factory = DAOFactory.getDAOFactory();
+        factory.createSchoolClassDAO();
         StudenteDAO studenteDAO = factory.createStudenteDAO();
 
         try {
-            // 1. Cerca lo studente pending per email
             Studente pending = studenteDAO.getStudenteByEmail(bean.getEmail());
 
             if (pending == null) {
@@ -38,43 +38,27 @@ public class RegistrazioneAppController {
                                 "Chiedi al tuo professore di aggiungerti alla classe.");
             }
 
-            // 2. Verifica che la classe dichiarata corrisponda a quella assegnata dal professore
             if (pending.classeFrequentata() == null ||
                     !pending.classeFrequentata().nome().equals(bean.getNomeClasse())) {
                 throw new CredenzialNonValideException(
                         "La classe indicata non corrisponde a quella associata al tuo account.");
             }
 
-            // 3. Completa il profilo in base al tipo di autenticazione
-            if (bean.getAuthProvider() == null) {
-                // Registrazione locale
-                if (!(pending instanceof AutenticazioneLocale)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account è registrato con OAuth. Usa Google o Microsoft.");
-                }
-                AutenticazioneLocale locale = (AutenticazioneLocale) pending;
-                locale.inserisciHashPassword(Hasher.codifica(bean.getPassword()));
-            } else {
-                // Registrazione OAuth
-                if (!(pending instanceof AutenticazioneOAuth)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account è registrato localmente. Usa email e password.");
-                }
-                AutenticazioneOAuth oauth = (AutenticazioneOAuth) pending;
-                if (oauth.ottieniProvider() != bean.getAuthProvider()) {
-                    throw new CredenzialNonValideException(
-                            "Provider non corrispondente: " + oauth.ottieniProvider());
-                }
+            AuthProvider provider = (bean.getAuthProvider() != null)
+                    ? bean.getAuthProvider() : AuthProvider.LOCAL;
+
+            switch (provider) {
+                case LOCAL -> pending.impostaPasswordHash(Hasher.codifica(bean.getPassword()));
+                case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
+                        "Registrazione tramite " + provider + ": caso d'uso non implementato.");
+                default -> throw new CredenzialNonValideException("Provider non supportato.");
             }
 
-            // Nome e cognome arrivano dal bean (locale) o dal provider OAuth
             pending.chiamaNome(bean.getNome());
             pending.chiamaCognome(bean.getCognome());
 
-            // 4. Persisti le modifiche (sovrascrive il pending con il profilo completo)
             studenteDAO.salvaStudente(pending);
 
-            // 5. Apri la sessione
             Sessione sessione = SessionManager.getInstance().creaSessione(pending);
 
             StudenteBean studenteBean = new StudenteBean(
@@ -95,9 +79,8 @@ public class RegistrazioneAppController {
 
     /**
      * Registrazione professore.
-     * Il bean deve contenere: email, nome, cognome.
-     * - Locale:  password valorizzata, authProvider null
-     * - OAuth:   authProvider valorizzato, password ignorata
+     * Il bean deve contenere: email, nome, cognome, password.
+     * authProvider nel bean indica il metodo: LOCAL (default) o OAuth (non implementato).
      */
     public SessioneBean registraProfessore(ProfessoreBean bean)
             throws CredenzialNonValideException, ControllerException {
@@ -106,27 +89,24 @@ public class RegistrazioneAppController {
         ProfessoreDAO professoreDAO = factory.createProfessoreDAO();
 
         try {
-            // Verifica che non esista già un account con questa email
             Professore esistente = professoreDAO.getProfessoreByEmail(bean.getEmail());
             if (esistente != null) {
                 throw new CredenzialNonValideException(
                         "Esiste già un account registrato con questa email.");
             }
 
-            // Crea il professore in base al tipo di autenticazione
-            Professore nuovo;
-            if (bean.getAuthProvider() == null) {
-                ProfessoreLocale locale = new ProfessoreLocale(
-                        bean.getEmail(), bean.getNome(), bean.getCognome());
-                locale.inserisciHashPassword(Hasher.codifica(bean.getPassword()));
-                nuovo = locale;
-            } else {
-                nuovo = new ProfessoreOAuth(
-                        bean.getEmail(), bean.getNome(), bean.getCognome(),
-                        bean.getAuthProvider());
+            AuthProvider provider = (bean.getAuthProvider() != null)
+                    ? bean.getAuthProvider() : AuthProvider.LOCAL;
+
+            Professore nuovo = new Professore(bean.getEmail(), bean.getNome(), bean.getCognome(), provider);
+
+            switch (provider) {
+                case LOCAL -> nuovo.impostaPasswordHash(Hasher.codifica(bean.getPassword()));
+                case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
+                        "Registrazione tramite " + provider + ": caso d'uso non implementato.");
+                default -> throw new CredenzialNonValideException("Provider non supportato.");
             }
 
-            // Persisti il nuovo professore
             professoreDAO.salvaProfessore(nuovo);
 
             Sessione sessione = SessionManager.getInstance().creaSessione(nuovo);

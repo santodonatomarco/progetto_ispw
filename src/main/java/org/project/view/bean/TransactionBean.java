@@ -19,6 +19,8 @@ public class TransactionBean {
     private double importoTotale;       // quantita * prezzoAlMomento
     private LocalDateTime quando;
 
+    public TransactionBean() {}
+
     public TransactionBean(StockBean stock, TipoTransazione tipo, StatoTransazione stato,
                            double quantita, double prezzoAlMomento,
                            double importoTotale, LocalDateTime quando) {

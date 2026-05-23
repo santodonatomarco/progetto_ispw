@@ -9,13 +9,13 @@ public abstract class Utente {
     private String nome;
     private String cognome;
     private String profilePicture;
-    private AuthProvider authProvider; // GOOGLE o MICROSOFT
+    private AuthProvider authProvider;
 
     protected Utente(String email, String nome, String cognome, AuthProvider provider) {
         this.impostaEmail(email);
         this.chiamaNome(nome);
         this.chiamaCognome(cognome);
-        this.authProvider = provider;
+        this.authProvider = (provider != null) ? provider : AuthProvider.LOCAL;
     }
 
     public final void impostaEmail(String email) {
@@ -36,12 +36,13 @@ public abstract class Utente {
         this.cognome = cognome;
     }
 
-    public String presentaEmail()      { return email; }
-    public String presentaNome()       { return nome; }
-    public String presentaCognome()    { return cognome; }
-    public String fotoProfilo()      { return profilePicture; }
-    public void impostaFotoProfilo(String url)  { this.profilePicture = url; }
-    protected AuthProvider ottieniAuthProvider() { return authProvider; }
-    public abstract AuthProvider comeAccede();
+    public String presentaEmail()   { return email; }
+    public String presentaNome()    { return nome; }
+    public String presentaCognome() { return cognome; }
+    public String fotoProfilo()     { return profilePicture; }
+    public void impostaFotoProfilo(String url) { this.profilePicture = url; }
+
+    public AuthProvider comeAccede() { return authProvider; }
+
     public abstract Ruolo haRuolo();
 }

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    GestioneClasse.fxml
+    Il professore può: selezionare una classe esistente, impostarne il budget,
+    oppure creare una nuova classe con un budget iniziale.
+-->
+<HBox xmlns:fx="http://javafx.com/fxml"
+      stylesheets="@../style.css"
+      prefWidth="1100" prefHeight="680">
+
+    <!-- ══ SIDEBAR SINISTRA ══════════════════════════════════════════════════ -->
+    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+        <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
+
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label text="Gestione Classe" styleClass="sottotitolo-app"/>
+
+        <VBox minHeight="24"/>
+
+        <VBox styleClass="card-professore" spacing="4">
+            <Label fx:id="lblNomeUtente" text="Prof. —"
+                   style="-fx-text-fill:#000000; -fx-font-weight:bold; -fx-font-size:13px;"/>
+            <Label fx:id="lblEmailUtente" text=""
+                   style="-fx-text-fill:#5c6bc0; -fx-font-size:11px;"/>
+        </VBox>
+
+        <VBox minHeight="20"/>
+
+        <Label text="NAVIGA" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="4"/>
+        <Button text="⬅  Dashboard" maxWidth="Infinity"
+                onAction="#clickDashboard" styleClass="btn-neutro"/>
+        <Button text="📈  Mercato (sola lettura)" maxWidth="Infinity"
+                onAction="#clickMercato" styleClass="btn-neutro"/>
+
+        <VBox minHeight="16"/>
+        <Button text="🚪  Logout" maxWidth="Infinity"
+                onAction="#clickLogout" styleClass="btn-pericolo"/>
+    </VBox>
+
+    <!-- ══ AREA PRINCIPALE ═══════════════════════════════════════════════════ -->
+    <VBox HBox.hgrow="ALWAYS" spacing="0" style="-fx-background-color:#f5f5f5;">
+        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+        <!-- Header -->
+        <Label text="Gestione Classi" style="-fx-font-size:26px; -fx-font-weight:bold; -fx-text-fill:#1a237e;"/>
+        <Label text="Crea nuove classi o modifica il budget iniziale per i tuoi studenti"
+               style="-fx-font-size:13px; -fx-text-fill:#666; -fx-padding:4 0 24 0;"/>
+
+        <!-- Messaggio feedback -->
+        <Label fx:id="lblMessaggio" text="" managed="false" visible="false"
+               style="-fx-font-size:13px; -fx-padding:8 12; -fx-background-radius:6;"/>
+
+        <VBox minHeight="8"/>
+
+        <!-- ── SEZIONE: Le tue classi ──────────────────────────────────────── -->
+        <Label text="LE TUE CLASSI"
+               style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#5c6bc0; -fx-padding:0 0 8 0;"/>
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <ComboBox fx:id="cmbClassi" promptText="Seleziona una classe..."
+                      prefWidth="260" styleClass="campo-testo"/>
+            <Button text="Carica" onAction="#clickCaricaClasse" styleClass="btn-neutro"/>
+        </HBox>
+
+        <!-- Pannello modifica budget classe selezionata -->
+        <VBox fx:id="panelModificaBudget" spacing="10"
+              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8; -fx-padding:20;"
+              managed="false" visible="false">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+            <Label fx:id="lblNomeClasseSelezionata" text="Classe —"
+                   style="-fx-font-size:17px; -fx-font-weight:bold; -fx-text-fill:#1a237e;"/>
+            <Label fx:id="lblBudgetAttuale" text="Budget attuale: —"
+                   style="-fx-font-size:13px; -fx-text-fill:#666;"/>
+
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Nuovo budget (€):" style="-fx-font-size:13px; -fx-text-fill:#333;"/>
+                <TextField fx:id="txtNuovoBudget" promptText="es. 10000" prefWidth="160"
+                           styleClass="campo-testo"/>
+                <Button text="💾  Salva budget" onAction="#clickSalvaBudget"
+                        styleClass="btn-primario-professore"/>
+            </HBox>
+        </VBox>
+
+        <VBox minHeight="30"/>
+
+        <!-- ── SEZIONE: Crea nuova classe ──────────────────────────────────── -->
+        <Label text="CREA NUOVA CLASSE"
+               style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#5c6bc0; -fx-padding:0 0 8 0;"/>
+
+        <VBox spacing="10"
+              style="-fx-background-color:white; -fx-background-radius:8; -fx-border-color:#e0e0e0; -fx-border-radius:8; -fx-padding:20;">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Nome classe:" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:110;"/>
+                <TextField fx:id="txtNomeNuovaClasse" promptText="es. 3A" prefWidth="160"
+                           styleClass="campo-testo"/>
+            </HBox>
+
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Budget iniziale (€):" style="-fx-font-size:13px; -fx-text-fill:#333; -fx-min-width:110;"/>
+                <TextField fx:id="txtBudgetNuovaClasse" promptText="es. 10000" prefWidth="160"
+                           styleClass="campo-testo"/>
+            </HBox>
+
+            <Button text="➕  Crea classe" onAction="#clickCreaClasse"
+                    styleClass="btn-primario-professore" maxWidth="200"/>
+        </VBox>
+
+    </VBox>
+</HBox>

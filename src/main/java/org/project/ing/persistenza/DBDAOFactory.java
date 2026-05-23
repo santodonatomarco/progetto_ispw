@@ -13,7 +13,6 @@ import org.project.dao.transazioni.TransactionDAODB;
 import org.project.dao.posizioni.WalletPositionDAO;
 import org.project.dao.posizioni.WalletPositionDAODB;
 import org.project.ing.factory.StockFactory;
-import org.project.ing.factory.StockFactoryAPI;
 
 public class DBDAOFactory extends DAOFactory {
 
@@ -23,7 +22,6 @@ public class DBDAOFactory extends DAOFactory {
     private PortafoglioDAO portafoglioDAOInstance;
     private TransactionDAO transactionDAOInstance;
     private WalletPositionDAO walletPositionDAOInstance;
-    private StockFactory stockFactoryInstance;
 
     @Override
     public ProfessoreDAO createProfessoreDAO() {
@@ -34,15 +32,25 @@ public class DBDAOFactory extends DAOFactory {
 
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
-        if (schoolClassDAOInstance == null)
+        if (schoolClassDAOInstance == null) {
             schoolClassDAOInstance = new SchoolClassDAODB();
+            // Inietta StudenteDAO se già creato (per risolvere dipendenza circolare)
+            if (studenteDAOInstance != null && studenteDAOInstance instanceof StudenteDAODB) {
+                ((SchoolClassDAODB) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            }
+        }
         return schoolClassDAOInstance;
     }
 
     @Override
     public StudenteDAO createStudenteDAO() {
-        if (studenteDAOInstance == null)
+        if (studenteDAOInstance == null) {
             studenteDAOInstance = new StudenteDAODB(createSchoolClassDAO(), createProfessoreDAO());
+            // Inietta StudenteDAO nel SchoolClassDAO per caricare gli studenti
+            if (schoolClassDAOInstance != null && schoolClassDAOInstance instanceof SchoolClassDAODB) {
+                ((SchoolClassDAODB) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            }
+        }
         return studenteDAOInstance;
     }
 
@@ -68,8 +76,8 @@ public class DBDAOFactory extends DAOFactory {
     }
 
     private StockFactory createStockFactory() {
-        if (stockFactoryInstance == null)
-            stockFactoryInstance = new StockFactoryAPI();
-        return stockFactoryInstance;
+
+
+        return StockFactory.getInstance();
     }
 }

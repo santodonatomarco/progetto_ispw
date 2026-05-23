@@ -3,23 +3,24 @@ package org.project.control;
 import org.project.dao.professori.ProfessoreDAO;
 import org.project.dao.studenti.StudenteDAO;
 import org.project.dao.wallets.PortafoglioDAO;
+import org.project.dao.classi.SchoolClassDAO;
 import org.project.exceptions.ControllerException;
 import org.project.exceptions.CredenzialNonValideException;
 import org.project.exceptions.DAOException;
 import org.project.ing.classifunzionali.Hasher;
+import org.project.ing.enumerations.AuthProvider;
 import org.project.ing.persistenza.DAOFactory;
 import org.project.model.*;
-import org.project.view.bean.ProfessoreBean;
-import org.project.view.bean.SessioneBean;
-import org.project.view.bean.StudenteBean;
+import org.project.view.bean.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Controller applicativo per il login (locale e OAuth).
- *
+ * Controller applicativo per il login.
  * Stateless: nessun campo di istanza.
- * Riceve sempre StudenteBean o ProfessoreBean dalla view:
- *   - login locale:  bean con email + password, authProvider null
- *   - login OAuth:   bean con email + authProvider, password ignorata
+ * Il bean porta sempre authProvider valorizzato (LOCAL se login classico).
+ * La distinzione LOCAL / OAuth viene fatta qui con uno switch sull'enum.
  */
 public class LoginAppController {
 
@@ -29,6 +30,7 @@ public class LoginAppController {
             throws CredenzialNonValideException, ControllerException {
 
         DAOFactory factory = DAOFactory.getDAOFactory();
+        factory.createSchoolClassDAO();
         StudenteDAO studenteDAO = factory.createStudenteDAO();
 
         try {
@@ -38,27 +40,17 @@ public class LoginAppController {
                 throw new CredenzialNonValideException("Credenziali non valide.");
             }
 
-            if (bean.getAuthProvider() == null) {
-                // Login locale: verifica password
-                if (!(trovato instanceof AutenticazioneLocale)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account usa OAuth. Accedi con Google o Microsoft.");
+            AuthProvider provider = trovato.comeAccede();
+
+            switch (provider) {
+                case LOCAL -> {
+                    if (!trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
+                        throw new CredenzialNonValideException("Password errata.");
+                    }
                 }
-                AutenticazioneLocale locale = (AutenticazioneLocale) trovato;
-                if (!locale.passwordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                    throw new CredenzialNonValideException("Password errata.");
-                }
-            } else {
-                // Login OAuth: verifica provider
-                if (!(trovato instanceof AutenticazioneOAuth)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account usa email e password. Accedi localmente.");
-                }
-                AutenticazioneOAuth oauth = (AutenticazioneOAuth) trovato;
-                if (oauth.ottieniProvider() != bean.getAuthProvider()) {
-                    throw new CredenzialNonValideException(
-                            "Questo account è registrato con: " + oauth.ottieniProvider());
-                }
+                case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
+                        "Questo account usa " + provider + ". Caso d'uso non implementato.");
+                default -> throw new CredenzialNonValideException("Provider non supportato.");
             }
 
             return creaSessioneStudente(trovato, factory);
@@ -83,30 +75,20 @@ public class LoginAppController {
                 throw new CredenzialNonValideException("Credenziali non valide.");
             }
 
-            if (bean.getAuthProvider() == null) {
-                // Login locale
-                if (!(trovato instanceof AutenticazioneLocale)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account usa OAuth. Accedi con Google o Microsoft.");
+            AuthProvider provider = trovato.comeAccede();
+
+            switch (provider) {
+                case LOCAL -> {
+                    if (!trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
+                        throw new CredenzialNonValideException("Password errata.");
+                    }
                 }
-                AutenticazioneLocale locale = (AutenticazioneLocale) trovato;
-                if (!locale.passwordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                    throw new CredenzialNonValideException("Password errata.");
-                }
-            } else {
-                // Login OAuth
-                if (!(trovato instanceof AutenticazioneOAuth)) {
-                    throw new CredenzialNonValideException(
-                            "Questo account usa email e password. Accedi localmente.");
-                }
-                AutenticazioneOAuth oauth = (AutenticazioneOAuth) trovato;
-                if (oauth.ottieniProvider() != bean.getAuthProvider()) {
-                    throw new CredenzialNonValideException(
-                            "Questo account è registrato con: " + oauth.ottieniProvider());
-                }
+                case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
+                        "Questo account usa " + provider + ". Caso d'uso non implementato.");
+                default -> throw new CredenzialNonValideException("Provider non supportato.");
             }
 
-            return creaSessioneProfessore(trovato);
+            return creaSessioneProfessore(trovato, factory);
 
         } catch (DAOException e) {
             throw new ControllerException("Errore durante il login professore.", e);
@@ -139,12 +121,20 @@ public class LoginAppController {
                 studente.presentaNome(),
                 studente.presentaCognome()
         );
+
+        if (studente.classeFrequentata() != null) {
+            studenteBean.setNomeClasse(studente.classeFrequentata().nome());
+            studenteBean.setBudgetClasse(studente.classeFrequentata().budgetIniziale());
+        }
+
         studenteBean.resetPassword();
 
-        return new SessioneBean(sessione.getToken(), studenteBean);
+        SessioneBean sessioneBean = new SessioneBean(sessione.getToken(), studenteBean);
+        sessioneBean.setPortafoglio(convertiWalletInBean(wallet));
+        return sessioneBean;
     }
 
-    private SessioneBean creaSessioneProfessore(Professore professore) {
+    private SessioneBean creaSessioneProfessore(Professore professore, DAOFactory factory) throws DAOException {
 
         Sessione sessione = SessionManager.getInstance().creaSessione(professore);
 
@@ -154,6 +144,81 @@ public class LoginAppController {
                 professore.presentaCognome()
         );
 
-        return new SessioneBean(sessione.getToken(), professoreBean);
+        SchoolClassDAO classDAO = factory.createSchoolClassDAO();
+        factory.createStudenteDAO();
+
+        SessioneBean sessioneBean = new SessioneBean(sessione.getToken(), professoreBean);
+
+        List<SchoolClass> classi = classDAO.getClassiByProfessore(professore);
+        List<SchoolClassBean> classiBeans = new ArrayList<>();
+        for (SchoolClass c : classi) {
+            classiBeans.add(toBean(c));
+        }
+        sessioneBean.setListaClassi(classiBeans);
+
+        return sessioneBean;
+    }
+
+    // ── Conversione model → bean ──────────────────────────────────────────────
+
+    private SchoolClassBean toBean(SchoolClass c) {
+        ProfessoreBean profBean = new ProfessoreBean(
+                c.teacher().presentaEmail(),
+                c.teacher().presentaNome(),
+                c.teacher().presentaCognome());
+        List<StudenteBean> studentiBeans = new ArrayList<>();
+        if (c.studenti() != null) {
+            for (Studente s : c.studenti()) {
+                studentiBeans.add(new StudenteBean(
+                        s.presentaEmail(), s.presentaNome(), s.presentaCognome()));
+            }
+        }
+        return new SchoolClassBean(c.nome(), profBean, c.budgetIniziale(), studentiBeans);
+    }
+
+    private PortafoglioBean convertiWalletInBean(VirtualWallet wallet) {
+        if (wallet == null) return null;
+
+        List<WalletPositionBean> posizioniBeans = new ArrayList<>();
+        if (wallet.posizioni() != null) {
+            for (WalletPosition p : wallet.posizioni()) {
+                StockBean stockBean = new StockBean();
+                stockBean.setSimbolo(p.stock().simbolo());
+                stockBean.setNomeAzienda(p.stock().nomeAzienda());
+
+                WalletPositionBean wpBean = new WalletPositionBean();
+                wpBean.setStock(stockBean);
+                wpBean.setQuantita(p.quantita());
+                wpBean.setPrezzoMedioAcquisto(p.prezzoMedioAcquisto());
+                wpBean.setValoreAttuale(p.valoreAttuale());
+                double spesaIniziale = p.quantita() * p.prezzoMedioAcquisto();
+                wpBean.setProfittoPerdita(p.valoreAttuale() - spesaIniziale);
+
+                posizioniBeans.add(wpBean);
+            }
+        }
+
+        List<TransactionBean> transazioniBeans = new ArrayList<>();
+        if (wallet.transazioni() != null) {
+            for (Transaction t : wallet.transazioni()) {
+                StockBean stockBean = new StockBean();
+                stockBean.setSimbolo(t.stock().simbolo());
+
+                TransactionBean txBean = new TransactionBean();
+                txBean.setStock(stockBean);
+                txBean.setTipo(t.tipo());
+                txBean.setImportoTotale(t.importoTotale());
+                txBean.setStato(t.stato());
+
+                transazioniBeans.add(txBean);
+            }
+        }
+
+        return new PortafoglioBean(
+                wallet.saldoDisponibile(),
+                wallet.calcolaTotalePortafoglio(),
+                posizioniBeans,
+                transazioniBeans
+        );
     }
 }

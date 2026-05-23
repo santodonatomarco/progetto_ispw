@@ -13,7 +13,6 @@ import org.project.dao.transazioni.TransactionDAOFile;
 import org.project.dao.posizioni.WalletPositionDAO;
 import org.project.dao.posizioni.WalletPositionDAOFile;
 import org.project.ing.factory.StockFactory;
-import org.project.ing.factory.StockFactoryFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +26,6 @@ public class FileDAOFactory extends DAOFactory {
     private PortafoglioDAO portafoglioDAOInstance;
     private TransactionDAO transactionDAOInstance;
     private WalletPositionDAO walletPositionDAOInstance;
-    private StockFactory stockFactoryInstance;
 
     private final String professoriFile;
     private final String classiFile;
@@ -44,11 +42,11 @@ public class FileDAOFactory extends DAOFactory {
         } catch (IOException e) {
             System.err.println("Errore nella lettura di config.properties: " + e.getMessage());
         }
-        this.professoriFile  = prop.getProperty("file.professori",  "professori.csv");
-        this.classiFile      = prop.getProperty("file.classi",      "classi.csv");
-        this.studentiFile    = prop.getProperty("file.studenti",    "studenti.csv");
-        this.walletFile      = prop.getProperty("file.wallet",      "wallet.csv");
-        this.posizioniFile   = prop.getProperty("file.posizioni",   "posizioni.csv");
+        this.professoriFile  = prop.getProperty("file.professori", "professori.csv");
+        this.classiFile      = prop.getProperty("file.classi", "classi.csv");
+        this.studentiFile    = prop.getProperty("file.studenti", "studenti.csv");
+        this.walletFile      = prop.getProperty("file.wallet", "wallet.csv");
+        this.posizioniFile   = prop.getProperty("file.posizioni", "posizioni.csv");
         this.transazioniFile = prop.getProperty("file.transazioni", "transazioni.csv");
     }
 
@@ -61,15 +59,25 @@ public class FileDAOFactory extends DAOFactory {
 
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
-        if (schoolClassDAOInstance == null)
+        if (schoolClassDAOInstance == null) {
             schoolClassDAOInstance = new SchoolClassDAOFile(classiFile);
+            // Inietta StudenteDAO se già creato (per risolvere dipendenza circolare)
+            if (studenteDAOInstance != null && studenteDAOInstance instanceof StudenteDAOFile) {
+                ((SchoolClassDAOFile) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            }
+        }
         return schoolClassDAOInstance;
     }
 
     @Override
     public StudenteDAO createStudenteDAO() {
-        if (studenteDAOInstance == null)
+        if (studenteDAOInstance == null) {
             studenteDAOInstance = new StudenteDAOFile(studentiFile, createSchoolClassDAO(), createProfessoreDAO());
+            // Inietta StudenteDAO nel SchoolClassDAO per caricare gli studenti
+            if (schoolClassDAOInstance != null && schoolClassDAOInstance instanceof SchoolClassDAOFile) {
+                ((SchoolClassDAOFile) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            }
+        }
         return studenteDAOInstance;
     }
 
@@ -96,8 +104,8 @@ public class FileDAOFactory extends DAOFactory {
     }
 
     private StockFactory createStockFactory() {
-        if (stockFactoryInstance == null)
-            stockFactoryInstance = new StockFactoryFile();
-        return stockFactoryInstance;
+
+
+        return StockFactory.getInstance();
     }
 }

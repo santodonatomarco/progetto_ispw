@@ -12,6 +12,8 @@ public class WalletPositionBean {
     private double valoreAttuale;        // quantita * prezzoAttuale stock
     private double profittoPerdita;      // (prezzoAttuale - prezzoMedio) * quantita
 
+    public WalletPositionBean() {}
+
     public WalletPositionBean(StockBean stock, double quantita,
                               double prezzoMedioAcquisto, double valoreAttuale,
                               double profittoPerdita) {

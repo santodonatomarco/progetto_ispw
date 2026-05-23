@@ -1,9 +1,13 @@
 package org.project.view.bean;
 
+import java.util.List;
+
 public class SessioneBean {
     private int id;
     private StudenteBean studente;
     private ProfessoreBean professore;
+    private List<SchoolClassBean> listaClassi;
+    private PortafoglioBean portafoglio;
 
     public SessioneBean(int id, StudenteBean studente){
         this.id = id;
@@ -39,5 +43,13 @@ public class SessioneBean {
         this.professore = professore;
     }
 
+    public List<SchoolClassBean> getListaClassi() {
+        return listaClassi; }
+
+    public void setListaClassi(List<SchoolClassBean> listaClassi) {
+        this.listaClassi = listaClassi; }
+
+    public PortafoglioBean getPortafoglio()                         { return portafoglio; }
+    public void setPortafoglio(PortafoglioBean portafoglio)         { this.portafoglio = portafoglio; }
 
 }

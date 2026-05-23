@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    HomeProfessore.fxml
+    Layout: sidebar sinistra (navigazione) + area centrale (classi + accesso mercato).
+    Colori: tema blu professore (#1a237e).
+-->
+<HBox xmlns:fx="http://javafx.com/fxml"
+      stylesheets="@../style.css"
+      prefWidth="1100" prefHeight="680">
+
+    <!-- ══ SIDEBAR SINISTRA ══════════════════════════════════════════════════ -->
+    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+        <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
+
+        <!-- Brand -->
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label text="Area Professore" styleClass="sottotitolo-app"/>
+
+        <VBox minHeight="24"/>
+
+        <!-- Info utente -->
+        <VBox styleClass="card-professore" spacing="4">
+            <Label fx:id="lblNomeUtente" text="Prof. —"
+                   style="-fx-text-fill:#000000; -fx-font-weight:bold; -fx-font-size:13px;"/>
+            <Label fx:id="lblEmailUtente" text=""
+                   style="-fx-text-fill:#9b8ec4; -fx-font-size:10px;" wrapText="true"/>
+        </VBox>
+
+        <VBox minHeight="12"/>
+
+        <!-- Navigazione -->
+        <Label text="MENU" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="4"/>
+
+        <Button fx:id="btnHomeSidebar" text="🏠  Dashboard"
+                maxWidth="Infinity"
+                onAction="#clickHome"
+                styleClass="btn-primario-professore"/>
+
+        <Button text="📈  Mercato (sola lettura)"
+                maxWidth="Infinity"
+                onAction="#clickMercato"
+                styleClass="btn-secondario"
+                style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+
+        <Button text="🏫  Gestione Classi"
+                maxWidth="Infinity"
+                onAction="#clickGestioneClasse"
+                styleClass="btn-secondario"
+                style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+
+        <!-- Spacer -->
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <!-- Logout -->
+        <Button text="⬅  Logout"
+                maxWidth="Infinity"
+                onAction="#clickLogout"
+                styleClass="btn-neutro"/>
+    </VBox>
+
+    <!-- ══ AREA PRINCIPALE ═══════════════════════════════════════════════════ -->
+    <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS"
+                style="-fx-background-color:#f5f5f5; -fx-background:#f5f5f5;">
+        <content>
+            <VBox spacing="20" styleClass="schermata-chiara">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+                <!-- ── Intestazione pagina ─────────────────────────────── -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Dashboard Professore" styleClass="titolo-schermata"/>
+                    <VBox HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblDataOra" text="" styleClass="testo-secondario"/>
+                </HBox>
+
+                <!-- ── RIGA 1: Statistiche rapide ──────────────────────── -->
+                <HBox spacing="16">
+
+                    <!-- Numero classi -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="🏫  Classi gestite" styleClass="testo-secondario"/>
+                        <Label fx:id="lblNumClassi" text="—"
+                               styleClass="saldo-grande" style="-fx-text-fill:#1a237e;"/>
+                        <Label text="Classi attive" styleClass="testo-secondario"/>
+                    </VBox>
+
+                    <!-- Totale studenti -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="👨‍🎓  Studenti totali" styleClass="testo-secondario"/>
+                        <Label fx:id="lblNumStudenti" text="—"
+                               styleClass="saldo-grande"/>
+                        <Label text="In tutte le classi" styleClass="testo-secondario"/>
+                    </VBox>
+
+                    <!-- Mercato (accesso rapido) -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS"
+                          style="-fx-cursor:hand;" onMouseClicked="#clickMercato">
+                        <Label text="📈  Mercato" styleClass="testo-secondario"/>
+                        <Label text="Visualizza"
+                               styleClass="saldo-grande" style="-fx-font-size:22px; -fx-text-fill:#7c4dff;"/>
+                        <Label text="Sola lettura — nessun investimento" styleClass="testo-secondario"/>
+                    </VBox>
+
+                </HBox>
+
+                <!-- ── RIGA 2: Le mie classi ───────────────────────────── -->
+                <VBox styleClass="card" spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Le mie classi"
+                               style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+                        <VBox HBox.hgrow="ALWAYS"/>
+                        <Button text="+ Gestisci classi"
+                                onAction="#clickGestioneClasse"
+                                styleClass="btn-primario-professore"
+                                style="-fx-padding:6 14 6 14;"/>
+                    </HBox>
+
+                    <!-- Griglia classi — popolata dal controller -->
+                    <VBox fx:id="vboxClassi" spacing="10">
+                        <Label fx:id="lblNessunaClasse"
+                               text="Nessuna classe assegnata. Usa 'Gestisci classi' per crearne una."
+                               styleClass="testo-secondario"
+                               wrapText="true"/>
+                    </VBox>
+
+                </VBox>
+
+                <!-- ── RIGA 3: Avviso "nessun portafoglio" ─────────────── -->
+                <VBox styleClass="card" spacing="8"
+                      style="-fx-background-color:#e8eaf6; -fx-border-color:#1a237e; -fx-border-width:1; -fx-border-radius:12; -fx-background-radius:12;">
+                    <Label text="ℹ️  Modalità professore"
+                           style="-fx-font-weight:bold; -fx-text-fill:#1a237e;"/>
+                    <Label text="Come professore non puoi effettuare investimenti né possedere un portafoglio virtuale. Puoi visualizzare il mercato in sola lettura e monitorare le attività delle tue classi."
+                           styleClass="testo-normale"
+                           wrapText="true"/>
+                </VBox>
+
+                <!-- ── Messaggio di sistema ────────────────────────────── -->
+                <Label fx:id="lblMessaggio"
+                       styleClass="label-errore"
+                       visible="false"
+                       managed="false"
+                       wrapText="true"/>
+
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</HBox>

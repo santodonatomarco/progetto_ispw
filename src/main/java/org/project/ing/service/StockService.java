@@ -1,63 +1,57 @@
 package org.project.ing.service;
 
 import org.project.ing.adapter.StockDataProvider;
-import org.project.ing.adapter.YahooFinanceAdapter;
 import org.project.ing.factory.StockFactory;
-import org.project.ing.factory.StockFactoryProducer;
 import org.project.model.Stock;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
- * SINGLETON pattern secondo GoF
- * Garantisce una sola istanza di StockService in tutta l'applicazione.
+ * Singleton che gestisce il registro centralizzato degli Stock monitorati.
  *
  * Responsabilità:
- * - Evitare duplicati dello stesso stock per wallet diversi
- * - Mantenere un registry centralizzato di stocks monitorati
- * - Aggiornare tutti gli stocks in modo coordinato
+ * - Evitare duplicati: se due wallet comprano AAPL, usano la stessa istanza Stock
+ * - Creare nuovi stock sempre tramite l'API (StockFactory → YahooFinanceAdapter)
+ * - Aggiornare periodicamente i prezzi ogni 30 secondi (solo in GUI)
+ *   → aggiornaPrezzo() su Stock triggera automaticamente l'observer (WalletPosition + GUI)
  */
 public class StockService {
 
-    /* stock service serve per evitare che ci siano duplicati dello stesso stock per wallet diversi
-    in particolare, nel momento in cui il caso d'uso è in esecuzione e lo studente compra lo stock,
-    sarà il controller passando per stockservice (il controller mantiene alta la coesione)
-    a vedere se esiste già uno stock con quel simbolo, se esiste lo usa, altrimenti ne crea uno nuovo e lo monitora
-     */
+    private static final Logger LOG = Logger.getLogger(StockService.class.getName());
+    private static final int INTERVALLO_AGGIORNAMENTO_SECONDI = 30;
 
-    private static final StockService instance = new StockService();  // EAGER INITIALIZATION (thread-safe garantito)
-    private Map<String, Stock> stockMonitorati = new HashMap<>();
-    private StockDataProvider dataProvider;  // DIPENDE DALL'INTERFACCIA TARGET, non dalla classe concreta
-    private StockFactory stockFactory;
+    private static final StockService instance = new StockService();
 
+    private final Map<String, Stock> stockMonitorati = new HashMap<>();
+    private final StockDataProvider dataProvider;
+    private ScheduledExecutorService scheduler;
 
-    private StockService() {  // COSTRUTTORE PRIVATO secondo GoF
-        this.dataProvider = new YahooFinanceAdapter();
-        this.stockFactory = StockFactoryProducer.getStockFactory();
+    private StockService() {
+        this.dataProvider = StockFactory.getInstance().getDataProvider();
     }
 
-    public static StockService getInstance() {  // METODO STATICO PUBBLICO
+    public static StockService getInstance() {
         return instance;
     }
 
-    // Aggiorna tutti gli stock monitorati — da chiamare ogni giorno
-    public void aggiornaStocks() throws IOException {
-        for (Stock stock : stockMonitorati.values()) {
-            dataProvider.aggiornaStock(stock);
-            // aggiornaPrezzo() dentro aggiornaStock() triggera l'Observer
-            // quindi WalletPosition e RankingService vengono notificati automaticamente
-        }
-    }
+    // ── Recupero stock ────────────────────────────────────────────────────────
 
+    /**
+     * Restituisce lo stock se già monitorato, altrimenti lo crea dall'API e lo registra.
+     */
     public Stock ottieniOCreaStock(String simbolo) throws Exception {
-        if (stockMonitorati.containsKey(simbolo)) {
-            return stockMonitorati.get(simbolo);  // già esiste — lo restituisce
+        String sym = simbolo.toUpperCase();
+        if (stockMonitorati.containsKey(sym)) {
+            return stockMonitorati.get(sym);
         }
-        // non esiste — lo crea tramite factory giusta (Demo/File/API)
-        Stock nuovo = stockFactory.creaStock(simbolo);
-        stockMonitorati.put(simbolo, nuovo);
+        Stock nuovo = StockFactory.getInstance().creaStock(sym);
+        stockMonitorati.put(sym, nuovo);
         return nuovo;
     }
 
@@ -66,6 +60,59 @@ public class StockService {
     }
 
     public Stock trovaStock(String simbolo) {
-        return stockMonitorati.get(simbolo);
+        return stockMonitorati.get(simbolo.toUpperCase());
+    }
+
+    // ── Aggiornamento periodico (per la GUI) ──────────────────────────────────
+
+    /**
+     * Avvia il polling periodico ogni 30 secondi.
+     * Ogni aggiornamento chiama aggiornaPrezzo() su ogni Stock, che triggera
+     * automaticamente notificaObserver() → la GUI si aggiorna via Platform.runLater().
+     *
+     * Da chiamare all'avvio della GUI (non dalla CLI).
+     */
+    public void avviaAggiornamentoAutomatico() {
+        if (scheduler != null && !scheduler.isShutdown()) return; // già attivo
+
+        scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "stock-updater");
+            t.setDaemon(true); // non blocca lo shutdown dell'app
+            return t;
+        });
+
+        scheduler.scheduleAtFixedRate(() -> {
+            for (Stock stock : stockMonitorati.values()) {
+                try {
+                    dataProvider.aggiornaStock(stock);
+                    // aggiornaPrezzo() interno chiama notificaObserver() automaticamente
+                } catch (IOException e) {
+                    LOG.warning("Impossibile aggiornare " + stock.simbolo() + ": " + e.getMessage());
+                }
+            }
+        }, INTERVALLO_AGGIORNAMENTO_SECONDI, INTERVALLO_AGGIORNAMENTO_SECONDI, TimeUnit.SECONDS);
+
+        LOG.info("StockService: aggiornamento automatico avviato ogni "
+                + INTERVALLO_AGGIORNAMENTO_SECONDI + "s");
+    }
+
+    /**
+     * Ferma il polling periodico (da chiamare al logout o alla chiusura dell'app GUI).
+     */
+    public void fermaAggiornamentoAutomatico() {
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+            scheduler = null;
+        }
+    }
+
+    /**
+     * Aggiornamento manuale immediato di tutti gli stock monitorati.
+     * Usabile anche dalla CLI su richiesta esplicita dell'utente.
+     */
+    public void aggiornaStocksOra() throws IOException {
+        for (Stock stock : stockMonitorati.values()) {
+            dataProvider.aggiornaStock(stock);
+        }
     }
 }

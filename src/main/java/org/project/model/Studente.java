@@ -6,18 +6,32 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Studente extends Utente {
+public class Studente extends Utente {
 
+    private String passwordHash; // valorizzato solo se authProvider == LOCAL, altrimenti ""
     private SchoolClass schoolClass;
     private VirtualWallet wallet;
     private List<Utente> amici;
     private List<Alert> alerts;
 
-    protected Studente(String email, String nome, String cognome, AuthProvider provider) {
+    public Studente(String email, String nome, String cognome, AuthProvider provider) {
         super(email, nome, cognome, provider);
+        this.passwordHash = "";
         this.amici = new ArrayList<>();
         this.alerts = new ArrayList<>();
     }
+
+    // ── Gestione password (solo LOCAL) ────────────────────────────────────────
+
+    public void impostaPasswordHash(String hash) {
+        if (hash == null || hash.trim().isEmpty())
+            throw new IllegalArgumentException("La password hash non può essere vuota.");
+        this.passwordHash = hash;
+    }
+
+    public String getPasswordHash() { return passwordHash; }
+
+    // ── Gestione classe/wallet/amici/alert ───────────────────────────────────
 
     public final void iscriviClasse(SchoolClass classe) {
         if (classe == null)
@@ -44,12 +58,11 @@ public abstract class Studente extends Utente {
         this.alerts.add(alert);
     }
 
-    public SchoolClass classeFrequentata()  { return schoolClass; }
-    public VirtualWallet portafoglio()      { return wallet; }
-    public List<Utente> presentaAmici()     { return Collections.unmodifiableList(amici); }
-    public List<Alert> presentaAlert()      { return Collections.unmodifiableList(alerts); }
+    public SchoolClass classeFrequentata() { return schoolClass; }
+    public VirtualWallet portafoglio()     { return wallet; }
+    public List<Utente> presentaAmici()    { return Collections.unmodifiableList(amici); }
+    public List<Alert> presentaAlert()     { return Collections.unmodifiableList(alerts); }
 
     @Override
     public Ruolo haRuolo() { return Ruolo.STUDENTE; }
 }
-

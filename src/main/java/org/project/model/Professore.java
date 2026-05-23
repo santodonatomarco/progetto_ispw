@@ -6,14 +6,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Professore extends Utente {
+public class Professore extends Utente {
 
+    private String passwordHash; // valorizzato solo se authProvider == LOCAL, altrimenti ""
     private List<SchoolClass> classiInsegnate;
 
-    protected Professore(String email, String nome, String cognome, AuthProvider provider) {
+    public Professore(String email, String nome, String cognome, AuthProvider provider) {
         super(email, nome, cognome, provider);
+        this.passwordHash = "";
         this.classiInsegnate = new ArrayList<>();
     }
+
+    // ── Gestione password (solo LOCAL) ────────────────────────────────────────
+
+    public void impostaPasswordHash(String hash) {
+        if (hash == null || hash.trim().isEmpty())
+            throw new IllegalArgumentException("La password hash non può essere vuota.");
+        this.passwordHash = hash;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash; }
+
+    // ── Gestione classi ───────────────────────────────────────────────────────
 
     public final void aggiungiClasse(SchoolClass classe) {
         if (classe == null)

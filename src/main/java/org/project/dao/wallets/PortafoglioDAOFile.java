@@ -34,11 +34,49 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         Studente studente = studenteDAO.getStudenteByEmail(mailCercata);
         if (studente == null) return null;
 
+        // 1. Legge il vecchio portafoglio dal file (es. 10.000€)
         VirtualWallet wallet = leggiWalletBase(studente, mailCercata);
         if (wallet == null) return null;
 
         popolaPosizioni(wallet, mailCercata);
         popolaTransazioni(wallet, mailCercata);
+
+        // --- INIZIO CORREZIONE: Allineamento automatico al nuovo budget della classe ---
+
+        // Verifica se lo studente è iscritto a una classe e qual è il suo budget attuale
+        if (studente.classeFrequentata() != null) {
+            double budgetAttualeClasse = studente.classeFrequentata().budgetIniziale();
+
+            // Calcola quanti soldi sono stati effettivamente dati allo studente in passato
+            // (Saldo attuale + tutti i soldi spesi per le posizioni)
+            double spesaStorica = 0.0;
+            if (wallet.posizioni() != null) {
+                for (WalletPosition p : wallet.posizioni()) {
+                    spesaStorica += (p.quantita() * p.prezzoMedioAcquisto());
+                }
+            }
+            double budgetAssegnatoInPassato = wallet.saldoDisponibile() + spesaStorica;
+
+            // Se il prof ha alzato il budget mentre lo studente era offline, gli diamo la differenza!
+            double differenza = budgetAttualeClasse - budgetAssegnatoInPassato;
+
+            if (Math.abs(differenza) > 0.01) { // Evita micro-bug sui decimali
+                if (differenza > 0) {
+                    wallet.accreditaSaldo(differenza);
+                } else {
+                    double daScalare = Math.abs(differenza);
+                    if (wallet.saldoDisponibile() >= daScalare) {
+                        wallet.scalaSaldo(daScalare);
+                    } else {
+                        wallet.scalaSaldo(wallet.saldoDisponibile()); // Non può andare in negativo
+                    }
+                }
+
+                // Salva subito il nuovo portafoglio aggiornato nel file CSV
+                salvaPortafoglio(wallet);
+            }
+        }
+        // --- FINE CORREZIONE ---
 
         return wallet;
     }

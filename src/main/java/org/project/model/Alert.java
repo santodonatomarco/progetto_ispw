@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 
 public class Alert {
 
-    private StudenteOAuth destinatario;
+    private Studente destinatario;
     private Stock stock;
     private double profittoPerdita;     // valore giornaliero +/-
     private LocalDateTime inviatoAlle;
     private boolean visualizzato;
 
-    public Alert(StudenteOAuth destinatario, Stock stock, double profittoPerdita) {
+    public Alert(Studente destinatario, Stock stock, double profittoPerdita) {
         this.impostaDestinatario(destinatario);
         this.collegaStock(stock);
         this.registraProfittoPerdita(profittoPerdita);
@@ -18,7 +18,7 @@ public class Alert {
         this.visualizzato = false;
     }
 
-    public final void impostaDestinatario(StudenteOAuth destinatario) {
+    public final void impostaDestinatario(Studente destinatario) {
         if (destinatario == null)
             throw new IllegalArgumentException("Il destinatario non può essere nullo.");
         this.destinatario = destinatario;
@@ -38,7 +38,7 @@ public class Alert {
         this.visualizzato = true;
     }
 
-    public StudenteOAuth destinatario()       { return destinatario; }
+    public Studente destinatario()       { return destinatario; }
     public Stock stock()                { return stock; }
     public double profittoPerdita()     { return profittoPerdita; }
     public LocalDateTime quando()       { return inviatoAlle; }

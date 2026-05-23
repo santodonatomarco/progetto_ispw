@@ -64,10 +64,6 @@ public class StudenteDAODB extends StudenteDAO {
         return lista;
     }
 
-    /**
-     * Inserisce o aggiorna lo studente (UPSERT).
-     * Usato sia per il pending iniziale che per completare la registrazione.
-     */
     @Override
     protected void doSaveStudente(Studente studente) throws DAOException {
         String sql = "INSERT INTO studente (email, nome, cognome, password_hash, auth_provider, classe, professore_email) " +
@@ -77,10 +73,6 @@ public class StudenteDAODB extends StudenteDAO {
                 "password_hash = EXCLUDED.password_hash, auth_provider = EXCLUDED.auth_provider, " +
                 "classe = EXCLUDED.classe, professore_email = EXCLUDED.professore_email";
 
-        String passwordHash = "";
-        if (studente instanceof AutenticazioneLocale autenticazioneLocale) {
-            passwordHash = autenticazioneLocale.passwordHash();
-        }
         String nomeClasse = studente.classeFrequentata() != null ? studente.classeFrequentata().nome() : null;
         String emailProf  = (studente.classeFrequentata() != null && studente.classeFrequentata().teacher() != null)
                 ? studente.classeFrequentata().teacher().presentaEmail() : null;
@@ -91,7 +83,7 @@ public class StudenteDAODB extends StudenteDAO {
             st.setString(1, studente.presentaEmail());
             st.setString(2, studente.presentaNome());
             st.setString(3, studente.presentaCognome());
-            st.setString(4, passwordHash);
+            st.setString(4, studente.getPasswordHash());
             st.setString(5, studente.comeAccede().toString());
             st.setString(6, nomeClasse);
             st.setString(7, emailProf);
@@ -103,8 +95,6 @@ public class StudenteDAODB extends StudenteDAO {
         }
     }
 
-    // ── Metodo privato di mapping ─────────────────────────────────────────────
-
     private Studente mapStudente(ResultSet rs) throws SQLException, DAOException {
         String email        = rs.getString("email");
         String nome         = rs.getString("nome");
@@ -114,12 +104,10 @@ public class StudenteDAODB extends StudenteDAO {
         String nomeClasse   = rs.getString("classe");
         String profEmail    = rs.getString("professore_email");
 
-        Studente studente;
-        if (AuthProvider.LOCAL.toString().equals(authProvider)) {
-            studente = new StudenteLocale(email, nome, cognome);
-            ((StudenteLocale) studente).inserisciHashPassword(passwordHash != null ? passwordHash : "");
-        } else {
-            studente = new StudenteOAuth(email, nome, cognome, AuthProvider.valueOf(authProvider));
+        AuthProvider provider = AuthProvider.valueOf(authProvider);
+        Studente studente = new Studente(email, nome, cognome, provider);
+        if (provider == AuthProvider.LOCAL && passwordHash != null && !passwordHash.isEmpty()) {
+            studente.impostaPasswordHash(passwordHash);
         }
 
         if (nomeClasse != null && !nomeClasse.trim().isEmpty() &&

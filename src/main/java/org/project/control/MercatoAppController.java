@@ -29,9 +29,14 @@ public class MercatoAppController {
     public StockBean cercaStock(String simbolo) throws ControllerException {
         try {
             Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
+            if (stock == null) {
+                throw new ControllerException("Stock \"" + simbolo + "\" non trovato. Verifica il simbolo e riprova.");
+            }
             return toBean(stock);
+        } catch (ControllerException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ControllerException("Impossibile recuperare lo stock: " + simbolo, e);
+            throw new ControllerException(e.getMessage(), e);
         }
     }
 

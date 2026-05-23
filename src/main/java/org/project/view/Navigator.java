@@ -36,7 +36,8 @@ public abstract class Navigator {
     }
 
     public void impostaStudente(StudenteBean studente) {
-        this.contesto = new Context(studente);
+        if (this.contesto == null) this.contesto = new Context();
+        this.contesto.setStudenteLoggato(studente);
     }
 
     public StudenteBean getStudente() {
@@ -44,7 +45,8 @@ public abstract class Navigator {
     }
 
     public void impostaProfessore(ProfessoreBean professore) {
-        this.contesto = new Context(professore);
+        if (this.contesto == null) this.contesto = new Context();
+        this.contesto.setProfessoreLoggato(professore);
     }
 
     public ProfessoreBean getProfessore() {

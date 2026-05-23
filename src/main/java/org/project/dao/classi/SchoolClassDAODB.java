@@ -1,9 +1,11 @@
 package org.project.dao.classi;
 
+import org.project.dao.studenti.StudenteDAO;
 import org.project.exceptions.DAOException;
 import org.project.ing.persistenza.DBConnection;
 import org.project.model.Professore;
 import org.project.model.SchoolClass;
+import org.project.model.Studente;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,8 +16,15 @@ import java.util.List;
 
 public class SchoolClassDAODB extends SchoolClassDAO {
 
+    private StudenteDAO studenteDAO;  // iniettato opzionalmente per caricare gli studenti
+
     public SchoolClassDAODB() {
         super();
+    }
+
+    /** Permette di iniettare lo StudenteDAO dopo la costruzione (evita ciclo di dipendenze). */
+    public void setStudenteDAO(StudenteDAO studenteDAO) {
+        this.studenteDAO = studenteDAO;
     }
 
     @Override
@@ -27,7 +36,7 @@ public class SchoolClassDAODB extends SchoolClassDAO {
             throw new DAOException("Professore non può essere nullo");
         }
 
-        String sql = "SELECT nome, professore_email FROM schoolclass WHERE nome = ? AND professore_email = ?";
+        String sql = "SELECT nome, budget_iniziale FROM schoolclass WHERE nome = ? AND professore_email = ?";
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -38,8 +47,10 @@ public class SchoolClassDAODB extends SchoolClassDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String nome = rs.getString("nome");
-                    // Usiamo direttamente l'oggetto professore passato come parametro
-                    return new SchoolClass(nome, professore);
+                    double budget = rs.getDouble("budget_iniziale");
+                    SchoolClass classe = new SchoolClass(nome, professore);
+                    classe.impostaBudget(budget);
+                    return classe;
                 }
             }
         } catch (SQLException e) {
@@ -55,7 +66,7 @@ public class SchoolClassDAODB extends SchoolClassDAO {
         }
 
         List<SchoolClass> classi = new ArrayList<>();
-        String sql = "SELECT nome FROM schoolclass WHERE professore_email = ?";
+        String sql = "SELECT nome, budget_iniziale FROM schoolclass WHERE professore_email = ?";
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -65,9 +76,22 @@ public class SchoolClassDAODB extends SchoolClassDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String nomeClasse = rs.getString("nome");
+                    double budget = rs.getDouble("budget_iniziale");
 
                     // Creiamo la classe passando l'oggetto professore ricevuto
                     SchoolClass classe = new SchoolClass(nomeClasse, professore);
+                    classe.impostaBudget(budget);
+
+                    // Carica gli studenti iscritti a questa classe
+                    if (studenteDAO != null) {
+                        try {
+                            List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
+                            for (Studente s : studenti) classe.iscriviStudente(s);
+                        } catch (DAOException e) {
+                            // Non bloccare se gli studenti non si caricano
+                        }
+                    }
+
                     classi.add(classe);
                     addToCache(classe);
                 }

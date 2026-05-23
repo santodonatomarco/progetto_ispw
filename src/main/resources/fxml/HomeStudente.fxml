@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    HomeStudente.fxml
+    Layout: sidebar sinistra (navigazione) + area centrale (portafoglio + posizioni).
+    Colori: tema viola studente (#7c4dff).
+-->
+<HBox xmlns:fx="http://javafx.com/fxml"
+      stylesheets="@../style.css"
+      prefWidth="1100" prefHeight="680">
+
+    <!-- ══ SIDEBAR SINISTRA ══════════════════════════════════════════════════ -->
+    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+        <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
+
+        <!-- Brand -->
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label text="Area Studente" styleClass="sottotitolo-app"/>
+
+        <VBox minHeight="24"/>
+
+        <!-- Info utente -->
+        <VBox styleClass="card-studente" spacing="4">
+            <Label fx:id="lblNomeUtente" text="Ciao, —" styleClass="testo-normale" style="-fx-text-fill:#000000; -fx-font-weight:bold;"/>
+            <Label fx:id="lblEmailUtente" text="" styleClass="testo-secondario" style="-fx-text-fill:#9b8ec4; -fx-font-size:10px;"
+                   wrapText="true"/>
+            <Label fx:id="lblNomeClasse" text="" styleClass="testo-secondario" style="-fx-text-fill:#9b8ec4; -fx-font-size:10px;"/>
+        </VBox>
+
+        <VBox minHeight="12"/>
+
+        <!-- Navigazione -->
+        <Label text="MENU" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="4"/>
+
+        <Button fx:id="btnHomeSidebar" text="🏠  Dashboard"
+                maxWidth="Infinity"
+                onAction="#clickHome"
+                styleClass="btn-primario-studente"/>
+
+        <Button text="📈  Mercato"
+                maxWidth="Infinity"
+                onAction="#clickMercato"
+                styleClass="btn-secondario"/>
+
+        <Button text="💼  Portafoglio"
+                maxWidth="Infinity"
+                onAction="#clickPortafoglio"
+                styleClass="btn-secondario"/>
+
+        <Button text="📋  Storico Ordini"
+                maxWidth="Infinity"
+                onAction="#clickStorico"
+                styleClass="btn-secondario"/>
+
+        <!-- Spacer -->
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <!-- Logout -->
+        <Button text="⬅  Logout"
+                maxWidth="Infinity"
+                onAction="#clickLogout"
+                styleClass="btn-neutro"/>
+    </VBox>
+
+    <!-- ══ AREA PRINCIPALE ═══════════════════════════════════════════════════ -->
+    <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS"
+                style="-fx-background-color:#f5f5f5; -fx-background:#f5f5f5;">
+        <content>
+            <VBox spacing="20" styleClass="schermata-chiara">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+                <!-- ── Intestazione pagina ─────────────────────────────── -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Dashboard" styleClass="titolo-schermata"/>
+                    <VBox HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblDataOra" text="" styleClass="testo-secondario"/>
+                </HBox>
+
+                <!-- ── RIGA 1: Carte riepilogo portafoglio ─────────────── -->
+                <HBox spacing="16">
+
+                    <!-- Saldo disponibile -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="💵  Saldo disponibile" styleClass="testo-secondario"/>
+                        <Label fx:id="lblSaldoDisponibile" text="—"
+                               styleClass="saldo-grande" style="-fx-text-fill:#7c4dff;"/>
+                        <Label text="Liquidità libera" styleClass="testo-secondario"/>
+                    </VBox>
+
+                    <!-- Valore totale portafoglio -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="📊  Valore totale" styleClass="testo-secondario"/>
+                        <Label fx:id="lblValoreTotale" text="—"
+                               styleClass="saldo-grande"/>
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Label text="Portafoglio complessivo" styleClass="testo-secondario"/>
+                            <Label fx:id="lblVariazioneTotale" text=""
+                                   styleClass="tag-positivo" visible="false" managed="false"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Numero posizioni -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="🗂  Posizioni aperte" styleClass="testo-secondario"/>
+                        <Label fx:id="lblNumPosizioni" text="—"
+                               styleClass="saldo-grande" style="-fx-font-size:28px;"/>
+                        <Label text="Titoli in portafoglio" styleClass="testo-secondario"/>
+                    </VBox>
+
+                    <!-- Classe -->
+                    <VBox styleClass="card" spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="🏫  La tua classe" styleClass="testo-secondario"/>
+                        <Label fx:id="lblClasseCard" text="—"
+                               styleClass="saldo-grande" style="-fx-font-size:20px; -fx-text-fill:#1a237e;"/>
+                        <Label fx:id="lblBudgetClasse" text="" styleClass="testo-secondario"/>
+                    </VBox>
+
+                </HBox>
+
+                <!-- ── RIGA 2: Posizioni aperte ────────────────────────── -->
+                <VBox styleClass="card" spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Posizioni aperte" style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+                        <VBox HBox.hgrow="ALWAYS"/>
+                        <Button text="Vai al mercato →"
+                                onAction="#clickMercato"
+                                styleClass="btn-primario-studente"
+                                style="-fx-padding:6 14 6 14;"/>
+                    </HBox>
+
+                    <!-- Intestazione tabella -->
+                    <HBox styleClass="divider" style="-fx-padding:0 0 8 0;">
+                        <HBox.margin><Insets bottom="4"/></HBox.margin>
+                    </HBox>
+                    <HBox spacing="0">
+                        <Label text="Titolo"       style="-fx-font-size:11px; -fx-text-fill:#757575; -fx-font-weight:bold;" prefWidth="140"/>
+                        <Label text="Qtà"          style="-fx-font-size:11px; -fx-text-fill:#757575; -fx-font-weight:bold;" prefWidth="70"/>
+                        <Label text="P. medio"     style="-fx-font-size:11px; -fx-text-fill:#757575; -fx-font-weight:bold;" prefWidth="100"/>
+                        <Label text="Valore att."  style="-fx-font-size:11px; -fx-text-fill:#757575; -fx-font-weight:bold;" prefWidth="110"/>
+                        <Label text="P/L"          style="-fx-font-size:11px; -fx-text-fill:#757575; -fx-font-weight:bold;" prefWidth="100"/>
+                    </HBox>
+
+                    <!-- Lista posizioni — popolata dal controller -->
+                    <VBox fx:id="vboxPosizioni" spacing="8">
+                        <!-- Placeholder visibile finché non ci sono posizioni -->
+                        <Label fx:id="lblNessunaPosizione"
+                               text="Nessuna posizione aperta. Vai al mercato per iniziare a investire!"
+                               styleClass="testo-secondario"
+                               wrapText="true"/>
+                    </VBox>
+
+                </VBox>
+
+                <!-- ── RIGA 3: Ultime transazioni ──────────────────────── -->
+                <VBox styleClass="card" spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Ultime transazioni" style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+                        <VBox HBox.hgrow="ALWAYS"/>
+                        <Button text="Vedi tutto →"
+                                onAction="#clickStorico"
+                                styleClass="btn-secondario"
+                                style="-fx-padding:6 14 6 14;"/>
+                    </HBox>
+
+                    <VBox fx:id="vboxUltimeTransazioni" spacing="8">
+                        <Label fx:id="lblNessunaTransazione"
+                               text="Nessuna transazione ancora effettuata."
+                               styleClass="testo-secondario"/>
+                    </VBox>
+
+                </VBox>
+
+                <!-- ── Messaggio di sistema (errori / avvisi) ──────────── -->
+                <Label fx:id="lblMessaggio"
+                       styleClass="label-errore"
+                       visible="false"
+                       managed="false"
+                       wrapText="true"/>
+
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</HBox>

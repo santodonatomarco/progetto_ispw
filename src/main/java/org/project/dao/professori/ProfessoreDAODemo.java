@@ -3,8 +3,6 @@ package org.project.dao.professori;
 import org.project.exceptions.DAOException;
 import org.project.ing.enumerations.AuthProvider;
 import org.project.model.Professore;
-import org.project.model.ProfessoreLocale;
-import org.project.model.ProfessoreOAuth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +18,11 @@ public class ProfessoreDAODemo extends ProfessoreDAO {
     }
 
     private void popolaDBFittizio() {
-        ProfessoreLocale p1 = new ProfessoreLocale("mario.rossi@univ.it", "Mario", "Rossi");
-        p1.inserisciHashPassword("isson_oiraM"); // "Mario_rossi" invertito
+        Professore p1 = new Professore("mario.rossi@univ.it", "Mario", "Rossi", AuthProvider.LOCAL);
+        p1.impostaPasswordHash(org.project.ing.classifunzionali.Hasher.codifica("mario_rossi"));
         fintoDatabase.add(p1);
 
-        ProfessoreOAuth p2 = new ProfessoreOAuth("lucia.bianchi@univ.it", "Lucia", "Bianchi", AuthProvider.GOOGLE);
+        Professore p2 = new Professore("lucia.bianchi@univ.it", "Lucia", "Bianchi", AuthProvider.GOOGLE);
         fintoDatabase.add(p2);
     }
 

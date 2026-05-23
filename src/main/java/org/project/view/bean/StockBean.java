@@ -15,6 +15,8 @@ public class StockBean {
     private double marketCap;
     private double volumeSettimanale;
 
+    public StockBean() {}
+
     public StockBean(String simbolo, String nomeAzienda, String settore, double prezzoAttuale) {
         this.simbolo = simbolo;
         this.nomeAzienda = nomeAzienda;

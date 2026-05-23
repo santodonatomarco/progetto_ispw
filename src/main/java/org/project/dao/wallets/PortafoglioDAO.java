@@ -33,5 +33,5 @@ public abstract class PortafoglioDAO extends CachedDAO<VirtualWallet> {
     }
 
     protected abstract VirtualWallet doRetrievePortafoglioByEmail(String mail) throws DAOException;
-    protected abstract void salvaPortafoglio(VirtualWallet v) throws DAOException;
+    public abstract void salvaPortafoglio(VirtualWallet v) throws DAOException;
 }

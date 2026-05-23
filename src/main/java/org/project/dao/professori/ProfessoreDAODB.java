@@ -42,10 +42,6 @@ public class ProfessoreDAODB extends ProfessoreDAO {
         return null;
     }
 
-    /**
-     * Salva (o aggiorna) un professore nel DB usando UPSERT.
-     * Supporta sia registrazione locale che OAuth.
-     */
     @Override
     protected void doSaveProfessore(Professore professore) throws DAOException {
         String sql = "INSERT INTO professore (email, nome, cognome, password_hash, auth_provider) " +
@@ -54,18 +50,13 @@ public class ProfessoreDAODB extends ProfessoreDAO {
                 "nome = EXCLUDED.nome, cognome = EXCLUDED.cognome, " +
                 "password_hash = EXCLUDED.password_hash, auth_provider = EXCLUDED.auth_provider";
 
-        String passwordHash = "";
-        if (professore instanceof AutenticazioneLocale autenticazioneLocale) {
-            passwordHash = autenticazioneLocale.passwordHash();
-        }
-
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
 
             st.setString(1, professore.presentaEmail());
             st.setString(2, professore.presentaNome());
             st.setString(3, professore.presentaCognome());
-            st.setString(4, passwordHash);
+            st.setString(4, professore.getPasswordHash());
             st.setString(5, professore.comeAccede().toString());
 
             st.executeUpdate();
@@ -75,12 +66,6 @@ public class ProfessoreDAODB extends ProfessoreDAO {
         }
     }
 
-    // ── Metodo privato di mapping ─────────────────────────────────────────────
-
-    /**
-     * Mappa un ResultSet a un oggetto Professore.
-     * Evita la duplicazione di codice tra retrieve e salvataggio.
-     */
     private Professore mapProfessore(ResultSet rs) throws SQLException {
         String email        = rs.getString("email");
         String nome         = rs.getString("nome");
@@ -88,14 +73,11 @@ public class ProfessoreDAODB extends ProfessoreDAO {
         String passwordHash = rs.getString("password_hash");
         String authProvider = rs.getString("auth_provider");
 
-        Professore professore;
-        if (AuthProvider.LOCAL.toString().equals(authProvider)) {
-            professore = new ProfessoreLocale(email, nome, cognome);
-            ((ProfessoreLocale) professore).inserisciHashPassword(passwordHash != null ? passwordHash : "");
-        } else {
-            professore = new ProfessoreOAuth(email, nome, cognome, AuthProvider.valueOf(authProvider));
+        AuthProvider provider = AuthProvider.valueOf(authProvider);
+        Professore professore = new Professore(email, nome, cognome, provider);
+        if (provider == AuthProvider.LOCAL && passwordHash != null && !passwordHash.isEmpty()) {
+            professore.impostaPasswordHash(passwordHash);
         }
-
         return professore;
     }
 }

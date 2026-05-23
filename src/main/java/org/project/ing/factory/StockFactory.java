@@ -1,15 +1,35 @@
 package org.project.ing.factory;
 
+import org.project.ing.adapter.StockDataProvider;
+import org.project.ing.adapter.YahooFinanceAdapter;
 import org.project.model.Stock;
 
-public abstract class StockFactory {
-    public abstract Stock creaStock(String simbolo) throws Exception;
-}
+/**
+ * Factory per la creazione di Stock.
+ * Usa SEMPRE YahooFinanceAdapter — a prescindere dalla modalità di persistenza.
+ * Gli stock vengono sempre dall'API esterna: non ha senso variarli in base
+ * alla versione demo/file/db dell'app.
+ *
+ * Singleton per evitare istanze duplicate del dataProvider.
+ */
+public class StockFactory {
 
-/* il metodo è reso astratto perché in versione demo non avremo la possibilità
-di accedere ad un database o ad un servizio esterno per ottenere i dati reali dello stock,
-quindi la classe concreta che implementerà questa factory potrà decidere come creare un oggetto Stock (ad esempio con dati fittizi o hardcoded)
-senza dover modificare il codice che dipende da questa factory.
-In una versione reale, invece, la classe concreta potrebbe implementare il metodo per recuperare
-i dati reali dello stock dall'API esterna,
-mantenendo così una separazione chiara tra la logica di creazione degli oggetti Stock e la logica di utilizzo degli stessi. */
+    private static final StockFactory instance = new StockFactory();
+    private final StockDataProvider dataProvider;
+
+    private StockFactory() {
+        this.dataProvider = new YahooFinanceAdapter();
+    }
+
+    public static StockFactory getInstance() {
+        return instance;
+    }
+
+    public Stock creaStock(String simbolo) throws Exception {
+        return dataProvider.recuperaStock(simbolo);
+    }
+
+    public StockDataProvider getDataProvider() {
+        return dataProvider;
+    }
+}

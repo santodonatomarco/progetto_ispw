@@ -18,9 +18,10 @@ public class NavigatorGUI extends Navigator {
     private final Stage stage;
 
     private LoginGraphicControllerGUI login;
-    // private HomeStudenteGraphicControllerGUI homeStudente;
-    // private HomeProfessoreGraphicControllerGUI homeProfessore;
-    // ecc.
+    private HomeStudenteGraphicControllerGUI homeStudente;
+    private HomeProfessoreGraphicControllerGUI homeProfessore;
+    private MercatoGraphicControllerGUI mercato;
+    private GestioneClasseGraphicControllerGUI gestioneClasse;
 
     public NavigatorGUI() {
         super();
@@ -85,13 +86,26 @@ public class NavigatorGUI extends Navigator {
 
     @Override
     protected void visualizzaHomeStudente() {
-        // TODO: caricare HomeStudenteGraphicControllerGUI
-        System.out.println("[Home Studente GUI — da implementare]");
+        if (this.homeStudente == null) {
+            this.homeStudente = new HomeStudenteGraphicControllerGUI();
+            this.homeStudente.setGuiNavigator(this);
+            Parent view = caricaFXML("HomeStudente.fxml", this.homeStudente);
+            this.homeStudente.setView(view);
+        }
+        this.homeStudente.start();
+        mostraSchermata(this.homeStudente.getView());
     }
 
     @Override
     protected void visualizzaMercato() {
-        System.out.println("[Mercato GUI — da implementare]");
+        if (this.mercato == null) {
+            this.mercato = new MercatoGraphicControllerGUI();
+            this.mercato.setGuiNavigator(this);
+            Parent view = caricaFXML("Mercato.fxml", this.mercato);
+            this.mercato.setView(view);
+        }
+        this.mercato.start();
+        mostraSchermata(this.mercato.getView());
     }
 
     @Override
@@ -116,12 +130,26 @@ public class NavigatorGUI extends Navigator {
 
     @Override
     protected void visualizzaHomeProfessore() {
-        System.out.println("[Home Professore GUI — da implementare]");
+        if (this.homeProfessore == null) {
+            this.homeProfessore = new HomeProfessoreGraphicControllerGUI();
+            this.homeProfessore.setGuiNavigator(this);
+            Parent view = caricaFXML("HomeProfessore.fxml", this.homeProfessore);
+            this.homeProfessore.setView(view);
+        }
+        this.homeProfessore.start();
+        mostraSchermata(this.homeProfessore.getView());
     }
 
     @Override
     protected void visualizzaGestioneClasse() {
-        System.out.println("[Gestione Classe GUI — da implementare]");
+        if (this.gestioneClasse == null) {
+            this.gestioneClasse = new GestioneClasseGraphicControllerGUI();
+            this.gestioneClasse.setGuiNavigator(this);
+            Parent view = caricaFXML("GestioneClasse.fxml", this.gestioneClasse);
+            this.gestioneClasse.setView(view);
+        }
+        this.gestioneClasse.start();
+        mostraSchermata(this.gestioneClasse.getView());
     }
 
     @Override
@@ -132,7 +160,9 @@ public class NavigatorGUI extends Navigator {
     @Override
     public void logout() {
         this.login = null;
-        // azzera gli altri controller quando li aggiungi
+        this.homeStudente = null;
+        this.homeProfessore = null;
+        this.mercato = null;
     }
 
 }

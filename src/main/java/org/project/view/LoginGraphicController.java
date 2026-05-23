@@ -44,6 +44,7 @@ public abstract class LoginGraphicController {
 
                 navigator.impostaStudente(sessione.getStudente());
                 navigator.impostaSessione(sessione);
+                navigator.impostaPortafoglio(sessione.getPortafoglio());
                 navigator.goToHomeStudente();
 
             } else {
@@ -52,12 +53,22 @@ public abstract class LoginGraphicController {
 
                 navigator.impostaProfessore(sessione.getProfessore());
                 navigator.impostaSessione(sessione);
+                if (sessione.getListaClassi() != null) {
+                    navigator.impostaListaClassi(sessione.getListaClassi());
+                }
                 navigator.goToHomeProfessore();
             }
 
         } catch (CredenzialNonValideException e) {
             mostraErrore(e.getMessage());
         } catch (ControllerException e) {
+            /* 1. STAMPA IL VERO ERRORE NELLA CONSOLE DELL'IDE IN ROSSO
+            e.printStackTrace();
+
+            // 2. MOSTRA LA CAUSA REALE DIRETTAMENTE NEL POP-UP DELLA GUI
+            String causaReale = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+            showMessage("ERRORE: " + causaReale);
+            */
             showMessage("Si è verificato un problema. Riprova più tardi.");
         }
     }
