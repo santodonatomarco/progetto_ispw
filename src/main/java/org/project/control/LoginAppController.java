@@ -42,12 +42,13 @@ public class LoginAppController {
 
             AuthProvider provider = trovato.comeAccede();
 
+            if (provider == AuthProvider.LOCAL &&
+                    !trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
+                throw new CredenzialNonValideException("Password errata.");
+            }
+
             switch (provider) {
-                case LOCAL -> {
-                    if (!trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                        throw new CredenzialNonValideException("Password errata.");
-                    }
-                }
+                case LOCAL -> { /* hash già verificato sopra */ }
                 case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
                         "Questo account usa " + provider + ". Caso d'uso non implementato.");
                 default -> throw new CredenzialNonValideException("Provider non supportato.");
@@ -77,12 +78,13 @@ public class LoginAppController {
 
             AuthProvider provider = trovato.comeAccede();
 
+            if (provider == AuthProvider.LOCAL &&
+                    !trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
+                throw new CredenzialNonValideException("Password errata.");
+            }
+
             switch (provider) {
-                case LOCAL -> {
-                    if (!trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                        throw new CredenzialNonValideException("Password errata.");
-                    }
-                }
+                case LOCAL -> { /* hash già verificato sopra */ }
                 case GOOGLE, MICROSOFT -> throw new CredenzialNonValideException(
                         "Questo account usa " + provider + ". Caso d'uso non implementato.");
                 default -> throw new CredenzialNonValideException("Provider non supportato.");

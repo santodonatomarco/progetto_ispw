@@ -65,10 +65,7 @@ public class GestioneClasseAppController {
      * Aggiorna il budget iniziale di una classe esistente
      * e aggiorna RETROATTIVAMENTE i portafogli di tutti gli studenti iscritti.
      */
-    /**
-     * Aggiorna il budget iniziale di una classe esistente
-     * e aggiorna RETROATTIVAMENTE i portafogli di tutti gli studenti iscritti.
-     */
+
     public SchoolClassBean impostaBudget(SessioneBean sessione, String nomeClasse, double nuovoBudget)
             throws ControllerException {
 
