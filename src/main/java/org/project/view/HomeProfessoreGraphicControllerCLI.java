@@ -84,6 +84,7 @@ public class HomeProfessoreGraphicControllerCLI extends HomeProfessoreGraphicCon
         }
 
         System.out.println("  [G] Gestione Classi");
+        System.out.println("  [I] Inbox / Messaggi");
         System.out.println("  [R] Aggiorna dashboard");
         System.out.println("  [0] Logout");
         System.out.print("\n  Scelta: ");
@@ -93,6 +94,7 @@ public class HomeProfessoreGraphicControllerCLI extends HomeProfessoreGraphicCon
         switch (scelta) {
             case "M" -> vaiAlMercato();
             case "G" -> vaiAGestioneClasse();
+            case "I" -> vaiAllaInbox();
             case "R" -> start();
             case "0" -> eseguiLogout();
             default  -> {

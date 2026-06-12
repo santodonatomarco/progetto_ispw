@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    ManageWallets.fxml
+    ════════════════════════════════════════════════════════════════════════════
+    Unico FXML per il caso d'uso "Manage Wallets" (UC diagram).
+    Unifica tutti i sotto-flussi visivi:
+      • Mercato (browsing + ricerca)
+      • Conferma ordine
+      • Portafoglio proprio
+      • Storico transazioni proprio
+      • Wallet esterno (sola lettura)
+
+    Struttura:
+      ├── SIDEBAR sinistra  (navigazione, filtri, quick-search, nav wallet)
+      └── AREA PRINCIPALE
+            ├── Header (titolo + barra ricerca)
+            └── ScrollPane
+                  ├── lblMessaggio        (feedback errore/successo)
+                  ├── boxCaricamento      (spinner Yahoo Finance)
+                  ├── panelDettaglio      (dettaglio stock)
+                  ├── panelConfermaOrdine (conferma acquisto)
+                  ├── panelPortafoglio    (portafoglio + posizioni)
+                  ├── panelStorico        (storico transazioni)
+                  └── Sezione griglia     (FlowPane card stock monitorati)
+
+    Tutti i pannelli partono hidden/unmanaged: il controller
+    li mostra/nasconde via setVisible + setManaged in base allo stato.
+
+    Controller: ManageWalletsGraphicControllerGUI
+    CSS:        style.css (root-relative)
+-->
+<HBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.project.view.ManageWalletsGraphicControllerGUI"
+      stylesheets="@../style.css"
+      prefWidth="1200" prefHeight="720">
+
+    <!-- ══ SIDEBAR SINISTRA — navigazione + filtri ═══════════════════════════ -->
+    <VBox prefWidth="230" spacing="6" styleClass="schermata-scura">
+        <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
+
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label fx:id="lblRuoloSidebar" text="Manage Wallets" styleClass="sottotitolo-app"/>
+
+        <VBox minHeight="20"/>
+
+        <!-- Info utente (card dinamica: card-studente / card-professore) -->
+        <VBox fx:id="boxInfoUtente" styleClass="card-studente" spacing="4">
+            <Label fx:id="lblNomeUtente"  text="—"
+                   style="-fx-text-fill:#000000; -fx-font-weight:bold;"/>
+            <Label fx:id="lblSaldoSidebar" text=""
+                   style="-fx-text-fill:#9b8ec4; -fx-font-size:11px;"/>
+        </VBox>
+
+        <VBox minHeight="16"/>
+
+        <!-- Navigazione -->
+        <Label text="NAVIGA" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="4"/>
+        <Button text="⬅  Torna alla Dashboard"
+                maxWidth="Infinity"
+                onAction="#clickDashboard"
+                styleClass="btn-neutro"/>
+
+        <VBox minHeight="20"/>
+
+        <!-- Navigazione Wallet (solo studente) -->
+        <VBox fx:id="boxNavWallet" spacing="4" visible="true" managed="true">
+            <Label text="WALLET" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+            <VBox minHeight="4"/>
+            <Button text="💼  Visualizza Portafoglio"
+                    maxWidth="Infinity"
+                    onAction="#clickNavPortafoglio"
+                    styleClass="btn-neutro"/>
+            <Button text="📋  Storico Transazioni"
+                    maxWidth="Infinity"
+                    onAction="#clickNavStorico"
+                    styleClass="btn-neutro"/>
+
+            <VBox minHeight="20"/>
+        </VBox>
+
+        <!-- Quick search -->
+        <Label text="CERCA RAPIDAMENTE"
+               style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="6"/>
+        <HBox spacing="6">
+            <Button text="AAPL" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+            <Button text="TSLA" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+            <Button text="MSFT" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+        </HBox>
+        <HBox spacing="6">
+            <Button text="NVDA" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+            <Button text="AMZN" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+            <Button text="GOOG" onAction="#clickQuickSearch" styleClass="btn-neutro"
+                    style="-fx-padding:4 10 4 10; -fx-font-size:11px;"/>
+        </HBox>
+
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <Button text="⬅  Logout"
+                maxWidth="Infinity"
+                onAction="#clickLogout"
+                styleClass="btn-neutro"/>
+    </VBox>
+
+    <!-- ══ AREA PRINCIPALE ═══════════════════════════════════════════════════ -->
+    <VBox HBox.hgrow="ALWAYS" styleClass="schermata-chiara">
+
+        <!-- ── Barra superiore: titolo + ricerca ─────────────────────────── -->
+        <VBox style="-fx-background-color:#ffffff;
+                     -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.07),6,0,0,2);">
+            <padding><Insets top="20" right="30" bottom="20" left="30"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="2">
+                    <Label text="Manage Wallets" styleClass="titolo-schermata"/>
+                    <Label fx:id="lblSottotitoloMercato"
+                           text="Esplora il mercato e investi nei tuoi titoli preferiti"
+                           styleClass="sottotitolo-schermata"/>
+                </VBox>
+
+                <VBox HBox.hgrow="ALWAYS"/>
+
+                <!-- Barra di ricerca (nascosta automaticamente in confermaOrdine) -->
+                <HBox spacing="8" alignment="CENTER">
+                    <TextField fx:id="txtRicerca"
+                               promptText="Cerca per simbolo  es. AAPL, NVDA…"
+                               prefWidth="300"
+                               styleClass="campo-testo"
+                               onAction="#clickCerca"/>
+                    <Button text="🔍 Cerca"
+                            onAction="#clickCerca"
+                            styleClass="btn-primario-studente"
+                            style="-fx-padding:9 18 9 18;"/>
+                    <Button text="↺"
+                            onAction="#clickAggiorna"
+                            styleClass="btn-neutro"
+                            style="-fx-padding:9 14 9 14;"/>
+                </HBox>
+            </HBox>
+        </VBox>
+
+        <!-- ── Area contenuto scrollabile ────────────────────────────────── -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color:#f5f5f5; -fx-background:#f5f5f5;">
+            <content>
+                <VBox spacing="20">
+                    <padding><Insets top="24" right="30" bottom="30" left="30"/></padding>
+
+                    <!-- ── Messaggi di sistema ───────────────────────────────── -->
+                    <Label fx:id="lblMessaggio"
+                           styleClass="label-errore"
+                           visible="false" managed="false"
+                           wrapText="true"/>
+
+                    <!-- ── Spinner caricamento ───────────────────────────────── -->
+                    <HBox fx:id="boxCaricamento" alignment="CENTER" spacing="10"
+                          visible="false" managed="false">
+                        <ProgressIndicator prefWidth="28" prefHeight="28"
+                                           style="-fx-progress-color:#7c4dff;"/>
+                        <Label text="Recupero dati da Yahoo Finance…"
+                               styleClass="testo-secondario"/>
+                    </HBox>
+
+                    <!-- ════════════════════════════════════════════════════════
+                         PANNELLO DETTAGLIO STOCK
+                         Visibile dopo una ricerca riuscita.
+                         Nascosto quando si apre il pannello conferma ordine.
+                         ════════════════════════════════════════════════════════ -->
+                    <VBox fx:id="panelDettaglio" spacing="0"
+                          visible="false" managed="false"
+                          styleClass="card"
+                          style="-fx-border-color:#7c4dff;
+                                 -fx-border-width:2;
+                                 -fx-border-radius:14;
+                                 -fx-background-radius:14;">
+
+                        <!-- Header: simbolo + prezzo grande -->
+                        <HBox alignment="CENTER_LEFT" spacing="16">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label fx:id="lblDetSimbolo" text=""
+                                           styleClass="simbolo-stock"
+                                           style="-fx-font-size:22px;"/>
+                                    <Label fx:id="lblDetVariazione" text=""
+                                           styleClass="tag-positivo"/>
+                                </HBox>
+                                <Label fx:id="lblDetNome" text=""
+                                       style="-fx-font-size:14px; -fx-text-fill:#555555;"/>
+                                <Label fx:id="lblDetSettore" text=""
+                                       styleClass="testo-secondario"/>
+                            </VBox>
+
+                            <VBox spacing="4" alignment="CENTER_RIGHT">
+                                <Label text="Prezzo attuale" styleClass="testo-secondario"/>
+                                <Label fx:id="lblDetPrezzo" text=""
+                                       styleClass="saldo-grande"
+                                       style="-fx-font-size:32px; -fx-text-fill:#1a1a2e;"/>
+                                <Label fx:id="lblDetAggiornamento" text=""
+                                       styleClass="testo-secondario"
+                                       style="-fx-font-size:10px;"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Separatore -->
+                        <VBox minHeight="1" style="-fx-background-color:#eeeeee;"/>
+                        <VBox minHeight="12"/>
+
+                        <!-- Metriche aggiuntive + pulsante acquisto -->
+                        <HBox spacing="30">
+                            <VBox spacing="4">
+                                <Label text="Var. settimanale" styleClass="testo-secondario"/>
+                                <Label fx:id="lblDetVarSettimanale" text="—"
+                                       style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Market Cap" styleClass="testo-secondario"/>
+                                <Label fx:id="lblDetMarketCap" text="—"
+                                       style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Volume sett." styleClass="testo-secondario"/>
+                                <Label fx:id="lblDetVolume" text="—"
+                                       style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                            </VBox>
+
+                            <VBox HBox.hgrow="ALWAYS"/>
+
+                            <!-- Azione acquisto (solo studente, abilitata se saldo ok) -->
+                            <VBox fx:id="boxAzioneAcquisto" spacing="8" alignment="CENTER_RIGHT"
+                                  visible="false" managed="false">
+                                <Label fx:id="lblSaldoCheck" text=""
+                                       styleClass="testo-secondario"/>
+                                <Button fx:id="btnCompra"
+                                        text="💰  Compra ora"
+                                        onAction="#clickCompra"
+                                        styleClass="btn-positivo"
+                                        style="-fx-padding:12 28 12 28; -fx-font-size:14px;"/>
+                            </VBox>
+
+                            <!-- Sola lettura (professore) -->
+                            <VBox fx:id="boxSolaLettura" spacing="4" alignment="CENTER_RIGHT"
+                                  visible="false" managed="false">
+                                <Label text="👁  Sola lettura"
+                                       style="-fx-text-fill:#1a237e; -fx-font-weight:bold;"/>
+                                <Label text="Il professore non può investire."
+                                       styleClass="testo-secondario"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- ════════════════════════════════════════════════════════
+                         PANNELLO CONFERMA ORDINE  (embedded — stesso FXML)
+                         Mostrato da startConfermaOrdine() quando lo studente
+                         clicca "Compra ora" nel pannello dettaglio.
+                         ════════════════════════════════════════════════════════ -->
+                    <VBox fx:id="panelConfermaOrdine" spacing="0"
+                          visible="false" managed="false"
+                          styleClass="card"
+                          style="-fx-border-color:#2e7d32;
+                                 -fx-border-width:2;
+                                 -fx-border-radius:14;
+                                 -fx-background-radius:14;">
+
+                        <!-- Titolo step -->
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="💳"
+                                   style="-fx-font-size:22px;"/>
+                            <VBox spacing="2">
+                                <Label text="Conferma ordine di acquisto"
+                                       style="-fx-font-size:18px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                                <Label text="Verifica i dettagli e inserisci la quantità desiderata."
+                                       styleClass="testo-secondario"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox minHeight="1"
+                              style="-fx-background-color:#eeeeee;
+                                     -fx-margin-top:12; -fx-margin-bottom:12;"/>
+                        <VBox minHeight="12"/>
+
+                        <!-- Riepilogo stock (read-only) -->
+                        <HBox spacing="40" alignment="CENTER_LEFT">
+                            <VBox spacing="4">
+                                <Label text="TITOLO" styleClass="testo-secondario"
+                                       style="-fx-font-size:9px; -fx-font-weight:bold;"/>
+                                <Label fx:id="lblOrdineStock" text="—"
+                                       style="-fx-font-size:16px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="PREZZO UNITARIO" styleClass="testo-secondario"
+                                       style="-fx-font-size:9px; -fx-font-weight:bold;"/>
+                                <Label fx:id="lblOrdinePrezzo" text="—"
+                                       style="-fx-font-size:16px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="SALDO DISPONIBILE" styleClass="testo-secondario"
+                                       style="-fx-font-size:9px; -fx-font-weight:bold;"/>
+                                <Label fx:id="lblOrdineSaldo" text="—"
+                                       style="-fx-font-size:16px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#2e7d32;"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox minHeight="20"/>
+
+                        <!-- Input quantità + totale live -->
+                        <HBox spacing="20" alignment="CENTER_LEFT">
+                            <VBox spacing="6" prefWidth="220">
+                                <Label text="QUANTITÀ (azioni)"
+                                       style="-fx-text-fill:#555555;
+                                              -fx-font-size:11px;
+                                              -fx-font-weight:bold;"/>
+                                <TextField fx:id="txtQuantita"
+                                           promptText="es. 2.5"
+                                           styleClass="campo-testo"
+                                           style="-fx-font-size:16px;
+                                                  -fx-padding:10 14 10 14;"/>
+                            </VBox>
+
+                            <VBox spacing="6" prefWidth="260">
+                                <Label text="TOTALE STIMATO"
+                                       style="-fx-text-fill:#555555;
+                                              -fx-font-size:11px;
+                                              -fx-font-weight:bold;"/>
+                                <Label fx:id="lblOrdineTotale" text="Totale: —"
+                                       style="-fx-font-size:22px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox minHeight="24"/>
+
+                        <!-- Pulsanti azione -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button fx:id="btnConfermaOrdine"
+                                    text="✅  Conferma acquisto"
+                                    onAction="#clickConfermaOrdine"
+                                    styleClass="btn-positivo"
+                                    disable="true"
+                                    style="-fx-padding:13 32 13 32; -fx-font-size:14px;"/>
+                            <Button text="✕  Annulla — torna al mercato"
+                                    onAction="#clickAnnullaOrdine"
+                                    styleClass="btn-pericolo"
+                                    style="-fx-padding:13 24 13 24; -fx-font-size:14px;"/>
+                        </HBox>
+
+                        <VBox minHeight="8"/>
+
+                        <!-- Nota timeout -->
+                        <Label text="⏱  Hai 5 minuti per confermare l'ordine al prezzo visualizzato."
+                               styleClass="testo-secondario"
+                               style="-fx-font-size:11px; -fx-text-fill:#f57f17;"/>
+                    </VBox>
+
+                    <!-- ════════════════════════════════════════════════════════
+                         PANNELLO PORTAFOGLIO
+                         Mostrato da startPortafoglio() o startWalletEsterno()
+                         Contiene posizioni aperte e saldo disponibile.
+                         ════════════════════════════════════════════════════════ -->
+                    <VBox fx:id="panelPortafoglio" spacing="12"
+                          visible="false" managed="false"
+                          styleClass="card"
+                          style="-fx-border-color:#9c27b0;
+                                 -fx-border-width:2;
+                                 -fx-border-radius:14;
+                                 -fx-background-radius:14;">
+
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="📊" style="-fx-font-size:22px;"/>
+                            <VBox spacing="2">
+                                <Label fx:id="lblTitoloPortafoglio" text="Il Tuo Portafoglio"
+                                       style="-fx-font-size:18px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                                <HBox spacing="20">
+                                    <Label fx:id="lblSaldoPortafoglio" text=""
+                                           styleClass="testo-secondario"/>
+                                    <Label fx:id="lblTotalePortafoglio" text=""
+                                           styleClass="testo-secondario"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+
+                        <VBox minHeight="1" style="-fx-background-color:#eeeeee;"/>
+
+                        <!-- Tabella posizioni (populate dinamicamente dal controller) -->
+                        <VBox fx:id="vboxPosizioni" spacing="8"/>
+
+                        <VBox minHeight="12"/>
+
+                        <!-- Pulsanti per storico / mercato -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button fx:id="btnPortafoglioStorico"
+                                    text="📋  Visualizza Storico"
+                                    onAction="#clickPortafoglioStorico"
+                                    styleClass="btn-secondario"
+                                    style="-fx-padding:10 24 10 24;"/>
+                            <Button text="🏪  Torna al Mercato"
+                                    onAction="#clickPortafoglioMercato"
+                                    styleClass="btn-neutro"
+                                    style="-fx-padding:10 24 10 24;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- ════════════════════════════════════════════════════════
+                         PANNELLO STORICO TRANSAZIONI
+                         Mostrato da startStorico() o startWalletEsterno()
+                         Contiene lista di tutte le transazioni effettuate.
+                         ════════════════════════════════════════════════════════ -->
+                    <VBox fx:id="panelStorico" spacing="12"
+                          visible="false" managed="false"
+                          styleClass="card"
+                          style="-fx-border-color:#ff9800;
+                                 -fx-border-width:2;
+                                 -fx-border-radius:14;
+                                 -fx-background-radius:14;">
+
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="📋" style="-fx-font-size:22px;"/>
+                            <VBox spacing="2">
+                                <Label fx:id="lblTitoloStorico" text="Storico Transazioni"
+                                       style="-fx-font-size:18px;
+                                              -fx-font-weight:bold;
+                                              -fx-text-fill:#1a1a2e;"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox minHeight="1" style="-fx-background-color:#eeeeee;"/>
+
+                        <!-- Tabella transazioni (populate dinamicamente dal controller) -->
+                        <VBox fx:id="vboxStorico" spacing="8"/>
+
+                        <VBox minHeight="12"/>
+
+                        <!-- Pulsanti per portafoglio / mercato -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button text="💼  Visualizza Portafoglio"
+                                    onAction="#clickStoricoPortafoglio"
+                                    styleClass="btn-secondario"
+                                    style="-fx-padding:10 24 10 24;"/>
+                            <Button text="🏪  Torna al Mercato"
+                                    onAction="#clickStoricoMercato"
+                                    styleClass="btn-neutro"
+                                    style="-fx-padding:10 24 10 24;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- ════════════════════════════════════════════════════════
+                         GRIGLIA STOCK MONITORATI
+                         Sempre visibile — FlowPane popolato dinamicamente
+                         dal controller via creaCardStock().
+                         ════════════════════════════════════════════════════════ -->
+                    <VBox spacing="12">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label fx:id="lblTitoloGriglia" text="Stock monitorati"
+                                   style="-fx-font-size:16px;
+                                          -fx-font-weight:bold;
+                                          -fx-text-fill:#1a1a2e;"/>
+                            <Label fx:id="lblContatore" text=""
+                                   styleClass="testo-secondario"/>
+                        </HBox>
+
+                        <!-- Griglia a scorrimento libero — le card sono 260px l'una -->
+                        <FlowPane fx:id="flowStocks"
+                                  hgap="16" vgap="16"
+                                  prefWrapLength="900"/>
+
+                        <Label fx:id="lblNessunoStock"
+                               text="Nessuno stock trovato. Usa la barra di ricerca per aggiungerne uno."
+                               styleClass="testo-secondario"
+                               visible="false" managed="false"
+                               wrapText="true"/>
+                    </VBox>
+
+                </VBox>
+            </content>
+        </ScrollPane>
+    </VBox>
+
+</HBox>
+

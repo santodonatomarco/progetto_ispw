@@ -255,6 +255,11 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
     }
 
     @FXML
+    private void clickInbox() {
+        vaiAllaInbox();
+    }
+
+    @FXML
     private void clickLogout() {
         eseguiLogout();
     }

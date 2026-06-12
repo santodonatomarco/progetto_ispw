@@ -12,12 +12,12 @@ public class TransactionDAODemo extends TransactionDAO {
     private final List<Transaction> fintoDatabase = new ArrayList<>();
 
     @Override
-    protected void doSaveTransazione(Transaction t) throws DAOException {
+    protected void doSaveTransazione(String email, Transaction t) throws DAOException {
         fintoDatabase.add(t);
     }
 
     @Override
-    protected void doUpdateTransazione(Transaction t) throws DAOException {
+    protected void doUpdateTransazione(String email, Transaction t) throws DAOException {
         // In memoria l'oggetto è già aggiornato per riferimento — nulla da fare
     }
 
@@ -26,4 +26,13 @@ public class TransactionDAODemo extends TransactionDAO {
         // Nella demo non filtriamo per email — restituiamo tutto
         return new ArrayList<>(fintoDatabase);
     }
+
+    @Override
+    protected void doDeleteTransazioniByEmail(String email) throws DAOException {
+        // La demo non filtra per email (fintoDatabase non mantiene l'email).
+        // Se vuoi essere preciso, aggiungi email al modello demo o svuota tutto.
+        fintoDatabase.clear();
+    }
+
+
 }

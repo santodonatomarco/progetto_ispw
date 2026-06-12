@@ -29,54 +29,44 @@ public class PortafoglioDAODB extends PortafoglioDAO {
 
         VirtualWallet wallet = null;
 
-        String sqlSaldoDisponibile = "SELECT saldo_disponibile FROM virtual_wallet WHERE studente_email = ?";
-        String sqlPosizioni = "SELECT simbolo_stock, quantita, prezzo_medio FROM wallet_position WHERE studente_email = ?";
-        String sqlTransazioni = "SELECT simbolo_stock, tipo, quantita, prezzo_al_momento, timestamp FROM transaction WHERE studente_email = ?";
+        // ← colonne/tabelle allineate allo schema SQL
+        String sqlSaldo      = "SELECT saldo_disponibile FROM virtual_wallet WHERE studente_email = ?";
+        String sqlPosizioni  = "SELECT simbolo, quantita, prezzo_medio_acquisto FROM wallet_position WHERE email_studente = ?";
+        String sqlTransazioni = "SELECT simbolo, tipo, quantita, prezzo_al_momento, timestamp FROM transazione WHERE email_studente = ?";
 
         try (Connection conn = DBConnection.getInstance().getConnection()) {
 
-            // 1. Carica il Wallet base
-            try (PreparedStatement ps = conn.prepareStatement(sqlSaldoDisponibile)) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlSaldo)) {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        double saldo = rs.getDouble("saldo_disponibile");
-                        wallet = new VirtualWallet(studente, saldo);
+                        wallet = new VirtualWallet(studente, rs.getDouble("saldo_disponibile"));
                     } else {
-                        return null; // Il portafoglio non esiste nel DB
+                        return null;
                     }
                 }
             }
 
-            // 2. Carica le Posizioni (WalletPositions)
             try (PreparedStatement ps = conn.prepareStatement(sqlPosizioni)) {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        String simbolo = rs.getString("simbolo_stock");
-                        double quantita = rs.getDouble("quantita");
-                        double prezzoMedio = rs.getDouble("prezzo_medio");
-
-                        Stock stock = stockFactory.creaStock(simbolo);
-                        WalletPosition wp = new WalletPosition(stock, quantita, prezzoMedio);
-                        wallet.aggiungiPosizione(wp);
+                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));          // ← era "simbolo_stock"
+                        wallet.aggiungiPosizione(new WalletPosition(stock,
+                                rs.getDouble("quantita"), rs.getDouble("prezzo_medio_acquisto"))); // ← era "prezzo_medio"
                     }
                 }
             }
 
-            // 3. Carica le Transazioni
             try (PreparedStatement ps = conn.prepareStatement(sqlTransazioni)) {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        String simbolo = rs.getString("simbolo_stock");
-                        TipoTransazione tipo = TipoTransazione.valueOf(rs.getString("tipo"));
-                        double quantita = rs.getDouble("quantita");
-                        double prezzo = rs.getDouble("prezzo_al_momento");
-
-                        Stock stock = stockFactory.creaStock(simbolo);
-                        Transaction t = new Transaction(stock, tipo, quantita, prezzo);
-                        t.completaTransazione(); // Da DB si presumono già completate
+                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));          // ← era "simbolo_stock"
+                        Transaction t = new Transaction(stock,
+                                TipoTransazione.valueOf(rs.getString("tipo")),
+                                rs.getDouble("quantita"), rs.getDouble("prezzo_al_momento"));
+                        t.completaTransazione();
                         wallet.aggiungiTransazione(t);
                     }
                 }
@@ -94,27 +84,37 @@ public class PortafoglioDAODB extends PortafoglioDAO {
     @Override
     public void salvaPortafoglio(VirtualWallet wallet) throws DAOException {
         String email = wallet.proprietario().presentaEmail();
-
-        // 1. Salva/Aggiorna il saldo base usando un UPSERT (INSERT ... ON DUPLICATE KEY UPDATE)
-        String sqlWallet = "INSERT INTO virtual_wallet (studente_email, saldo_disponibile) VALUES (?, ?) " +
+        String sql = "INSERT INTO virtual_wallet (studente_email, saldo_disponibile) VALUES (?, ?) " +
                 "ON DUPLICATE KEY UPDATE saldo_disponibile = VALUES(saldo_disponibile)";
 
-        try (Connection conn = DBConnection.getInstance().getConnection()) {
-            conn.setAutoCommit(false); // Inizio transazione SQL
-
-            try (PreparedStatement ps = conn.prepareStatement(sqlWallet)) {
-                ps.setString(1, email);
-                ps.setDouble(2, wallet.saldoDisponibile());
-                ps.executeUpdate();
-            }
-
-            addToCache(wallet); // Sincronizza la cache RAM
-
+        try (Connection conn = DBConnection.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setDouble(2, wallet.saldoDisponibile());
+            ps.executeUpdate();
+            addToCache(wallet);
         } catch (SQLException e) {
             throw new DAOException("Errore salvataggio portafoglio: " + e.getMessage());
         }
     }
 
-
-
+    /**
+     * Rimuove solo il record di virtual_wallet. Le transazioni e le posizioni
+     * vengono rimosse prima da TransactionDAO e WalletPositionDAO (cascade
+     * gestita da PortafoglioDAO.rimuoviPortafoglio).
+     *
+     * In alternativa, a livello SQL puoi definire ON DELETE CASCADE sulla FK
+     * studente_email → studente.email per delegare la pulizia al DBMS.
+     */
+    @Override
+    protected void doDeletePortafoglio(String email) throws DAOException {
+        String sql = "DELETE FROM virtual_wallet WHERE studente_email = ?";
+        try (Connection conn = DBConnection.getInstance().getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setString(1, email);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Errore eliminazione portafoglio per " + email + ": " + e.getMessage());
+        }
+    }
 }

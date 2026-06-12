@@ -3,37 +3,34 @@ package org.project.model;
 import java.time.LocalDateTime;
 
 public class Message {
+    private final Utente mittente;
+    private final Utente destinatario;
+    private final String testo;
+    private final LocalDateTime timestamp;
 
-    private Utente mittente;
-    private String testo;
-    private LocalDateTime timestamp;
-    private boolean letto;
 
-    public Message(Utente mittente, String testo) {
-        this.impostaMittente(mittente);
-        this.scriviTesto(testo);
-        this.timestamp = LocalDateTime.now();
-        this.letto = false;
+    // 1. Costruttore per i NUOVI messaggi (usato dal Controller)
+    public Message(Utente mittente, Utente destinatario, String testo) {
+        // usa il timestamp attuale
+        this(mittente, destinatario, testo, LocalDateTime.now());
     }
 
-    public final void impostaMittente(Utente mittente) {
-        if (mittente == null)
-            throw new IllegalArgumentException("Il mittente non può essere nullo.");
+    // 2. Costruttore per i messaggi ESISTENTI (usato dal DAO)
+    public Message(Utente mittente, Utente destinatario, String testo, LocalDateTime timestampOriginale) {
+        if (mittente == null || destinatario == null) {
+            throw new IllegalArgumentException("Mittente e destinatario non possono essere nulli.");
+        }
+        if (testo == null || testo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Il testo del messaggio non può essere vuoto.");
+        }
         this.mittente = mittente;
-    }
-
-    public final void scriviTesto(String testo) {
-        if (testo == null || testo.trim().isEmpty())
-            throw new IllegalArgumentException("Il messaggio non può essere vuoto.");
+        this.destinatario = destinatario;
         this.testo = testo;
+        this.timestamp = timestampOriginale; // Usa la data passata dal DB!
     }
 
-    public final void segnaComeLetto() {
-        this.letto = true;
-    }
-
-    public Utente mittente()          { return mittente; }
-    public String testo()           { return testo; }
-    public LocalDateTime quando()   { return timestamp; }
-    public boolean isRead()         { return letto; }
+    public Utente getMittente() { return mittente; }
+    public Utente getDestinatario() { return destinatario; }
+    public String getTesto() { return testo; }
+    public LocalDateTime getTimestamp() { return timestamp; }
 }

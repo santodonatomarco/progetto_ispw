@@ -165,4 +165,29 @@ public class StudenteDAOFile extends StudenteDAO {
             // Classe non caricabile — lo studente rimane senza classe
         }
     }
+
+
+    @Override
+    protected void doDeleteStudente(String email) throws DAOException {
+        File file = new File(fileName);
+        if (!file.exists()) return;
+
+        List<String> righe = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(CSV_SEPARATOR, -1);
+                // Mantieni tutte le righe tranne quella con questa email (colonna 0)
+                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
+                righe.add(line);
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura file studenti per delete: " + e.getMessage());
+        }
+        scriviRigheSuFile(file, righe); // metodo già esistente
+    }
+
+
+
 }

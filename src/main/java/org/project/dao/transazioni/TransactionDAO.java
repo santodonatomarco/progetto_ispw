@@ -9,35 +9,51 @@ import java.util.List;
 
 public abstract class TransactionDAO extends CachedDAO<Transaction> {
 
+    /**
+     * Chiave: simbolo + "_" + timestamp.
+     * NOTA: la chiave non contiene l'email, il che impedisce una purge
+     * selettiva dalla cache per studente. Per questo rimuoviTransazioniByEmail
+     * esegue svuotaCache() — operazione sicura perché la cache di TransactionDAO
+     * è usata solo come write-through (non per accelerare le letture).
+     */
     @Override
     protected String ottieniChiave(Transaction t) {
-        // chiave univoca: email proprietario + timestamp
         return t.stock().simbolo() + "_" + t.quando().toString();
     }
 
-    /**
-     * Salva una nuova transazione (PENDING) e la aggiunge alla cache.
-     */
-    public void salvaTransazione(Transaction t) throws DAOException {
-        doSaveTransazione(t);
+    // ── Operazioni di scrittura ────────────────────────────────────────────────
+
+    public void salvaTransazione(String email, Transaction t) throws DAOException {
+        doSaveTransazione(email, t);
         addToCache(t);
     }
 
-    /**
-     * Aggiorna lo stato di una transazione esistente (es. PENDING → DONE).
-     */
-    public void aggiornaTransazione(Transaction t) throws DAOException {
-        doUpdateTransazione(t);
+    public void aggiornaTransazione(String email, Transaction t) throws DAOException {
+        doUpdateTransazione(email, t);
     }
 
     /**
-     * Restituisce tutte le transazioni di un wallet.
+     * Rimuove tutte le transazioni di uno studente dalla persistenza e dalla cache.
+     * Chiamato dalla cascade delete di PortafoglioDAO — invisibile al controller.
      */
+    public void rimuoviTransazioniByEmail(String email) throws DAOException {
+        doDeleteTransazioniByEmail(email);
+        // La chiave cache non contiene l'email: svuotiamo tutta la cache.
+        // È accettabile perché rimuoviStudente è un'operazione rara e la cache
+        // viene ricostruita on-demand alla prima read successiva.
+        svuotaCache();
+    }
+
+    // ── Operazioni di lettura ──────────────────────────────────────────────────
+
     public List<Transaction> getTransazioniWallet(VirtualWallet wallet) throws DAOException {
         return doRetrieveTransazioniByEmail(wallet.proprietario().presentaEmail());
     }
 
-    protected abstract void doSaveTransazione(Transaction t) throws DAOException;
-    protected abstract void doUpdateTransazione(Transaction t) throws DAOException;
+    // ── Metodi astratti ────────────────────────────────────────────────────────
+
+    protected abstract void doSaveTransazione(String email, Transaction t) throws DAOException;
+    protected abstract void doUpdateTransazione(String email, Transaction t) throws DAOException;
     protected abstract List<Transaction> doRetrieveTransazioniByEmail(String email) throws DAOException;
+    protected abstract void doDeleteTransazioniByEmail(String email) throws DAOException;
 }

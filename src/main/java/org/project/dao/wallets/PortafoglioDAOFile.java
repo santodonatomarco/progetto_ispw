@@ -2,6 +2,7 @@ package org.project.dao.wallets;
 
 import org.project.dao.studenti.StudenteDAO;
 import org.project.exceptions.DAOException;
+import org.project.ing.enumerations.StatoTransazione;
 import org.project.ing.enumerations.TipoTransazione;
 import org.project.ing.factory.StockFactory;
 import org.project.model.*;
@@ -9,7 +10,10 @@ import org.project.model.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+
+import static sun.util.locale.BaseLocale.SEP;
 
 public class PortafoglioDAOFile extends PortafoglioDAO {
 
@@ -131,21 +135,24 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(CSV_SEPARATOR, -1);
-                // Formato: email;simbolo;tipo;quantita;prezzo
-                if (parts.length >= 5 && parts[0].trim().equals(mailCercata)) {
-                    Stock stock = stockFactory.creaStock(parts[1].trim());
-                    TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
-                    double quantita = Double.parseDouble(parts[3].trim());
-                    double prezzo = Double.parseDouble(parts[4].trim());
+                // Formato reale scritto da TransactionDAOFile:
+                // email(0);simbolo(1);tipo(2);stato(3);quantita(4);prezzo(5);timestamp(6)
+                if (parts.length >= 6 && parts[0].trim().equals(mailCercata)) {
+                    Stock stock          = stockFactory.creaStock(parts[1].trim());
+                    TipoTransazione tipo  = TipoTransazione.valueOf(parts[2].trim());
+                    StatoTransazione stato = StatoTransazione.valueOf(parts[3].trim());
+                    double quantita      = Double.parseDouble(parts[4].trim());
+                    double prezzo        = Double.parseDouble(parts[5].trim());
 
                     Transaction t = new Transaction(stock, tipo, quantita, prezzo);
-                    t.completaTransazione();
+                    if (stato == StatoTransazione.DONE) t.completaTransazione();
                     wallet.aggiungiTransazione(t);
                 }
             }
-        } catch (Exception ignored) {
-            // da fare
+        } catch (Exception e) {
+            System.err.println("[WARN] popolaTransazioni: " + e.getMessage()); // almeno logga
         }
     }
 
@@ -321,6 +328,29 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         Files.move(temporaneo.toPath(), originale.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
+    @Override
+    protected void doDeletePortafoglio(String email) throws DAOException {
+        File file = new File(walletFile); // usa il path del file wallet
+        if (!file.exists()) return;
 
+        List<String> righe = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(SEP, -1);
+                // Colonna 0 = emailStudente nel tuo CSV wallet
+                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
+                righe.add(line);
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura wallet file per delete: " + e.getMessage());
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            for (String r : righe) { bw.write(r); bw.newLine(); }
+        } catch (IOException e) {
+            throw new DAOException("Errore scrittura wallet file per delete: " + e.getMessage());
+        }
+    }
 
 }

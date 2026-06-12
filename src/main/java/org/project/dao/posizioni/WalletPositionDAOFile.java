@@ -21,9 +21,9 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
     // Formato CSV: emailStudente;simbolo;quantita;prezzoMedioAcquisto
 
     @Override
-    protected void doSavePosizione(WalletPosition p) throws DAOException {
+    protected void doSavePosizione(String email, WalletPosition p) throws DAOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
-            bw.write(toCSV(p));
+            bw.write(toCSV(email, p));
             bw.newLine();
         } catch (IOException e) {
             throw new DAOException("Errore scrittura posizione: " + e.getMessage());
@@ -31,7 +31,7 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
     }
 
     @Override
-    protected void doUpdatePosizione(WalletPosition p) throws DAOException {
+    protected void doUpdatePosizione(String email, WalletPosition p) throws DAOException {
         File file = new File(fileName);
         if (!file.exists()) throw new DAOException("File posizioni non trovato.");
 
@@ -42,9 +42,9 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(SEP, -1);
-                if (parts.length >= 4 && parts[1].trim().equals(p.stock().simbolo())) {
+                if (parts.length >= 4 && parts[0].trim().equals(email) && parts[1].trim().equals(p.stock().simbolo())) {
                     if (p.quantita() > 0) {
-                        righe.add(toCSV(p));
+                        righe.add(toCSV(email, p));
                     }
                     // quantita == 0: non si aggiunge → rimozione implicita
                 } else {
@@ -63,7 +63,7 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
     }
 
     @Override
-    protected void doDeletePosizione(WalletPosition p) throws DAOException {
+    protected void doDeletePosizione(String email, WalletPosition p) throws DAOException {
         File file = new File(fileName);
         if (!file.exists()) return;
 
@@ -76,7 +76,7 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
 
                 String[] parts = line.split(SEP, -1);
 
-                if (parts.length < 2 || !parts[1].trim().equals(p.stock().simbolo())) {
+                if (parts.length < 2 || !parts[0].trim().equals(email) || !parts[1].trim().equals(p.stock().simbolo())) {
                     righe.add(line);
                 }
             }
@@ -118,8 +118,9 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
 
     // ── Utility ──────────────────────────────────────────────────────────────
 
-    private String toCSV(WalletPosition p) {
+    private String toCSV(String email, WalletPosition p) {
         return String.join(SEP,
+                email,
                 p.stock().simbolo(),
                 String.valueOf(p.quantita()),
                 String.valueOf(p.prezzoMedioAcquisto()));
@@ -136,4 +137,32 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
             return null;
         }
     }
+
+    @Override
+    protected void doDeletePosizioniByEmail(String email) throws DAOException {
+        File file = new File(fileName);
+        if (!file.exists()) return;
+
+        List<String> righe = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(SEP, -1);
+                // Colonna 0 = emailStudente
+                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
+                righe.add(line);
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura file posizioni per delete: " + e.getMessage());
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            for (String r : righe) { bw.write(r); bw.newLine(); }
+        } catch (IOException e) {
+            throw new DAOException("Errore scrittura file posizioni per delete: " + e.getMessage());
+        }
+    }
+
+
+
 }

@@ -37,9 +37,13 @@ public abstract class HomeProfessoreGraphicController {
         navigator.goToGestioneClasse();
     }
 
+    protected void vaiAllaInbox() {
+        navigator.goToInbox();
+    }
+
     protected void eseguiLogout() {
+        navigator.refresh();
         navigator.goToLogin();
-        navigator.logout();
     }
 
     // ── Accesso dati sessione ─────────────────────────────────────────────────

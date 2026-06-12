@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    Inbox.fxml
+    Layout: sidebar sinistra (navigazione ruolo-aware) + area centrale
+            (lista messaggi ricevuti + form composizione).
+
+    Il controller (ExchangeMessagesGraphicControllerGUI) gestisce
+    la visibilità di boxNavStudente / boxNavProfessore in base al ruolo.
+
+    Caricato con Approccio A: nessun fx:controller — NavigatorGUI
+    istanzia il controller e lo inietta via loader.setController().
+-->
+<HBox xmlns:fx="http://javafx.com/fxml"
+      stylesheets="@../style.css"
+      prefWidth="1100" prefHeight="680">
+
+    <!-- ══ SIDEBAR SINISTRA ═════════════════════════════════════════════════ -->
+    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+        <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
+
+        <!-- Brand -->
+        <Label text="UNIFINANCE" styleClass="titolo-app"/>
+        <Label text="Inbox"      styleClass="sottotitolo-app"/>
+
+        <VBox minHeight="24"/>
+
+        <!-- Card info utente — stilizzata dinamicamente dal controller -->
+        <VBox fx:id="boxInfoUtente" styleClass="card-studente" spacing="4">
+            <Label fx:id="lblNomeUtente"  text="—"
+                   style="-fx-text-fill:#000000; -fx-font-weight:bold; -fx-font-size:13px;"/>
+            <Label fx:id="lblEmailUtente" text=""
+                   style="-fx-text-fill:#9b8ec4; -fx-font-size:10px;"
+                   wrapText="true"/>
+        </VBox>
+
+        <VBox minHeight="12"/>
+
+        <!-- Sezione navigazione comune -->
+        <Label text="MENU" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+        <VBox minHeight="4"/>
+
+        <Button text="🏠  Dashboard"
+                maxWidth="Infinity"
+                onAction="#clickDashboard"
+                styleClass="btn-neutro"/>
+
+        <Button text="✉️  Inbox"
+                maxWidth="Infinity"
+                styleClass="btn-primario-studente"
+                onAction="#clickInboxRefresh"
+                style="-fx-cursor:default;"/>
+
+        <VBox minHeight="8"/>
+
+        <!-- Navigazione studente (Mercato, Portafoglio, Storico) -->
+        <VBox fx:id="boxNavStudente" spacing="4" visible="true" managed="true">
+            <Label text="STUDENTE" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+            <VBox minHeight="2"/>
+            <Button text="📈  Mercato"
+                    maxWidth="Infinity"
+                    onAction="#clickMercato"
+                    styleClass="btn-secondario"/>
+            <Button text="💼  Portafoglio"
+                    maxWidth="Infinity"
+                    onAction="#clickPortafoglio"
+                    styleClass="btn-secondario"/>
+            <Button text="📋  Storico Ordini"
+                    maxWidth="Infinity"
+                    onAction="#clickStorico"
+                    styleClass="btn-secondario"/>
+        </VBox>
+
+        <!-- Navigazione professore (Mercato sola lettura, Gestione Classi) -->
+        <VBox fx:id="boxNavProfessore" spacing="4" visible="false" managed="false">
+            <Label text="PROFESSORE" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
+            <VBox minHeight="2"/>
+            <Button text="📈  Mercato"
+                    maxWidth="Infinity"
+                    onAction="#clickMercato"
+                    styleClass="btn-secondario"
+                    style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+            <Button text="🏫  Gestione Classi"
+                    maxWidth="Infinity"
+                    onAction="#clickGestioneClasse"
+                    styleClass="btn-secondario"
+                    style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+        </VBox>
+
+        <!-- Spacer -->
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <!-- Logout -->
+        <Button text="⬅  Logout"
+                maxWidth="Infinity"
+                onAction="#clickLogout"
+                styleClass="btn-neutro"/>
+    </VBox>
+
+    <!-- ══ AREA PRINCIPALE ══════════════════════════════════════════════════ -->
+    <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS"
+                style="-fx-background-color:#f5f5f5; -fx-background:#f5f5f5;">
+        <content>
+            <VBox spacing="20" styleClass="schermata-chiara">
+                <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+                <!-- ── Intestazione ───────────────────────────────────── -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="✉️  Inbox" styleClass="titolo-schermata"/>
+                    <VBox HBox.hgrow="ALWAYS"/>
+                    <Button text="🔄  Aggiorna"
+                            onAction="#clickInboxRefresh"
+                            styleClass="btn-neutro"
+                            style="-fx-padding:6 16 6 16;"/>
+                </HBox>
+
+                <!-- ── Feedback (errori / successi) ──────────────────── -->
+                <Label fx:id="lblMessaggio"
+                       text=""
+                       visible="false"
+                       managed="false"
+                       wrapText="true"/>
+
+                <!-- ── Sezione: messaggi ricevuti ─────────────────────── -->
+                <VBox styleClass="card" spacing="14">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="Messaggi ricevuti"
+                               style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+                    </HBox>
+
+                    <!-- Separatore -->
+                    <HBox styleClass="divider">
+                        <HBox.margin><Insets bottom="4"/></HBox.margin>
+                    </HBox>
+
+                    <!-- Lista messaggi — popolata dal controller -->
+                    <VBox fx:id="vboxMessaggi" spacing="10">
+                        <Label fx:id="lblNessunMessaggio"
+                               text="Nessun messaggio ricevuto."
+                               styleClass="testo-secondario"
+                               wrapText="true"/>
+                    </VBox>
+                </VBox>
+
+                <!-- ── Sezione: componi messaggio ─────────────────────── -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Invia un messaggio"
+                           style="-fx-font-size:16px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;"/>
+
+                    <!-- Separatore -->
+                    <HBox styleClass="divider">
+                        <HBox.margin><Insets bottom="4"/></HBox.margin>
+                    </HBox>
+
+                    <!-- Campo destinatario -->
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="A:"
+                               style="-fx-font-size:13px; -fx-font-weight:bold;
+                                      -fx-text-fill:#1a1a2e; -fx-min-width:30;"/>
+                        <TextField fx:id="txtEmailDestinatario"
+                                   promptText="email@destinatario.it"
+                                   styleClass="campo-testo"
+                                   HBox.hgrow="ALWAYS"/>
+                    </HBox>
+
+                    <!-- Area testo -->
+                    <Label text="Messaggio:"
+                           style="-fx-font-size:12px; -fx-text-fill:#757575;"/>
+                    <TextArea fx:id="txtTestoMessaggio"
+                              promptText="Scrivi il tuo messaggio qui..."
+                              prefRowCount="5"
+                              styleClass="campo-testo"
+                              wrapText="true"/>
+
+                    <!-- Bottone invio -->
+                    <Button text="📤  Invia messaggio"
+                            onAction="#clickInviaMessaggio"
+                            styleClass="btn-primario-studente"
+                            style="-fx-padding:10 24 10 24;"
+                            maxWidth="220"/>
+                </VBox>
+
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</HBox>

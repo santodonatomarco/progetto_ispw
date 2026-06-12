@@ -12,13 +12,11 @@ public class Studente extends Utente {
     private SchoolClass schoolClass;
     private VirtualWallet wallet;
     private List<Utente> amici;
-    private List<Alert> alerts;
 
     public Studente(String email, String nome, String cognome, AuthProvider provider) {
         super(email, nome, cognome, provider);
         this.passwordHash = "";
         this.amici = new ArrayList<>();
-        this.alerts = new ArrayList<>();
     }
 
     // ── Gestione password (solo LOCAL) ────────────────────────────────────────
@@ -52,16 +50,10 @@ public class Studente extends Utente {
             this.amici.add(amico);
     }
 
-    public final void riceviAlert(Alert alert) {
-        if (alert == null)
-            throw new IllegalArgumentException("L'alert non può essere nullo.");
-        this.alerts.add(alert);
-    }
 
     public SchoolClass classeFrequentata() { return schoolClass; }
     public VirtualWallet portafoglio()     { return wallet; }
     public List<Utente> presentaAmici()    { return Collections.unmodifiableList(amici); }
-    public List<Alert> presentaAlert()     { return Collections.unmodifiableList(alerts); }
 
     @Override
     public Ruolo haRuolo() { return Ruolo.STUDENTE; }

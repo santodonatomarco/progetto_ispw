@@ -105,6 +105,7 @@ public class HomeStudenteGraphicControllerCLI extends HomeStudenteGraphicControl
         System.out.println("  [1] Vai al Mercato");
         System.out.println("  [2] Vai al Portafoglio");
         System.out.println("  [3] Storico Ordini");
+        System.out.println("  [4] Inbox / Messaggi");
         System.out.println("  [R] Aggiorna dashboard");
         System.out.println("  [0] Logout");
         System.out.print("\n  Scelta: ");
@@ -115,6 +116,7 @@ public class HomeStudenteGraphicControllerCLI extends HomeStudenteGraphicControl
             case "1" -> vaiAlMercato();
             case "2" -> vaiAlPortafoglio();
             case "3" -> vaiAlloStorico();
+            case "4" -> vaiAllaInbox();
             case "R" -> start();
             case "0" -> eseguiLogout();
             default  -> {

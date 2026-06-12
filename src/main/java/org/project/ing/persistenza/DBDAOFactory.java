@@ -2,6 +2,8 @@ package org.project.ing.persistenza;
 
 import org.project.dao.classi.SchoolClassDAO;
 import org.project.dao.classi.SchoolClassDAODB;
+import org.project.dao.messaggi.MessageDAO;
+import org.project.dao.messaggi.MessageDAODB;
 import org.project.dao.professori.ProfessoreDAO;
 import org.project.dao.professori.ProfessoreDAODB;
 import org.project.dao.studenti.StudenteDAO;
@@ -22,6 +24,7 @@ public class DBDAOFactory extends DAOFactory {
     private PortafoglioDAO portafoglioDAOInstance;
     private TransactionDAO transactionDAOInstance;
     private WalletPositionDAO walletPositionDAOInstance;
+    private MessageDAODB messageDAODBInstance;
 
     @Override
     public ProfessoreDAO createProfessoreDAO() {
@@ -33,11 +36,11 @@ public class DBDAOFactory extends DAOFactory {
     @Override
     public SchoolClassDAO createSchoolClassDAO() {
         if (schoolClassDAOInstance == null) {
-            schoolClassDAOInstance = new SchoolClassDAODB();
-            // Inietta StudenteDAO se già creato (per risolvere dipendenza circolare)
-            if (studenteDAOInstance != null && studenteDAOInstance instanceof StudenteDAODB) {
-                ((SchoolClassDAODB) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            SchoolClassDAODB db = new SchoolClassDAODB();
+            if (studenteDAOInstance != null) {
+                db.setStudenteDAO(studenteDAOInstance);  // ← inietta sul schoolClass, non sullo studente
             }
+            schoolClassDAOInstance = db;
         }
         return schoolClassDAOInstance;
     }
@@ -46,18 +49,27 @@ public class DBDAOFactory extends DAOFactory {
     public StudenteDAO createStudenteDAO() {
         if (studenteDAOInstance == null) {
             studenteDAOInstance = new StudenteDAODB(createSchoolClassDAO(), createProfessoreDAO());
-            // Inietta StudenteDAO nel SchoolClassDAO per caricare gli studenti
-            if (schoolClassDAOInstance != null && schoolClassDAOInstance instanceof SchoolClassDAODB) {
-                ((SchoolClassDAODB) schoolClassDAOInstance).setStudenteDAO(studenteDAOInstance);
+            // Risolvi la dipendenza circolare SchoolClass ↔ Studente
+            if (schoolClassDAOInstance instanceof SchoolClassDAODB scdb) {
+                scdb.setStudenteDAO(studenteDAOInstance);
             }
+            // Inietta PortafoglioDAO per la cascade delete.
+            // createPortafoglioDAO() richiama createStudenteDAO() internamente,
+            // ma a questo punto studenteDAOInstance è già settato → restituisce
+            // l'istanza esistente senza ricorsione infinita.
+            studenteDAOInstance.setPortafoglioDAO(createPortafoglioDAO());
         }
         return studenteDAOInstance;
     }
 
     @Override
     public PortafoglioDAO createPortafoglioDAO() {
-        if (portafoglioDAOInstance == null)
+        if (portafoglioDAOInstance == null) {
             portafoglioDAOInstance = new PortafoglioDAODB(createStudenteDAO(), createStockFactory());
+            // Inietta TransactionDAO e WalletPositionDAO per la cascade delete
+            portafoglioDAOInstance.setTransactionDAO(createTransactionDAO());
+            portafoglioDAOInstance.setWalletPositionDAO(createWalletPositionDAO());
+        }
         return portafoglioDAOInstance;
     }
 
@@ -76,8 +88,14 @@ public class DBDAOFactory extends DAOFactory {
     }
 
     private StockFactory createStockFactory() {
-
-
         return StockFactory.getInstance();
+    }
+
+
+    @Override
+    public MessageDAO createMessageDAO() {
+        if (messageDAODBInstance == null)
+            messageDAODBInstance = new MessageDAODB(createStudenteDAO(), createProfessoreDAO());
+        return messageDAODBInstance;
     }
 }

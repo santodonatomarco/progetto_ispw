@@ -251,6 +251,76 @@ public class GestioneClasseAppController {
         }
     }
 
+    /**
+     * Recupera gli studenti di una classe specifica del professore loggato.
+     * Usato dal professore in GestioneClasse per vedere la lista e aprire i portafogli.
+     */
+    public List<StudenteBean> getStudentiDellaClasseProfessore(SessioneBean sessione, String nomeClasse)
+            throws ControllerException {
+
+        Professore professore = validaSessioneEOttieniProfessore(sessione,
+                "Solo i professori possono visualizzare gli studenti.");
+
+        DAOFactory factory = DAOFactory.getDAOFactory();
+        SchoolClassDAO classeDAO = factory.createSchoolClassDAO();
+        StudenteDAO studenteDAO  = factory.createStudenteDAO();
+
+        try {
+            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            if (classe == null)
+                throw new ControllerException("Classe \"" + nomeClasse + "\" non trovata.");
+
+            List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
+            List<StudenteBean> beans = new ArrayList<>();
+            if (studenti != null) {
+                for (Studente s : studenti) {
+                    StudenteBean b = new StudenteBean(s.presentaEmail(), s.presentaNome(), s.presentaCognome());
+                    b.setNomeClasse(nomeClasse);
+                    beans.add(b);
+                }
+            }
+            return beans;
+        } catch (DAOException e) {
+            throw new ControllerException("Errore nel recupero degli studenti.", e);
+        }
+    }
+
+    /**
+     * Recupera gli studenti della stessa classe dello studente loggato.
+     * Usato da ElencoStudenti per permettere allo studente di vedere i compagni.
+     */
+    public List<StudenteBean> getCompagniDiClasse(SessioneBean sessione) throws ControllerException {
+        Sessione sm = SessionManager.getInstance().ottieniSessione(sessione.getId());
+        if (sm == null)
+            throw new ControllerException("Sessione non valida o scaduta.");
+
+        Studente studente = sm.getStudenteCorrente();
+        if (studente == null)
+            throw new ControllerException("Solo gli studenti possono accedere a questa funzione.");
+
+        SchoolClass classe = studente.classeFrequentata();
+        if (classe == null)
+            throw new ControllerException("Non sei iscritto a nessuna classe.");
+
+        DAOFactory factory = DAOFactory.getDAOFactory();
+        StudenteDAO studenteDAO = factory.createStudenteDAO();
+
+        try {
+            List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
+            List<StudenteBean> beans = new ArrayList<>();
+            if (studenti != null) {
+                for (Studente s : studenti) {
+                    StudenteBean b = new StudenteBean(s.presentaEmail(), s.presentaNome(), s.presentaCognome());
+                    b.setNomeClasse(classe.nome());
+                    beans.add(b);
+                }
+            }
+            return beans;
+        } catch (DAOException e) {
+            throw new ControllerException("Errore nel recupero dei compagni di classe.", e);
+        }
+    }
+
     // ── Conversione model → bean ──────────────────────────────────────────────
 
     private SchoolClassBean toBean(SchoolClass c) {

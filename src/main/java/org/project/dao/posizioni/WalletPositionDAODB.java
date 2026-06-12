@@ -15,12 +15,13 @@ public class WalletPositionDAODB extends WalletPositionDAO {
     // Tabella: wallet_position (email_studente, simbolo, quantita, prezzo_medio_acquisto)
 
     @Override
-    protected void doSavePosizione(WalletPosition p) throws DAOException {
+    protected void doSavePosizione(String email, WalletPosition p) throws DAOException {
         String sql = "INSERT INTO wallet_position (email_studente, simbolo, quantita, prezzo_medio_acquisto) " +
                 "VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
-            st.setString(1, p.stock().simbolo()); // email viene passata dal contesto — vedi nota
+            // FIX: era st.setString(1, p.stock().simbolo()) — il simbolo al posto dell'email!
+            st.setString(1, email);
             st.setString(2, p.stock().simbolo());
             st.setDouble(3, p.quantita());
             st.setDouble(4, p.prezzoMedioAcquisto());
@@ -31,14 +32,17 @@ public class WalletPositionDAODB extends WalletPositionDAO {
     }
 
     @Override
-    protected void doUpdatePosizione(WalletPosition p) throws DAOException {
+    protected void doUpdatePosizione(String email, WalletPosition p) throws DAOException {
+        // FIX: aggiunto filtro email_studente — senza, aggiornava la posizione
+        // sullo stesso simbolo per TUTTI gli studenti
         String sql = "UPDATE wallet_position SET quantita = ?, prezzo_medio_acquisto = ? " +
-                "WHERE simbolo = ?";
+                "WHERE email_studente = ? AND simbolo = ?";
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
             st.setDouble(1, p.quantita());
             st.setDouble(2, p.prezzoMedioAcquisto());
-            st.setString(3, p.stock().simbolo());
+            st.setString(3, email);
+            st.setString(4, p.stock().simbolo());
             st.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Errore aggiornamento posizione: " + e.getMessage());
@@ -46,14 +50,29 @@ public class WalletPositionDAODB extends WalletPositionDAO {
     }
 
     @Override
-    protected void doDeletePosizione(WalletPosition p) throws DAOException {
-        String sql = "DELETE FROM wallet_position WHERE simbolo = ?";
+    protected void doDeletePosizione(String email, WalletPosition p) throws DAOException {
+        // FIX: aggiunto filtro email_studente — senza, eliminava la posizione
+        // sullo stesso simbolo per TUTTI gli studenti
+        String sql = "DELETE FROM wallet_position WHERE email_studente = ? AND simbolo = ?";
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
-            st.setString(1, p.stock().simbolo());
+            st.setString(1, email);
+            st.setString(2, p.stock().simbolo());
             st.executeUpdate();
         } catch (SQLException e) {
             throw new DAOException("Errore eliminazione posizione: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doDeletePosizioniByEmail(String email) throws DAOException {
+        String sql = "DELETE FROM wallet_position WHERE email_studente = ?";
+        try (Connection conn = DBConnection.getInstance().getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setString(1, email);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Errore eliminazione posizioni per " + email + ": " + e.getMessage());
         }
     }
 

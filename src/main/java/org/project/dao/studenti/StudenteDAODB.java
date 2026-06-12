@@ -13,8 +13,8 @@ import java.util.List;
 
 public class StudenteDAODB extends StudenteDAO {
 
-    private SchoolClassDAO schoolClassDAO;
-    private ProfessoreDAO professoreDAO;
+    private final SchoolClassDAO schoolClassDAO;
+    private final ProfessoreDAO professoreDAO;
 
     public StudenteDAODB(SchoolClassDAO schoolClassDAO, ProfessoreDAO professoreDAO) {
         this.schoolClassDAO = schoolClassDAO;
@@ -30,9 +30,7 @@ public class StudenteDAODB extends StudenteDAO {
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
-
             st.setString(1, email);
-
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) return mapStudente(rs);
             }
@@ -52,9 +50,7 @@ public class StudenteDAODB extends StudenteDAO {
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, nomeClasse);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) lista.add(mapStudente(rs));
             }
@@ -68,10 +64,10 @@ public class StudenteDAODB extends StudenteDAO {
     protected void doSaveStudente(Studente studente) throws DAOException {
         String sql = "INSERT INTO studente (email, nome, cognome, password_hash, auth_provider, classe, professore_email) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT (email) DO UPDATE SET " +
-                "nome = EXCLUDED.nome, cognome = EXCLUDED.cognome, " +
-                "password_hash = EXCLUDED.password_hash, auth_provider = EXCLUDED.auth_provider, " +
-                "classe = EXCLUDED.classe, professore_email = EXCLUDED.professore_email";
+                "ON DUPLICATE KEY UPDATE" +
+                "nome = VALUES(nome), cognome = VALUES(cognome), " +
+                "password_hash = VALUES(password_hash), auth_provider = VALUES(auth_provider), " +
+                "classe = VALUES(classe), professore_email = VALUES(professore_email)";
 
         String nomeClasse = studente.classeFrequentata() != null ? studente.classeFrequentata().nome() : null;
         String emailProf  = (studente.classeFrequentata() != null && studente.classeFrequentata().teacher() != null)
@@ -79,7 +75,6 @@ public class StudenteDAODB extends StudenteDAO {
 
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
-
             st.setString(1, studente.presentaEmail());
             st.setString(2, studente.presentaNome());
             st.setString(3, studente.presentaCognome());
@@ -87,11 +82,29 @@ public class StudenteDAODB extends StudenteDAO {
             st.setString(5, studente.comeAccede().toString());
             st.setString(6, nomeClasse);
             st.setString(7, emailProf);
-
             st.executeUpdate();
-
         } catch (SQLException e) {
             throw new DAOException("Errore salvataggio studente su DB: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Rimuove lo studente dal DB. Le entità figlie (wallet, transazioni, posizioni)
+     * vengono rimosse prima dalla cascade in StudenteDAO.rimuoviStudente.
+     *
+     * Se il DB ha ON DELETE CASCADE su tutte le FK verso studente.email,
+     * questo DELETE eliminerà automaticamente tutto — in quel caso i doDelete*
+     * degli altri DAO diventano ridondanti ma innocui (effetto idempotente).
+     */
+    @Override
+    protected void doDeleteStudente(String email) throws DAOException {
+        String sql = "DELETE FROM studente WHERE email = ?";
+        try (Connection conn = DBConnection.getInstance().getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setString(1, email);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new DAOException("Errore eliminazione studente " + email + ": " + e.getMessage());
         }
     }
 
@@ -122,7 +135,6 @@ public class StudenteDAODB extends StudenteDAO {
                 // Classe non caricabile — lo studente rimane senza classe
             }
         }
-
         return studente;
     }
 }

@@ -4,6 +4,7 @@ import org.project.control.GestioneClasseAppController;
 import org.project.exceptions.ControllerException;
 import org.project.view.bean.SchoolClassBean;
 import org.project.view.bean.SessioneBean;
+import org.project.view.bean.StudenteBean;
 
 import java.util.List;
 
@@ -114,6 +115,21 @@ public abstract class GestioneClasseGraphicController {
         }
     }
 
+    protected List<StudenteBean> eseguiCaricaStudenti(String nomeClasse) {
+        SessioneBean sessione = navigator.getSessione();
+        if (sessione == null) {
+            mostraErrore("Sessione non valida.");
+            return null;
+        }
+        try {
+            return new GestioneClasseAppController()
+                    .getStudentiDellaClasseProfessore(sessione, nomeClasse);
+        } catch (ControllerException e) {
+            mostraErrore("Impossibile caricare gli studenti: " + e.getMessage());
+            return null;
+        }
+    }
+
     // ── Navigazione ───────────────────────────────────────────────────────────
 
     protected void tornaDashboard() {
@@ -125,8 +141,8 @@ public abstract class GestioneClasseGraphicController {
     }
 
     protected void eseguiLogout() {
+        navigator.refresh();
         navigator.goToLogin();
-        navigator.logout();
     }
 
     // ── Metodi astratti ───────────────────────────────────────────────────────

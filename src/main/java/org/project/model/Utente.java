@@ -2,6 +2,9 @@ package org.project.model;
 import org.project.ing.enumerations.AuthProvider;
 import org.project.ing.enumerations.Ruolo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public abstract class Utente {
 
@@ -10,12 +13,14 @@ public abstract class Utente {
     private String cognome;
     private String profilePicture;
     private AuthProvider authProvider;
+    private List<Message> inbox;
 
     protected Utente(String email, String nome, String cognome, AuthProvider provider) {
         this.impostaEmail(email);
         this.chiamaNome(nome);
         this.chiamaCognome(cognome);
         this.authProvider = (provider != null) ? provider : AuthProvider.LOCAL;
+        this.inbox = new ArrayList<>();
     }
 
     public final void impostaEmail(String email) {
@@ -45,4 +50,13 @@ public abstract class Utente {
     public AuthProvider comeAccede() { return authProvider; }
 
     public abstract Ruolo haRuolo();
+
+    public List<Message> postaRicevuta() {
+        return this.inbox;
+    }
+
+    public void aggiungiAllaInbox(Message messaggio) {
+        this.inbox.add(messaggio);
+    }
+
 }

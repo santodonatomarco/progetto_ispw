@@ -1,14 +1,16 @@
 package org.project.view;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import org.project.control.GestioneClasseAppController;
 import org.project.exceptions.ControllerException;
 import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SchoolClassBean;
 import org.project.view.bean.SessioneBean;
+import org.project.view.bean.StudenteBean;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -33,6 +35,10 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
     @FXML private Label            lblBudgetAttuale;
     @FXML private TextField        txtNuovoBudget;
     @FXML private TextField        txtEmailStudente;
+
+    // ── Studenti della classe ─────────────────────────────────────────────────
+    @FXML private VBox             vboxStudentiAnteprima;
+    @FXML private Label            lblNessunoStudente;
 
     // ── Nuova classe ──────────────────────────────────────────────────────────
     @FXML private TextField txtNomeNuovaClasse;
@@ -201,6 +207,48 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
         eseguiLogout();
     }
 
+    @FXML
+    private void clickVediStudenti() {
+        SchoolClassBean classeCorrente = navigator.getClasseCorrente();
+        if (classeCorrente == null) {
+            mostraErrore("Nessuna classe selezionata.");
+            return;
+        }
+
+        List<StudenteBean> studenti = eseguiCaricaStudenti(classeCorrente.getNome());
+        if (studenti == null) return; // errore già mostrato da eseguiCaricaStudenti
+        if (studenti.isEmpty()) {
+            mostraErrore("Nessuno studente iscritto a questa classe.");
+            return;
+        }
+
+        // Crea una finestra di dialogo con l'elenco degli studenti
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Elenco Studenti - " + classeCorrente.getNome());
+        dialog.setHeaderText("Studenti della classe " + classeCorrente.getNome());
+
+        VBox content = new VBox(10);
+        content.setPrefWidth(500);
+        content.setPrefHeight(400);
+        content.setStyle("-fx-padding: 20;");
+
+        ScrollPane scrollPane = new ScrollPane();
+        VBox listaStudenti = new VBox(6);
+        listaStudenti.setStyle("-fx-padding: 10;");
+
+        for (StudenteBean s : studenti) {
+            listaStudenti.getChildren().add(creaRigaStudenteAnteprima(s));
+        }
+
+        scrollPane.setContent(listaStudenti);
+        scrollPane.setFitToWidth(true);
+        content.getChildren().add(scrollPane);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+    }
+
     // ── Pannello modifica ─────────────────────────────────────────────────────
 
     private void mostraPanelModifica(SchoolClassBean classe) {
@@ -208,7 +256,74 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
         lblBudgetAttuale.setText("Budget attuale: " + VALUTA.format(classe.getBudgetIniziale()));
         panelModificaBudget.setVisible(true);
         panelModificaBudget.setManaged(true);
+        popolaAnteprimaStudenti(classe.getNome());
     }
+
+    // ── Anteprima studenti (max 5 righe) ─────────────────────────────────────
+
+    private void popolaAnteprimaStudenti(String nomeClasse) {
+        if (vboxStudentiAnteprima == null) return;
+        vboxStudentiAnteprima.getChildren().clear();
+        SessioneBean sessione = navigator.getSessione();
+        if (sessione == null) return;
+
+        try {
+            List<StudenteBean> studenti = new GestioneClasseAppController()
+                    .getStudentiDellaClasseProfessore(sessione, nomeClasse);
+
+            if (studenti == null || studenti.isEmpty()) {
+                if (lblNessunoStudente != null) {
+                    lblNessunoStudente.setVisible(true);
+                    lblNessunoStudente.setManaged(true);
+                }
+                return;
+            }
+
+            if (lblNessunoStudente != null) {
+                lblNessunoStudente.setVisible(false);
+                lblNessunoStudente.setManaged(false);
+            }
+
+            int limite = Math.min(5, studenti.size());
+            for (int i = 0; i < limite; i++) {
+                vboxStudentiAnteprima.getChildren().add(creaRigaStudenteAnteprima(studenti.get(i)));
+            }
+            if (studenti.size() > 5) {
+                Label altri = new Label("… e altri " + (studenti.size() - 5) +
+                        " studenti. Clicca \"Vedi elenco completo\" per tutti.");
+                altri.setStyle("-fx-font-size:11px; -fx-text-fill:#5c6bc0;");
+                vboxStudentiAnteprima.getChildren().add(altri);
+            }
+
+        } catch (ControllerException e) {
+            // silenzioso nell'anteprima, l'utente può cliccare "Vedi elenco"
+        }
+    }
+
+    private HBox creaRigaStudenteAnteprima(StudenteBean s) {
+        HBox riga = new HBox(10);
+        riga.setAlignment(Pos.CENTER_LEFT);
+        riga.setStyle("-fx-padding:8 12 8 12; -fx-background-color:#f8f9ff; " +
+                "-fx-background-radius:6; -fx-border-color:#e8eaf6; -fx-border-radius:6;");
+
+        Label lblNome = new Label(s.getNome() + " " + s.getCognome());
+        lblNome.setStyle("-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;");
+        Label lblEmail = new Label("(" + s.getEmail() + ")");
+        lblEmail.setStyle("-fx-font-size:11px; -fx-text-fill:#757575;");
+        HBox.setHgrow(lblEmail, Priority.ALWAYS);
+
+        Button btnPf = new Button("💼 Portafoglio");
+        btnPf.setStyle("-fx-background-color:#1a237e; -fx-text-fill:white; " +
+                "-fx-font-size:11px; -fx-padding:5 12 5 12; -fx-background-radius:6; -fx-cursor:hand;");
+        btnPf.setOnAction(e -> {
+            navigator.impostaStudenteTarget(s);
+            navigator.goToWalletStudente();
+        });
+
+        riga.getChildren().addAll(lblNome, lblEmail, btnPf);
+        return riga;
+    }
+
 
     private void nascondiPanelModifica() {
         panelModificaBudget.setVisible(false);

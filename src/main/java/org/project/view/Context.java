@@ -5,99 +5,89 @@ import org.project.view.bean.*;
 import java.util.List;
 
 /**
- * Contenitore dello stato della navigazione.
- * Vive dentro il Navigator e conserva tutti i bean che servono
- * tra una schermata e l'altra — nessun oggetto model, solo bean.
+ * Contenitore dello stato di navigazione.
+ * Vive dentro il Navigator e conserva tutti i bean condivisi tra schermate.
+ * Nessun oggetto model — solo bean.
  */
 public class Context {
 
     // ── Sessione e utente loggato ─────────────────────────────────────────────
-    private SessioneBean sessione;
-    private StudenteBean studenteLoggato;
-    private ProfessoreBean professoreLoggato;
+    private SessioneBean    sessione;
+    private StudenteBean    studenteLoggato;
+    private ProfessoreBean  professoreLoggato;
 
     // ── Dati mercato ──────────────────────────────────────────────────────────
-    private StockBean stockCorrente;           // stock selezionato per analisi/acquisto
-    private List<StockBean> listaStock;        // lista stock visualizzata nel mercato
+    private StockBean        stockCorrente;
+    private List<StockBean>  listaStock;
 
     // ── Ordine in corso ───────────────────────────────────────────────────────
-    private TransactionBean transazionePending; // ordine avviato, in attesa di conferma
+    private TransactionBean  transazionePending;
 
     // ── Portafoglio ───────────────────────────────────────────────────────────
-    private PortafoglioBean portafoglio;        // snapshot del wallet dello studente
+    private PortafoglioBean        portafoglio;
+    private List<TransactionBean>  storicoTransazioni;
 
-    // ── Classe e studenti (uso professore) ───────────────────────────────────
-    private SchoolClassBean classeCorrente;
-    private List<StudenteBean> studentiClasse;
-    private List<SchoolClassBean> listaClassi;
+    // ── Portafoglio esterno (WALLET_STUDENTE) ─────────────────────────────────
+    /**
+     * Studente di cui visualizzare il portafoglio (non proprietario).
+     * Impostato prima di goToWalletStudente(); null = nessuna navigazione esterna attiva.
+     */
+    private StudenteBean studenteTarget;
 
-    // ── Storico transazioni ───────────────────────────────────────────────────
-    private List<TransactionBean> storicoTransazioni;
+    // ── Classe e studenti (uso professore e studente della stessa classe) ───────────────────────────────────
+    private SchoolClassBean        classeCorrente;
+    private List<StudenteBean>     studentiClasse;
+    private List<SchoolClassBean>  listaClassi;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Costruttori
     // ─────────────────────────────────────────────────────────────────────────
 
     public Context() {}
 
-    public Context(StudenteBean studente) {
-        this.studenteLoggato = studente;
-    }
+    // ── Sessione e utente ─────────────────────────────────────────────────────
 
-    public Context(ProfessoreBean professore) {
-        this.professoreLoggato = professore;
-    }
+    public SessioneBean   getSessione()                              { return sessione; }
+    public void           setSessione(SessioneBean s)                { this.sessione = s; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Sessione e utente
-    // ─────────────────────────────────────────────────────────────────────────
+    public StudenteBean   getStudenteLoggato()                       { return studenteLoggato; }
+    public void           setStudenteLoggato(StudenteBean s)         { this.studenteLoggato = s; }
 
-    public SessioneBean getSessione()                   { return sessione; }
-    public void setSessione(SessioneBean sessione)      { this.sessione = sessione; }
+    public ProfessoreBean getProfessoreLoggato()                     { return professoreLoggato; }
+    public void           setProfessoreLoggato(ProfessoreBean p)     { this.professoreLoggato = p; }
 
-    public StudenteBean getStudenteLoggato()                        { return studenteLoggato; }
-    public void setStudenteLoggato(StudenteBean studente)           { this.studenteLoggato = studente; }
+    // ── Mercato ───────────────────────────────────────────────────────────────
 
-    public ProfessoreBean getProfessoreLoggato()                    { return professoreLoggato; }
-    public void setProfessoreLoggato(ProfessoreBean professore)     { this.professoreLoggato = professore; }
+    public StockBean       getStockCorrente()                        { return stockCorrente; }
+    public void            setStockCorrente(StockBean s)             { this.stockCorrente = s; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Mercato
-    // ─────────────────────────────────────────────────────────────────────────
+    public List<StockBean> getListaStock()                           { return listaStock; }
+    public void            setListaStock(List<StockBean> l)          { this.listaStock = l; }
 
-    public StockBean getStockCorrente()                     { return stockCorrente; }
-    public void setStockCorrente(StockBean stock)           { this.stockCorrente = stock; }
+    // ── Ordine ────────────────────────────────────────────────────────────────
 
-    public List<StockBean> getListaStock()                  { return listaStock; }
-    public void setListaStock(List<StockBean> lista)        { this.listaStock = lista; }
+    public TransactionBean  getTransazionePending()                  { return transazionePending; }
+    public void             setTransazionePending(TransactionBean t) { this.transazionePending = t; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Ordine in corso
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Portafoglio ───────────────────────────────────────────────────────────
 
-    public TransactionBean getTransazionePending()                          { return transazionePending; }
-    public void setTransazionePending(TransactionBean transazione)          { this.transazionePending = transazione; }
+    public PortafoglioBean       getPortafoglio()                    { return portafoglio; }
+    public void                  setPortafoglio(PortafoglioBean p)   { this.portafoglio = p; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Portafoglio
-    // ─────────────────────────────────────────────────────────────────────────
+    public List<TransactionBean> getStoricoTransazioni()             { return storicoTransazioni; }
+    public void                  setStoricoTransazioni(List<TransactionBean> l) { this.storicoTransazioni = l; }
 
-    public PortafoglioBean getPortafoglio()                     { return portafoglio; }
-    public void setPortafoglio(PortafoglioBean portafoglio)     { this.portafoglio = portafoglio; }
+    // ── Portafoglio esterno ───────────────────────────────────────────────────
 
-    public List<TransactionBean> getStoricoTransazioni()                        { return storicoTransazioni; }
-    public void setStoricoTransazioni(List<TransactionBean> storico)            { this.storicoTransazioni = storico; }
+    public StudenteBean getStudenteTarget()                          { return studenteTarget; }
+    public void         setStudenteTarget(StudenteBean s)            { this.studenteTarget = s; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Classe e studenti (uso professore)
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Classe e studenti ─────────────────────────────────────────────────────
 
-    public SchoolClassBean getClasseCorrente()                      { return classeCorrente; }
-    public void setClasseCorrente(SchoolClassBean classe)           { this.classeCorrente = classe; }
+    public SchoolClassBean        getClasseCorrente()                { return classeCorrente; }
+    public void                   setClasseCorrente(SchoolClassBean c){ this.classeCorrente = c; }
 
-    public List<StudenteBean> getStudentiClasse()                   { return studentiClasse; }
-    public void setStudentiClasse(List<StudenteBean> studenti)      { this.studentiClasse = studenti; }
+    public List<StudenteBean>     getStudentiClasse()                { return studentiClasse; }
+    public void                   setStudentiClasse(List<StudenteBean> l) { this.studentiClasse = l; }
 
-    public List<SchoolClassBean> getListaClassi()                   { return listaClassi; }
-    public void setListaClassi(List<SchoolClassBean> classi)        { this.listaClassi = classi; }
+    public List<SchoolClassBean>  getListaClassi()                   { return listaClassi; }
+    public void                   setListaClassi(List<SchoolClassBean> l) { this.listaClassi = l; }
 }

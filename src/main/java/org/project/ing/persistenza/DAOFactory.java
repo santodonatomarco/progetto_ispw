@@ -1,5 +1,6 @@
 package org.project.ing.persistenza;
 
+import org.project.dao.messaggi.MessageDAO;
 import org.project.dao.professori.ProfessoreDAO;
 import org.project.dao.studenti.StudenteDAO;
 import org.project.dao.classi.SchoolClassDAO;
@@ -44,4 +45,5 @@ public abstract class DAOFactory {
     public abstract PortafoglioDAO createPortafoglioDAO();
     public abstract TransactionDAO createTransactionDAO();
     public abstract WalletPositionDAO createWalletPositionDAO();
+    public abstract MessageDAO createMessageDAO();
 }

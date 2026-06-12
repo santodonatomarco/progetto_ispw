@@ -21,7 +21,6 @@ public class Sessione {
     private List<WalletPosition> posizioniCaricate;
 
     // ── Ordine in corso (timeout 5 minuti) ───────────────────────────────────
-    /** Transazione PENDING creata da MercatoAppController, confermata da OrdineAppController. */
     private Transaction transazionePending;
 
     // ── Getter / Setter ───────────────────────────────────────────────────────

@@ -23,9 +23,9 @@ public class TransactionDAOFile extends TransactionDAO {
     // Formato CSV: emailStudente;simbolo;tipo;stato;quantita;prezzoAlMomento;timestamp
 
     @Override
-    protected void doSaveTransazione(Transaction t) throws DAOException {
+    protected void doSaveTransazione(String email, Transaction t) throws DAOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
-            bw.write(toCSV(t));
+            bw.write(toCSV(email, t));
             bw.newLine();
         } catch (IOException e) {
             throw new DAOException("Errore scrittura transazione: " + e.getMessage());
@@ -33,7 +33,7 @@ public class TransactionDAOFile extends TransactionDAO {
     }
 
     @Override
-    protected void doUpdateTransazione(Transaction t) throws DAOException {
+    protected void doUpdateTransazione(String email, Transaction t) throws DAOException {
         // Riscrive il file aggiornando la riga con lo stesso simbolo+timestamp
         File file = new File(fileName);
         if (!file.exists()) throw new DAOException("File transazioni non trovato.");
@@ -46,9 +46,10 @@ public class TransactionDAOFile extends TransactionDAO {
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(SEP, -1);
-                // chiave: simbolo (indice 1) + timestamp (indice 6)
-                if (parts.length >= 7 && (parts[1].trim() + SEP + parts[6].trim()).equals(chiave)) {
-                    righe.add(toCSV(t));
+                // chiave: email (indice 0) + simbolo (indice 1) + timestamp (indice 6)
+                if (parts.length >= 7 && parts[0].trim().equals(email) &&
+                    (parts[1].trim() + SEP + parts[6].trim()).equals(chiave)) {
+                    righe.add(toCSV(email, t));
                 } else {
                     righe.add(line);
                 }
@@ -88,8 +89,9 @@ public class TransactionDAOFile extends TransactionDAO {
 
     // ── Utility ──────────────────────────────────────────────────────────────
 
-    private String toCSV(Transaction t) {
+    private String toCSV(String email, Transaction t) {
         return String.join(SEP,
+                email,
                 t.stock().simbolo(),
                 t.tipo().toString(),
                 t.stato().toString(),
@@ -100,11 +102,11 @@ public class TransactionDAOFile extends TransactionDAO {
 
     private Transaction parse(String[] parts) {
         try {
-            String simbolo   = parts[0].trim();
-            TipoTransazione tipo  = TipoTransazione.valueOf(parts[1].trim());
-            StatoTransazione stato = StatoTransazione.valueOf(parts[2].trim());
-            double quantita  = Double.parseDouble(parts[3].trim());
-            double prezzo    = Double.parseDouble(parts[4].trim());
+            String simbolo   = parts[1].trim();
+            TipoTransazione tipo  = TipoTransazione.valueOf(parts[2].trim());
+            StatoTransazione stato = StatoTransazione.valueOf(parts[3].trim());
+            double quantita  = Double.parseDouble(parts[4].trim());
+            double prezzo    = Double.parseDouble(parts[5].trim());
 
             Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
             Transaction t = new Transaction(stock, tipo, quantita, prezzo);
@@ -114,4 +116,32 @@ public class TransactionDAOFile extends TransactionDAO {
             return null;
         }
     }
+
+    @Override
+    protected void doDeleteTransazioniByEmail(String email) throws DAOException {
+        File file = new File(fileName);
+        if (!file.exists()) return;
+
+        List<String> righe = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(SEP, -1);
+                // Colonna 0 = emailStudente
+                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
+                righe.add(line);
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura file transazioni per delete: " + e.getMessage());
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            for (String r : righe) { bw.write(r); bw.newLine(); }
+        } catch (IOException e) {
+            throw new DAOException("Errore scrittura file transazioni per delete: " + e.getMessage());
+        }
+    }
+
+
+
 }

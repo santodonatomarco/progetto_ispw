@@ -14,6 +14,7 @@ public class Transaction {
     private double prezzoAlMomento;      // prezzo dello stock al momento della transazione
     private double importoTotale;        // quantita * prezzoAlMomento
     private LocalDateTime timestamp;
+    private String emailStudente;
 
     public Transaction(Stock stock, TipoTransazione tipo, double quantita, double prezzoAlMomento) {
         this.collegaStock(stock);
@@ -54,6 +55,12 @@ public class Transaction {
         this.stato = StatoTransazione.DONE;
     }
 
+    public final void impostaEmailStudente(String email) {
+        if (email == null || !email.contains("@"))
+            throw new IllegalArgumentException("Email studente non valida.");
+        this.emailStudente = email;
+    }
+
     private void ricalcolaImporto() {
         this.importoTotale = this.quantita * this.prezzoAlMomento;
     }
@@ -65,4 +72,5 @@ public class Transaction {
     public double prezzoAlMomento()     { return prezzoAlMomento; }
     public double importoTotale()       { return importoTotale; }
     public LocalDateTime quando()       { return timestamp; }
+    public String emailStudente()    { return emailStudente; }
 }

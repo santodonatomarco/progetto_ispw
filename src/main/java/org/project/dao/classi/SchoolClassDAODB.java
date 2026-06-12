@@ -61,13 +61,12 @@ public class SchoolClassDAODB extends SchoolClassDAO {
 
     @Override
     public List<SchoolClass> getClassiByProfessore(Professore professore) throws DAOException {
-        if (professore == null) {
-            throw new DAOException("Il professore non può essere nullo");
-        }
+        if (professore == null) throw new DAOException("Il professore non può essere nullo");
 
         List<SchoolClass> classi = new ArrayList<>();
         String sql = "SELECT nome, budget_iniziale FROM schoolclass WHERE professore_email = ?";
 
+        // ── Passo 1: leggi SOLO i dati grezzi dal ResultSet ──────────────────────
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -75,29 +74,27 @@ public class SchoolClassDAODB extends SchoolClassDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String nomeClasse = rs.getString("nome");
-                    double budget = rs.getDouble("budget_iniziale");
-
-                    // Creiamo la classe passando l'oggetto professore ricevuto
-                    SchoolClass classe = new SchoolClass(nomeClasse, professore);
-                    classe.impostaBudget(budget);
-
-                    // Carica gli studenti iscritti a questa classe
-                    if (studenteDAO != null) {
-                        try {
-                            List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
-                            for (Studente s : studenti) classe.iscriviStudente(s);
-                        } catch (DAOException e) {
-                            // Non bloccare se gli studenti non si caricano
-                        }
-                    }
-
+                    SchoolClass classe = new SchoolClass(rs.getString("nome"), professore);
+                    classe.impostaBudget(rs.getDouble("budget_iniziale"));
                     classi.add(classe);
-                    addToCache(classe);
                 }
-            }
+            } // ← ResultSet chiuso qui
+
         } catch (SQLException e) {
             throw new DAOException("Errore SQL nel recupero delle classi del prof: " + e.getMessage());
+        }
+
+        // ── Passo 2: ora la connessione è libera, carica gli studenti ─────────────
+        for (SchoolClass classe : classi) {
+            if (studenteDAO != null) {
+                try {
+                    List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
+                    for (Studente s : studenti) classe.iscriviStudente(s);
+                } catch (DAOException e) {
+                    // Non bloccare se gli studenti non si caricano
+                }
+            }
+            addToCache(classe);
         }
 
         return classi;

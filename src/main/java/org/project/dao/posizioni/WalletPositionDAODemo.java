@@ -11,17 +11,17 @@ public class WalletPositionDAODemo extends WalletPositionDAO {
     private final List<WalletPosition> fintoDatabase = new ArrayList<>();
 
     @Override
-    protected void doSavePosizione(WalletPosition p) throws DAOException {
+    protected void doSavePosizione(String email, WalletPosition p) throws DAOException {
         fintoDatabase.add(p);
     }
 
     @Override
-    protected void doUpdatePosizione(WalletPosition p) throws DAOException {
+    protected void doUpdatePosizione(String email, WalletPosition p) throws DAOException {
         // In memoria l'oggetto è già aggiornato per riferimento — nulla da fare
     }
 
     @Override
-    protected void doDeletePosizione(WalletPosition p) throws DAOException {
+    protected void doDeletePosizione(String email, WalletPosition p) throws DAOException {
         fintoDatabase.removeIf(pos -> pos.stock().simbolo().equals(p.stock().simbolo()));
     }
 
@@ -29,4 +29,12 @@ public class WalletPositionDAODemo extends WalletPositionDAO {
     protected List<WalletPosition> doRetrievePosizioniByEmail(String email) throws DAOException {
         return new ArrayList<>(fintoDatabase);
     }
+
+    @Override
+    protected void doDeletePosizioniByEmail(String email) throws DAOException {
+        fintoDatabase.clear(); // stessa motivazione di TransactionDAODemo
+    }
+
+
+
 }

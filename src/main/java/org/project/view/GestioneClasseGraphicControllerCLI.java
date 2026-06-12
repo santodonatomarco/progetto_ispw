@@ -1,6 +1,7 @@
 package org.project.view;
 
 import org.project.view.bean.SchoolClassBean;
+import org.project.view.bean.StudenteBean;
 
 import java.util.List;
 import java.util.Scanner;
@@ -47,6 +48,9 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
             System.out.printf("  [%d] %-20s  Budget: € %10.2f  Studenti: %d%n",
                     i + 1, c.getNome(), c.getBudgetIniziale(), numStudenti);
         }
+        System.out.println("  " + "-".repeat(52));
+        System.out.println("  → digita il numero della classe per gestirla");
+        System.out.println("    (budget · aggiungi studente · elenco studenti)");
     }
 
     // ── Menu ─────────────────────────────────────────────────────────────────
@@ -54,7 +58,7 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
     private void mostraMenu(List<SchoolClassBean> classi) {
         System.out.println("\n  ── MENU ─────────────────────────────────────");
         if (classi != null && !classi.isEmpty())
-            System.out.println("  [numero] Seleziona classe per modificare il budget");
+            System.out.println("  [numero] Gestisci la classe (budget, studenti...)");
         System.out.println("  [N] Nuova classe");
         System.out.println("  [R] Aggiorna lista");
         System.out.println("  [M] Vai al Mercato");
@@ -122,6 +126,7 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
         System.out.println("\n  ── AZIONI ───────────────────────────────────");
         System.out.println("  [B] Modifica budget");
         System.out.println("  [A] Aggiungi studente alla classe");
+        System.out.println("  [S] Visualizza elenco studenti");
         System.out.println("  [I] Indietro");
         System.out.print("\n  Scelta: ");
 
@@ -145,9 +150,40 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
                 }
                 flussoModificaBudget(classe); // torna al menu della classe
             }
+            case "S" -> flussoElencoStudenti(classe);
             case "I" -> start();
             default  -> { mostraErrore("Scelta non valida."); flussoModificaBudget(classe); }
         }
+    }
+
+    private void flussoElencoStudenti(SchoolClassBean classe) {
+        System.out.println("\n  ── STUDENTI DELLA CLASSE: " + classe.getNome() + " ─────────────────");
+        List<StudenteBean> studenti = eseguiCaricaStudenti(classe.getNome());
+        if (studenti == null) {
+            // errore già mostrato da eseguiCaricaStudenti
+            flussoModificaBudget(classe);
+            return;
+        }
+        if (studenti.isEmpty()) {
+            System.out.println("  Nessuno studente iscritto a questa classe.");
+        } else {
+            System.out.println("  " + "-".repeat(62));
+            System.out.printf("  %-3s  %-26s %-26s%n", "#", "Nome", "Email");
+            System.out.println("  " + "-".repeat(62));
+            for (int i = 0; i < studenti.size(); i++) {
+                StudenteBean s = studenti.get(i);
+                String nomeCompleto = s.getNome() + " " + s.getCognome();
+                System.out.printf("  %-3d  %-26s %-26s%n",
+                        i + 1,
+                        tronca(nomeCompleto, 26),
+                        s.getEmail());
+            }
+            System.out.println("  " + "-".repeat(62));
+            System.out.printf("  Totale: %d studenti%n", studenti.size());
+        }
+        System.out.println("\n  Premi Invio per tornare...");
+        sc.nextLine();
+        flussoModificaBudget(classe);
     }
 
     // ── Utility input ─────────────────────────────────────────────────────────
@@ -169,6 +205,11 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
     }
 
     // ── Feedback ─────────────────────────────────────────────────────────────
+
+    private String tronca(String s, int max) {
+        if (s == null) return "—";
+        return s.length() <= max ? s : s.substring(0, max - 1) + "…";
+    }
 
     @Override
     protected void mostraSuccesso(String msg) {

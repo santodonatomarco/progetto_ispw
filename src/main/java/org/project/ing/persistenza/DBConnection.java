@@ -15,7 +15,8 @@ public class DBConnection {
     private Connection connection = null;
 
     private DBConnection() throws DAOException {
-        try (InputStream input = new FileInputStream("config.properties")) {
+        try (InputStream input = DBConnection.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (input == null) throw new IOException("config.properties non trovato nel classpath");
             Properties prop = new Properties();
             prop.load(input);
 

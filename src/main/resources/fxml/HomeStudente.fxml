@@ -57,6 +57,11 @@
                 onAction="#clickStorico"
                 styleClass="btn-secondario"/>
 
+        <Button text="✉️  Inbox"
+                maxWidth="Infinity"
+                onAction="#clickInbox"
+                styleClass="btn-secondario"/>
+
         <!-- Spacer -->
         <VBox VBox.vgrow="ALWAYS"/>
 

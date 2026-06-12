@@ -9,44 +9,54 @@ import java.util.List;
 
 public abstract class WalletPositionDAO extends CachedDAO<WalletPosition> {
 
+    /**
+     * ATTENZIONE: la chiave è solo il simbolo, non simbolo+email.
+     * Due studenti con la stessa posizione (stesso stock) collidono in cache.
+     * Per questa ragione rimuoviPosizioniByEmail usa svuotaCache().
+     * Un refactoring futuro dovrebbe usare email + "_" + simbolo come chiave.
+     */
     @Override
     protected String ottieniChiave(WalletPosition p) {
-        // chiave: email proprietario + simbolo stock
         return p.stock().simbolo();
     }
 
-    /**
-     * Salva una nuova posizione (primo acquisto di quello stock).
-     */
-    public void salvaPosizione(WalletPosition p) throws DAOException {
-        doSavePosizione(p);
+    // ── Operazioni di scrittura ────────────────────────────────────────────────
+
+    public void salvaPosizione(String email, WalletPosition p) throws DAOException {
+        doSavePosizione(email, p);
         addToCache(p);
     }
 
-    /**
-     * Aggiorna una posizione esistente (acquisto aggiuntivo o vendita parziale).
-     */
-    public void aggiornaPosizione(WalletPosition p) throws DAOException {
-        doUpdatePosizione(p);
+    public void aggiornaPosizione(String email, WalletPosition p) throws DAOException {
+        doUpdatePosizione(email, p);
     }
 
-    /**
-     * Rimuove una posizione (vendita totale — quantità arrivata a zero).
-     */
-    public void rimuoviPosizione(WalletPosition p) throws DAOException {
-        doDeletePosizione(p);
+    public void rimuoviPosizione(String email, WalletPosition p) throws DAOException {
+        doDeletePosizione(email, p);
         deleteFromCache(p);
     }
 
     /**
-     * Restituisce tutte le posizioni aperte di un wallet.
+     * Rimuove tutte le posizioni di uno studente dalla persistenza e dalla cache.
+     * Chiamato dalla cascade delete di PortafoglioDAO — invisibile al controller.
      */
+    public void rimuoviPosizioniByEmail(String email) throws DAOException {
+        doDeletePosizioniByEmail(email);
+        // Stessa motivazione di TransactionDAO: chiave senza email → svuotiamo.
+        svuotaCache();
+    }
+
+    // ── Operazioni di lettura ──────────────────────────────────────────────────
+
     public List<WalletPosition> getPosizioniWallet(VirtualWallet wallet) throws DAOException {
         return doRetrievePosizioniByEmail(wallet.proprietario().presentaEmail());
     }
 
-    protected abstract void doSavePosizione(WalletPosition p) throws DAOException;
-    protected abstract void doUpdatePosizione(WalletPosition p) throws DAOException;
-    protected abstract void doDeletePosizione(WalletPosition p) throws DAOException;
+    // ── Metodi astratti ────────────────────────────────────────────────────────
+
+    protected abstract void doSavePosizione(String email, WalletPosition p) throws DAOException;
+    protected abstract void doUpdatePosizione(String email, WalletPosition p) throws DAOException;
+    protected abstract void doDeletePosizione(String email, WalletPosition p) throws DAOException;
     protected abstract List<WalletPosition> doRetrievePosizioniByEmail(String email) throws DAOException;
+    protected abstract void doDeletePosizioniByEmail(String email) throws DAOException;
 }

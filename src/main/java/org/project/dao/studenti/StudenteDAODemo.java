@@ -89,4 +89,12 @@ public class StudenteDAODemo extends StudenteDAO {
         }
         fintoDatabase.add(studente);
     }
+
+    @Override
+    protected void doDeleteStudente(String email) throws DAOException {
+        fintoDatabase.removeIf(s -> s.presentaEmail().equals(email));
+    }
+
+
+
 }

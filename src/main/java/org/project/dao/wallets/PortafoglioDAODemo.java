@@ -67,4 +67,13 @@ public class PortafoglioDAODemo extends PortafoglioDAO {
         // Nella demo non c'è un DB fisico, ci basta aggiornare la cache ereditata da CachedDAO
         addToCache(wallet);
     }
+
+    @Override
+    protected void doDeletePortafoglio(String email) throws DAOException {
+        // Nella demo non c'è un DB fisico: la cache è già stata pulita da rimuoviPortafoglio.
+        // Se hai un fintoDatabase, rimuovi qui l'entry.
+    }
+
+
+
 }

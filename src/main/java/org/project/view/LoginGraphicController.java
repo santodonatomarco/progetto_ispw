@@ -62,13 +62,12 @@ public abstract class LoginGraphicController {
         } catch (CredenzialNonValideException e) {
             mostraErrore(e.getMessage());
         } catch (ControllerException e) {
-            /* 1. STAMPA IL VERO ERRORE NELLA CONSOLE DELL'IDE IN ROSSO
-            e.printStackTrace();
+            // 1. STAMPA IL VERO ERRORE NELLA CONSOLE DELL'IDE IN ROSSO
+            // e.printStackTrace();
 
             // 2. MOSTRA LA CAUSA REALE DIRETTAMENTE NEL POP-UP DELLA GUI
-            String causaReale = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
-            showMessage("ERRORE: " + causaReale);
-            */
+            // String causaReale = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
+            // showMessage("ERRORE: " + causaReale);
             showMessage("Si è verificato un problema. Riprova più tardi.");
         }
     }

@@ -127,6 +127,10 @@ public class LoginAppController {
         if (studente.classeFrequentata() != null) {
             studenteBean.setNomeClasse(studente.classeFrequentata().nome());
             studenteBean.setBudgetClasse(studente.classeFrequentata().budgetIniziale());
+            if (studente.classeFrequentata().teacher() != null) {
+                studenteBean.setEmailProfessore(
+                        studente.classeFrequentata().teacher().presentaEmail());
+            }
         }
 
         studenteBean.resetPassword();

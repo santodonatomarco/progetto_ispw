@@ -10,18 +10,30 @@ import java.util.Objects;
 
 /**
  * Navigator GUI — gestisce la navigazione JavaFX.
- * Ogni schermata viene caricata da un file FXML.
- * I controller grafici GUI vengono istanziati in lazy loading e riusati.
+ *
+ * ── Strategia di caricamento FXML ────────────────────────────────────────────
+ * Approccio A  (caricaFXML):       controller istanziato qui, passato via
+ *                                   setController(). L'FXML non dichiara fx:controller.
+ * Approccio B  (caricaManageWallets): il controller è dichiarato nell'FXML con
+ *                                   fx:controller; lo recuperiamo via getController()
+ *                                   dopo il load() e completiamo il wiring.
+ *
+ * ── Caso d'uso ManageWallets ─────────────────────────────────────────────────
+ * Tutte le schermate del caso d'uso (MERCATO, CONFERMA_ORDINE, PORTAFOGLIO,
+ * STORICO, WALLET_STUDENTE) condividono la stessa istanza ManageWalletsGraphicControllerGUI
+ * e la stessa view (ManageWallets.fxml); ogni chiamata attiva un diverso
+ * entry-point (start, startConfermaOrdine, startPortafoglio, ...).
  */
 public class NavigatorGUI extends Navigator {
 
     private final Stage stage;
 
-    private LoginGraphicControllerGUI login;
-    private HomeStudenteGraphicControllerGUI homeStudente;
-    private HomeProfessoreGraphicControllerGUI homeProfessore;
-    private MercatoGraphicControllerGUI mercato;
-    private GestioneClasseGraphicControllerGUI gestioneClasse;
+    private LoginGraphicControllerGUI            login;
+    private HomeStudenteGraphicControllerGUI     homeStudente;
+    private HomeProfessoreGraphicControllerGUI   homeProfessore;
+    private ManageWalletsGraphicControllerGUI    manageWallets;
+    private GestioneClasseGraphicControllerGUI   gestioneClasse;
+    private ExchangeMessagesGraphicControllerGUI exchangeMessages;
 
     public NavigatorGUI() {
         super();
@@ -36,7 +48,7 @@ public class NavigatorGUI extends Navigator {
         goToLogin();
     }
 
-    // ── Metodo centrale per il cambio schermata ───────────────────────────────
+    // ── Cambio schermata ──────────────────────────────────────────────────────
 
     private void mostraSchermata(Parent view) {
         Scene scene = stage.getScene();
@@ -49,7 +61,7 @@ public class NavigatorGUI extends Navigator {
         stage.show();
     }
 
-    // ── Utility: carica FXML ──────────────────────────────────────────────────
+    // ── Approccio A: setController() ─────────────────────────────────────────
 
     private <T> T caricaFXML(String nomeFile, Object controller) {
         try {
@@ -61,6 +73,24 @@ public class NavigatorGUI extends Navigator {
             return loader.load();
         } catch (IOException e) {
             throw new RuntimeException("Impossibile caricare " + nomeFile, e);
+        }
+    }
+
+    // ── Approccio B: getController() — ManageWallets.fxml ────────────────────
+
+    private ManageWalletsGraphicControllerGUI caricaManageWallets() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    Objects.requireNonNull(
+                            getClass().getResource("/fxml/ManageWallets.fxml"),
+                            "FXML non trovato: ManageWallets.fxml"));
+            Parent view = loader.load();
+            ManageWalletsGraphicControllerGUI ctrl = loader.getController();
+            ctrl.setGuiNavigator(this);
+            ctrl.setView(view);
+            return ctrl;
+        } catch (IOException e) {
+            throw new RuntimeException("Impossibile caricare ManageWallets.fxml", e);
         }
     }
 
@@ -80,7 +110,6 @@ public class NavigatorGUI extends Navigator {
 
     @Override
     protected void visualizzaRegistrazione() {
-        // TODO: caricare RegistrazioneGraphicControllerGUI
         System.out.println("[Registrazione GUI — da implementare]");
     }
 
@@ -96,37 +125,59 @@ public class NavigatorGUI extends Navigator {
         mostraSchermata(this.homeStudente.getView());
     }
 
+    // ── ManageWallets — tutti gli entry-point riusano la stessa istanza ───────
+
+    private ManageWalletsGraphicControllerGUI getManageWallets() {
+        if (this.manageWallets == null)
+            this.manageWallets = caricaManageWallets();
+        return this.manageWallets;
+    }
+
     @Override
     protected void visualizzaMercato() {
-        if (this.mercato == null) {
-            this.mercato = new MercatoGraphicControllerGUI();
-            this.mercato.setGuiNavigator(this);
-            Parent view = caricaFXML("Mercato.fxml", this.mercato);
-            this.mercato.setView(view);
-        }
-        this.mercato.start();
-        mostraSchermata(this.mercato.getView());
+        getManageWallets().start();
+        mostraSchermata(this.manageWallets.getView());
     }
 
     @Override
     protected void visualizzaDettaglioStock() {
-        System.out.println("[Dettaglio Stock GUI — da implementare]");
+        // Gestito inline dal panel dettaglio all'interno di ManageWallets.fxml
     }
 
     @Override
     protected void visualizzaConfermaOrdine() {
-        System.out.println("[Conferma Ordine GUI — da implementare]");
+        getManageWallets().startConfermaOrdine();
+        mostraSchermata(this.manageWallets.getView());
     }
 
     @Override
     protected void visualizzaPortafoglio() {
-        System.out.println("[Portafoglio GUI — da implementare]");
+        getManageWallets().startPortafoglio();
+        mostraSchermata(this.manageWallets.getView());
     }
 
     @Override
     protected void visualizzaStorico() {
-        System.out.println("[Storico GUI — da implementare]");
+        getManageWallets().startStorico();
+        mostraSchermata(this.manageWallets.getView());
     }
+
+    /**
+     * Visualizza il portafoglio di studenteTarget in sola lettura.
+     * Richiede impostaStudenteTarget() prima della chiamata.
+     */
+    @Override
+    protected void visualizzaWalletStudente() {
+        var target = getStudenteTarget();
+        if (target == null) {
+            System.err.println("[NavigatorGUI] visualizzaWalletStudente: studenteTarget non impostato");
+            return;
+        }
+        getManageWallets().startWalletEsterno(target);
+        mostraSchermata(this.manageWallets.getView());
+    }
+
+    // ── Professore ────────────────────────────────────────────────────────────
 
     @Override
     protected void visualizzaHomeProfessore() {
@@ -152,17 +203,30 @@ public class NavigatorGUI extends Navigator {
         mostraSchermata(this.gestioneClasse.getView());
     }
 
+    // ── Inbox / Exchange Messages ─────────────────────────────────────────────
+
     @Override
-    protected void visualizzaElencoStudenti() {
-        System.out.println("[Elenco Studenti GUI — da implementare]");
+    protected void visualizzaInbox() {
+        if (this.exchangeMessages == null) {
+            this.exchangeMessages = new ExchangeMessagesGraphicControllerGUI();
+            this.exchangeMessages.setGuiNavigator(this);
+            Parent view = caricaFXML("Inbox.fxml", this.exchangeMessages);
+            this.exchangeMessages.setView(view);
+        }
+        this.exchangeMessages.start();
+        mostraSchermata(this.exchangeMessages.getView());
     }
+
+
+    // ── Logout ────────────────────────────────────────────────────────────────
 
     @Override
     public void logout() {
-        this.login = null;
-        this.homeStudente = null;
+        this.login          = null;
+        this.homeStudente   = null;
         this.homeProfessore = null;
-        this.mercato = null;
+        this.manageWallets  = null;
+        this.gestioneClasse = null;
+        this.exchangeMessages = null;
     }
-
 }
