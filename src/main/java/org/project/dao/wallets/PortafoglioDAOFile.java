@@ -13,7 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import static sun.util.locale.BaseLocale.SEP;
+
 
 public class PortafoglioDAOFile extends PortafoglioDAO {
 
@@ -23,6 +23,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
     private final StudenteDAO studenteDAO;
     private final StockFactory stockFactory;
     private static final String CSV_SEPARATOR = ";";
+
 
     public PortafoglioDAOFile(String walletFile, String posizioniFile, String transazioniFile,
                               StudenteDAO studenteDAO, StockFactory stockFactory) {
@@ -338,7 +339,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(SEP, -1);
+                String[] parts = line.split(CSV_SEPARATOR, -1);
                 // Colonna 0 = emailStudente nel tuo CSV wallet
                 if (parts.length > 0 && parts[0].trim().equals(email)) continue;
                 righe.add(line);
