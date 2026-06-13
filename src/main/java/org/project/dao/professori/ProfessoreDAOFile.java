@@ -1,6 +1,5 @@
 package org.project.dao.professori;
 
-import org.project.dao.professori.ProfessoreDAO;
 import org.project.exceptions.DAOException;
 import org.project.ing.enumerations.AuthProvider;
 import org.project.model.*;

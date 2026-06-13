@@ -8,6 +8,7 @@ import org.project.model.Professore;
 import org.project.model.Studente;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,11 +46,11 @@ public class MessageDAODemo extends MessageDAO {
 
         // i messaggi vengono scambiati solamente tra studente e professore
 
-        Message m1 = new Message(alice, mario, "Buongiorno Professor Rossi, ho una domanda sui compiti assegnati.", LocalDateTime.now().minusDays(2));
-        Message m2 = new Message(mario, alice, "Ciao Alice, dimmi pure! Sono sempre disponibile per aiutare.", LocalDateTime.now().minusDays(2).plusHours(3));
+        Message m1 = new Message(alice, mario, "Buongiorno Professor Rossi, ho una domanda sui compiti assegnati.", LocalDateTime.now(ZoneId.systemDefault()).minusDays(2));
+        Message m2 = new Message(mario, alice, "Ciao Alice, dimmi pure! Sono sempre disponibile per aiutare.", LocalDateTime.now(ZoneId.systemDefault()).minusDays(2).plusHours(3));
 
-        Message m3 = new Message(bob, lucia, "Prof. Bianchi, quando è la prossima verifica?", LocalDateTime.now().minusDays(1));
-        Message m4 = new Message(lucia, bob, "Ciao Bob, la verifica è prevista per il prossimo lunedì.", LocalDateTime.now().minusDays(1).plusHours(1));
+        Message m3 = new Message(bob, lucia, "Prof. Bianchi, quando è la prossima verifica?", LocalDateTime.now(ZoneId.systemDefault()).minusDays(1));
+        Message m4 = new Message(lucia, bob, "Ciao Bob, la verifica è prevista per il prossimo lunedì.", LocalDateTime.now(ZoneId.systemDefault()).minusDays(1).plusHours(1));
 
 
         fintoDatabase.add(m1);

@@ -64,26 +64,39 @@ public class SchoolClassDAODemo extends SchoolClassDAO {
 
     @Override
     public List<SchoolClass> getClassiByProfessore(Professore professore) throws DAOException {
-        if (professore == null) throw new DAOException("Il professore non può essere nullo");
+        if (professore == null) {
+            throw new DAOException("Il professore non può essere nullo");
+        }
 
         List<SchoolClass> classi = new ArrayList<>();
+
         for (SchoolClass c : fintoDatabase) {
-            if (c.teacher() != null &&
-                    c.teacher().presentaEmail().equals(professore.presentaEmail())) {
-                // Carica gli studenti iscritti a questa classe
-                if (studenteDAO != null) {
-                    try {
-                        List<Studente> studenti = studenteDAO.getStudentiClasse(c);
-                        for (Studente s : studenti) c.iscriviStudente(s);
-                    } catch (DAOException e) {
-                        // Non bloccare se gli studenti non si caricano
-                    }
-                }
-                classi.add(c);
-                addToCache(c);
+            if (c.teacher() == null || !c.teacher().presentaEmail().equals(professore.presentaEmail())) {
+                continue;
             }
+            caricaStudenti(c);
+
+            classi.add(c);
+            addToCache(c);
         }
+
         return classi;
+    }
+
+
+    private void caricaStudenti(SchoolClass c) {
+        if (studenteDAO == null) {
+            return;
+        }
+
+        try {
+            List<Studente> studenti = studenteDAO.getStudentiClasse(c);
+            for (Studente s : studenti) {
+                c.iscriviStudente(s);
+            }
+        } catch (DAOException e) {
+            // Non bloccare se gli studenti non si caricano
+        }
     }
 
     @Override

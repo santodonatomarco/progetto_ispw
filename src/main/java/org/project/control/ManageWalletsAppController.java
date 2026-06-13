@@ -11,7 +11,7 @@ import org.project.ing.service.StockService;
 import org.project.model.*;
 import org.project.view.bean.*;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +112,7 @@ public class ManageWalletsAppController {
 
         long minuti = ChronoUnit.MINUTES.between(
                 transazione.quando().atZone(java.time.ZoneId.systemDefault()),
-                java.time.ZonedDateTime.now()
+                java.time.ZonedDateTime.now(ZoneId.systemDefault())
         );        if (minuti > TIMEOUT_MINUTI) {
 
             sm.setTransazionePending(null);

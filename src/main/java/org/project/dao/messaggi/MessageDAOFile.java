@@ -83,9 +83,8 @@ public class MessageDAOFile extends MessageDAO {
 
         if (mittente == null || destinatario == null) return null;
 
-        Message m = new Message(mittente, destinatario, testo, timestamp);
+        return new Message(mittente, destinatario, testo, timestamp);
 
-        return m;
     }
 
     private Utente trovaUtente(String email) throws DAOException {

@@ -147,11 +147,13 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(SEP, -1);
-                // Colonna 0 = emailStudente
-                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
-                righe.add(line);
+                if (!line.trim().isEmpty()) {
+                    String[] parts = line.split(SEP, -1);
+                    // Add to 'righe' only if it doesn't match the email
+                    if (parts.length == 0 || !parts[0].trim().equals(email)) {
+                        righe.add(line);
+                    }
+                }
             }
         } catch (IOException e) {
             throw new DAOException("Errore lettura file posizioni per delete: " + e.getMessage());

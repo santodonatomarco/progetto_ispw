@@ -82,20 +82,6 @@ public class MessageDAODB extends MessageDAO {
         }
     }
 
-    private Message mapMessage(ResultSet rs) throws SQLException, DAOException {
-        String mittenteEmail = rs.getString("mittente_email");
-        String destinatarioEmail = rs.getString("destinatario_email");
-        String testo = rs.getString("testo");
-        LocalDateTime timestamp = rs.getTimestamp("data_invio").toLocalDateTime();
-
-        Utente mittente = trovaUtente(mittenteEmail);
-        Utente destinatario = trovaUtente(destinatarioEmail);
-
-        if (mittente == null || destinatario == null) return null;
-
-        Message m = new Message(mittente, destinatario, testo, timestamp);
-        return m;
-    }
 
     private Utente trovaUtente(String email) throws DAOException {
         Utente u = studenteDAO.getStudenteByEmail(email);
