@@ -24,7 +24,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
     private final StockFactory stockFactory;
     private static final String CSV_SEPARATOR = ";";
 
-
     public PortafoglioDAOFile(String walletFile, String posizioniFile, String transazioniFile,
                               StudenteDAO studenteDAO, StockFactory stockFactory) {
         this.walletFile = walletFile;
@@ -138,22 +137,41 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(CSV_SEPARATOR, -1);
-                // Formato reale scritto da TransactionDAOFile:
-                // email(0);simbolo(1);tipo(2);stato(3);quantita(4);prezzo(5);timestamp(6)
-                if (parts.length >= 6 && parts[0].trim().equals(mailCercata)) {
-                    Stock stock          = stockFactory.creaStock(parts[1].trim());
-                    TipoTransazione tipo  = TipoTransazione.valueOf(parts[2].trim());
-                    StatoTransazione stato = StatoTransazione.valueOf(parts[3].trim());
-                    double quantita      = Double.parseDouble(parts[4].trim());
-                    double prezzo        = Double.parseDouble(parts[5].trim());
 
+                // Accetta sia il formato corrente a 7 campi che quello legacy a 5 campi
+                // email(0);simbolo(1);tipo(2);[stato(3);]quantita(3|4);prezzo(4|5);[timestamp(6)]
+                if (parts.length < 5 || !parts[0].trim().equals(mailCercata)) continue;
+
+                try {
+                    String simbolo = parts[1].trim();
+                    TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
+                    StatoTransazione stato;
+                    double quantita;
+                    double prezzo;
+
+                    if (parts.length >= 7) {
+                        // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
+                        stato   = StatoTransazione.valueOf(parts[3].trim());
+                        quantita = Double.parseDouble(parts[4].trim());
+                        prezzo   = Double.parseDouble(parts[5].trim());
+                    } else {
+                        // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
+                        stato   = StatoTransazione.DONE;
+                        quantita = Double.parseDouble(parts[3].trim());
+                        prezzo   = Double.parseDouble(parts[4].trim());
+                    }
+
+                    Stock stock = stockFactory.creaStock(simbolo);
                     Transaction t = new Transaction(stock, tipo, quantita, prezzo);
                     if (stato == StatoTransazione.DONE) t.completaTransazione();
                     wallet.aggiungiTransazione(t);
+
+                } catch (Exception e) {
+                    System.err.println("[WARN] popolaTransazioni: riga ignorata → " + e.getMessage());
                 }
             }
         } catch (Exception e) {
-            System.err.println("[WARN] popolaTransazioni: " + e.getMessage()); // almeno logga
+            System.err.println("[WARN] popolaTransazioni: errore lettura file → " + e.getMessage());
         }
     }
 
@@ -304,13 +322,16 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                 }
 
                 // Scrivi le transazioni attuali dell'utente
+                // Formato allineato a TransactionDAOFile.toCSV():
+                // email;simbolo;tipo;stato;quantita;prezzo;timestamp
                 for (Transaction t : transazioniAttuali) {
-                    // Formato: email;simbolo;tipo;quantita;prezzo
                     bw.write(email + CSV_SEPARATOR +
                             t.stock().simbolo() + CSV_SEPARATOR +
                             t.tipo().name() + CSV_SEPARATOR +
+                            t.stato().toString() + CSV_SEPARATOR +
                             t.quantita() + CSV_SEPARATOR +
-                            t.prezzoAlMomento());
+                            t.prezzoAlMomento() + CSV_SEPARATOR +
+                            t.quando().toString());
                     bw.newLine();
                 }
             }

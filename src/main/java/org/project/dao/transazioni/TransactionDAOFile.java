@@ -48,7 +48,7 @@ public class TransactionDAOFile extends TransactionDAO {
                 String[] parts = line.split(SEP, -1);
                 // chiave: email (indice 0) + simbolo (indice 1) + timestamp (indice 6)
                 if (parts.length >= 7 && parts[0].trim().equals(email) &&
-                    (parts[1].trim() + SEP + parts[6].trim()).equals(chiave)) {
+                        (parts[1].trim() + SEP + parts[6].trim()).equals(chiave)) {
                     righe.add(toCSV(email, t));
                 } else {
                     righe.add(line);
@@ -76,7 +76,7 @@ public class TransactionDAOFile extends TransactionDAO {
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(SEP, -1);
-                if (parts.length >= 7 && parts[0].trim().equals(email)) {
+                if (parts.length >= 5 && parts[0].trim().equals(email)) {
                     Transaction t = parse(parts);
                     if (t != null) lista.add(t);
                 }
@@ -102,11 +102,25 @@ public class TransactionDAOFile extends TransactionDAO {
 
     private Transaction parse(String[] parts) {
         try {
-            String simbolo   = parts[1].trim();
-            TipoTransazione tipo  = TipoTransazione.valueOf(parts[2].trim());
-            StatoTransazione stato = StatoTransazione.valueOf(parts[3].trim());
-            double quantita  = Double.parseDouble(parts[4].trim());
-            double prezzo    = Double.parseDouble(parts[5].trim());
+            String simbolo = parts[1].trim();
+            TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
+
+            StatoTransazione stato;
+            double quantita;
+            double prezzo;
+
+            if (parts.length >= 7) {
+                // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
+                stato   = StatoTransazione.valueOf(parts[3].trim());
+                quantita = Double.parseDouble(parts[4].trim());
+                prezzo   = Double.parseDouble(parts[5].trim());
+            } else {
+                // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
+                // Scritto dalla vecchia aggiornaFileTransazioni — stato assunto DONE
+                stato   = StatoTransazione.DONE;
+                quantita = Double.parseDouble(parts[3].trim());
+                prezzo   = Double.parseDouble(parts[4].trim());
+            }
 
             Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
             Transaction t = new Transaction(stock, tipo, quantita, prezzo);
