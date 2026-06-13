@@ -13,8 +13,8 @@ public abstract class PortafoglioDAO extends CachedDAO<VirtualWallet> {
      * Iniettati dalla factory per gestire la cascade delete.
      * Non passati in costruttore per evitare dipendenze circolari.
      */
-    private TransactionDAO transactionDAO;
-    private WalletPositionDAO walletPositionDAO;
+    protected TransactionDAO transactionDAO;
+    protected WalletPositionDAO walletPositionDAO;
 
     public void setTransactionDAO(TransactionDAO transactionDAO) {
         this.transactionDAO = transactionDAO;

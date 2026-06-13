@@ -27,7 +27,6 @@ public class SchoolClassDAODemo extends SchoolClassDAO {
         }
     }
 
-    /** Permette di iniettare lo StudenteDAO dopo la costruzione (evita ciclo di dipendenze). */
     public void setStudenteDAO(StudenteDAO studenteDAO) {
         this.studenteDAO = studenteDAO;
     }

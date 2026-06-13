@@ -56,7 +56,7 @@ public class DemoDAOFactory extends DAOFactory {
 
     @Override public PortafoglioDAO createPortafoglioDAO() {
         if (portafoglioDAOInstance == null) {
-            portafoglioDAOInstance = new PortafoglioDAODemo(createStudenteDAO(), createStockFactory());
+            portafoglioDAOInstance = new PortafoglioDAODemo(createStockFactory(),createStudenteDAO());
             portafoglioDAOInstance.setTransactionDAO(createTransactionDAO());
             portafoglioDAOInstance.setWalletPositionDAO(createWalletPositionDAO());
         }
@@ -76,7 +76,7 @@ public class DemoDAOFactory extends DAOFactory {
     }
     @Override public MessageDAO createMessageDAO() {
         if (messageDAOInstance == null)
-            messageDAOInstance = new MessageDAODemo();
+            messageDAOInstance = new MessageDAODemo(createStudenteDAO(), createProfessoreDAO());
         return messageDAOInstance;
     }
 
