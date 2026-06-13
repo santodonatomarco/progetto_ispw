@@ -110,8 +110,11 @@ public class ManageWalletsAppController {
         if (transazione == null)
             throw new ControllerException("Nessun ordine pending trovato. Riprova.");
 
-        long minuti = ChronoUnit.MINUTES.between(transazione.quando(), LocalDateTime.now());
-        if (minuti > TIMEOUT_MINUTI) {
+        long minuti = ChronoUnit.MINUTES.between(
+                transazione.quando().atZone(java.time.ZoneId.systemDefault()),
+                java.time.ZonedDateTime.now()
+        );        if (minuti > TIMEOUT_MINUTI) {
+
             sm.setTransazionePending(null);
             throw new ControllerException(
                     "Il tempo per confermare è scaduto (limite: " + TIMEOUT_MINUTI + " min). Riprova.");
