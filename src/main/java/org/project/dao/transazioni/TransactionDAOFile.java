@@ -140,17 +140,25 @@ public class TransactionDAOFile extends TransactionDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] parts = line.split(SEP, -1);
-                // Colonna 0 = emailStudente
-                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
-                righe.add(line);
+
+                if (parts.length == 0 || !parts[0].trim().equals(email)) {
+                    righe.add(line);
+                }
             }
         } catch (IOException e) {
             throw new DAOException("Errore lettura file transazioni per delete: " + e.getMessage());
         }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
-            for (String r : righe) { bw.write(r); bw.newLine(); }
+            for (String r : righe) {
+                bw.write(r);
+                bw.newLine();
+            }
         } catch (IOException e) {
             throw new DAOException("Errore scrittura file transazioni per delete: " + e.getMessage());
         }

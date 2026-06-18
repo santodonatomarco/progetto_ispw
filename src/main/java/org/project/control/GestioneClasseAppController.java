@@ -31,7 +31,7 @@ public class GestioneClasseAppController {
         if (nomeClasse == null || nomeClasse.isBlank())
             throw new ControllerException("Il nome della classe non può essere vuoto.");
         if (budgetIniziale < 0)
-            throw new ControllerException("Il budget non può essere negativo.");
+            throw new ControllerException("Il budget per la classe non può essere negativo.");
 
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null)
@@ -173,7 +173,7 @@ public class GestioneClasseAppController {
     /**
      * Pre-aggiunge uno studente alla classe del professore come "pending".
      * Lo studente viene creato con email e classe, senza password né nome:
-     * completerà la registrazione autonomamente tramite RegistrazioneAppController.
+     * completerà la registrazione autonomamente (controller da implementare)
      * Vincoli:
      * - L'email non deve appartenere a uno studente già registrato
      * - La classe deve esistere e appartenere al professore in sessione
@@ -207,7 +207,7 @@ public class GestioneClasseAppController {
             // 2. Verifica che l'email non sia già registrata
             Studente esistente = studenteDAO.getStudenteByEmail(emailStudente.trim().toLowerCase());
             if (esistente != null)
-                throw new ControllerException("Esiste già uno studente con questa email.");
+                throw new ControllerException("Esiste già uno studente con questa email, dunque riprova.");
 
             // 3. Crea lo studente pending: solo email e classe, il nome arriverà alla registrazione
             Studente pending = new Studente(
@@ -222,7 +222,7 @@ public class GestioneClasseAppController {
             return bean;
 
         } catch (DAOException e) {
-            throw new ControllerException("Errore durante l'aggiunta dello studente.", e);
+            throw new ControllerException("Errore durante l'aggiunta in persistenza dello studente.", e);
         }
     }
 
@@ -289,37 +289,6 @@ public class GestioneClasseAppController {
      * Recupera gli studenti della stessa classe dello studente loggato.
      * Usato da ElencoStudenti per permettere allo studente di vedere i compagni.
      */
-    public List<StudenteBean> getCompagniDiClasse(SessioneBean sessione) throws ControllerException {
-        Sessione sm = SessionManager.getInstance().ottieniSessione(sessione.getId());
-        if (sm == null)
-            throw new ControllerException("Sessione non valida o scaduta.");
-
-        Studente studente = sm.getStudenteCorrente();
-        if (studente == null)
-            throw new ControllerException("Solo gli studenti possono accedere a questa funzione.");
-
-        SchoolClass classe = studente.classeFrequentata();
-        if (classe == null)
-            throw new ControllerException("Non sei iscritto a nessuna classe.");
-
-        DAOFactory factory = DAOFactory.getDAOFactory();
-        StudenteDAO studenteDAO = factory.createStudenteDAO();
-
-        try {
-            List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
-            List<StudenteBean> beans = new ArrayList<>();
-            if (studenti != null) {
-                for (Studente s : studenti) {
-                    StudenteBean b = new StudenteBean(s.presentaEmail(), s.presentaNome(), s.presentaCognome());
-                    b.setNomeClasse(classe.nome());
-                    beans.add(b);
-                }
-            }
-            return beans;
-        } catch (DAOException e) {
-            throw new ControllerException("Errore nel recupero dei compagni di classe.", e);
-        }
-    }
 
     // ── Conversione model → bean ──────────────────────────────────────────────
 

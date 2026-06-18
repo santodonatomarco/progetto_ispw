@@ -4,7 +4,6 @@ import org.project.dao.posizioni.WalletPositionDAO;
 import org.project.dao.transazioni.TransactionDAO;
 import org.project.exceptions.DAOException;
 import org.project.ing.persistenza.CachedDAO;
-import org.project.model.Studente;
 import org.project.model.VirtualWallet;
 
 public abstract class PortafoglioDAO extends CachedDAO<VirtualWallet> {

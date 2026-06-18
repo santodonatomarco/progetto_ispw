@@ -1,7 +1,7 @@
 package org.project.ing.factory;
 
 import org.project.ing.adapter.StockDataProvider;
-import org.project.ing.adapter.YahooFinanceAdapter;
+import org.project.ing.adapter.YahooFinanceProvider;
 import org.project.model.Stock;
 
 /**
@@ -18,9 +18,10 @@ public class StockFactory {
     private final StockDataProvider dataProvider;
 
     private StockFactory() {
-        this.dataProvider = new YahooFinanceAdapter();
+        this.dataProvider = new YahooFinanceProvider();
     }
 
+    // synchronized non è stato messo perché ho fatto l'istanza prima
     public static StockFactory getInstance() {
         return instance;
     }

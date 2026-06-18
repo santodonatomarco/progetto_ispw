@@ -22,7 +22,7 @@ import java.time.Duration;
  * - Il parsing lavora SOLO sul blocco "meta" per non confondere i valori storici
  *   presenti negli array "indicators"
  */
-public class YahooFinanceAdapter implements StockDataProvider {
+public class YahooFinanceProvider implements StockDataProvider {
 
     private static final String BASE_URL =
             "https://query1.finance.yahoo.com/v8/finance/chart/";
@@ -30,7 +30,7 @@ public class YahooFinanceAdapter implements StockDataProvider {
 
     private final HttpClient httpClient;
 
-    public YahooFinanceAdapter() {
+    public YahooFinanceProvider() {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NORMAL)

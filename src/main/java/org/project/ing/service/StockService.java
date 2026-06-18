@@ -65,13 +65,6 @@ public class StockService {
 
     // ── Aggiornamento periodico (per la GUI) ──────────────────────────────────
 
-    /**
-     * Avvia il polling periodico ogni 30 secondi.
-     * Ogni aggiornamento chiama aggiornaPrezzo() su ogni Stock, che triggera
-     * automaticamente notificaObserver() → la GUI si aggiorna via Platform.runLater().
-     *
-     * Da chiamare all'avvio della GUI (non dalla CLI).
-     */
     public void avviaAggiornamentoAutomatico() {
         if (scheduler != null && !scheduler.isShutdown()) return; // già attivo
 

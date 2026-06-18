@@ -38,51 +38,60 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         Studente studente = studenteDAO.getStudenteByEmail(mailCercata);
         if (studente == null) return null;
 
-        // 1. Legge il vecchio portafoglio dal file (es. 10.000€)
         VirtualWallet wallet = leggiWalletBase(studente, mailCercata);
         if (wallet == null) return null;
 
         popolaPosizioni(wallet, mailCercata);
         popolaTransazioni(wallet, mailCercata);
 
-        // --- INIZIO CORREZIONE: Allineamento automatico al nuovo budget della classe ---
-
-        // Verifica se lo studente è iscritto a una classe e qual è il suo budget attuale
-        if (studente.classeFrequentata() != null) {
-            double budgetAttualeClasse = studente.classeFrequentata().budgetIniziale();
-
-            // Calcola quanti soldi sono stati effettivamente dati allo studente in passato
-            // (Saldo attuale + tutti i soldi spesi per le posizioni)
-            double spesaStorica = 0.0;
-            if (wallet.posizioni() != null) {
-                for (WalletPosition p : wallet.posizioni()) {
-                    spesaStorica += (p.quantita() * p.prezzoMedioAcquisto());
-                }
-            }
-            double budgetAssegnatoInPassato = wallet.saldoDisponibile() + spesaStorica;
-
-            // Se il prof ha alzato il budget mentre lo studente era offline, gli diamo la differenza!
-            double differenza = budgetAttualeClasse - budgetAssegnatoInPassato;
-
-            if (Math.abs(differenza) > 0.01) { // Evita micro-bug sui decimali
-                if (differenza > 0) {
-                    wallet.accreditaSaldo(differenza);
-                } else {
-                    double daScalare = Math.abs(differenza);
-                    if (wallet.saldoDisponibile() >= daScalare) {
-                        wallet.scalaSaldo(daScalare);
-                    } else {
-                        wallet.scalaSaldo(wallet.saldoDisponibile()); // Non può andare in negativo
-                    }
-                }
-
-                // Salva subito il nuovo portafoglio aggiornato nel file CSV
-                salvaPortafoglio(wallet);
-            }
-        }
-        // --- FINE CORREZIONE ---
+        allineaBudgetClasse(wallet, studente);
 
         return wallet;
+    }
+
+
+    private void allineaBudgetClasse(VirtualWallet wallet, Studente studente) throws DAOException {
+        if (studente.classeFrequentata() == null) {
+            return;
+        }
+
+        double budgetAttualeClasse = studente.classeFrequentata().budgetIniziale();
+        double spesaStorica = calcolaSpesaStorica(wallet);
+        double budgetAssegnatoInPassato = wallet.saldoDisponibile() + spesaStorica;
+
+        double differenza = budgetAttualeClasse - budgetAssegnatoInPassato;
+
+        if (Math.abs(differenza) > 0.01) {
+            applicaDifferenzaBudget(wallet, differenza);
+            salvaPortafoglio(wallet);
+        }
+    }
+
+
+    private double calcolaSpesaStorica(VirtualWallet wallet) {
+        if (wallet.posizioni() == null) {
+            return 0.0;
+        }
+
+        double spesa = 0.0;
+        for (WalletPosition p : wallet.posizioni()) {
+            spesa += (p.quantita() * p.prezzoMedioAcquisto());
+        }
+        return spesa;
+    }
+
+    private void applicaDifferenzaBudget(VirtualWallet wallet, double differenza) {
+        if (differenza > 0) {
+            wallet.accreditaSaldo(differenza);
+            return;
+        }
+
+        double daScalare = Math.abs(differenza);
+        if (wallet.saldoDisponibile() >= daScalare) {
+            wallet.scalaSaldo(daScalare);
+        } else {
+            wallet.scalaSaldo(wallet.saldoDisponibile()); // Non può andare in negativo
+        }
     }
 
     private VirtualWallet leggiWalletBase(Studente s, String mailCercata) throws DAOException {
@@ -135,39 +144,40 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] parts = line.split(CSV_SEPARATOR, -1);
 
-                // Accetta sia il formato corrente a 7 campi che quello legacy a 5 campi
-                // email(0);simbolo(1);tipo(2);[stato(3);]quantita(3|4);prezzo(4|5);[timestamp(6)]
-                if (parts.length < 5 || !parts[0].trim().equals(mailCercata)) continue;
+                if (parts.length >= 5 && parts[0].trim().equals(mailCercata)) {
+                    try {
+                        String simbolo = parts[1].trim();
+                        TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
+                        StatoTransazione stato;
+                        double quantita;
+                        double prezzo;
 
-                try {
-                    String simbolo = parts[1].trim();
-                    TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
-                    StatoTransazione stato;
-                    double quantita;
-                    double prezzo;
+                        if (parts.length >= 7) {
+                            // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
+                            stato   = StatoTransazione.valueOf(parts[3].trim());
+                            quantita = Double.parseDouble(parts[4].trim());
+                            prezzo   = Double.parseDouble(parts[5].trim());
+                        } else {
+                            // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
+                            stato   = StatoTransazione.DONE;
+                            quantita = Double.parseDouble(parts[3].trim());
+                            prezzo   = Double.parseDouble(parts[4].trim());
+                        }
 
-                    if (parts.length >= 7) {
-                        // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
-                        stato   = StatoTransazione.valueOf(parts[3].trim());
-                        quantita = Double.parseDouble(parts[4].trim());
-                        prezzo   = Double.parseDouble(parts[5].trim());
-                    } else {
-                        // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
-                        stato   = StatoTransazione.DONE;
-                        quantita = Double.parseDouble(parts[3].trim());
-                        prezzo   = Double.parseDouble(parts[4].trim());
+                        Stock stock = stockFactory.creaStock(simbolo);
+                        Transaction t = new Transaction(stock, tipo, quantita, prezzo);
+                        if (stato == StatoTransazione.DONE) t.completaTransazione();
+                        wallet.aggiungiTransazione(t);
+
+                    } catch (Exception e) {
+                        System.err.println("[WARN] popolaTransazioni: riga ignorata → " + e.getMessage());
                     }
-
-                    Stock stock = stockFactory.creaStock(simbolo);
-                    Transaction t = new Transaction(stock, tipo, quantita, prezzo);
-                    if (stato == StatoTransazione.DONE) t.completaTransazione();
-                    wallet.aggiungiTransazione(t);
-
-                } catch (Exception e) {
-                    System.err.println("[WARN] popolaTransazioni: riga ignorata → " + e.getMessage());
                 }
             }
         } catch (Exception e) {

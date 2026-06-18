@@ -1,5 +1,6 @@
-alice.verdi@student.it;AAPL;BUY;5.0;307.34
-alice.verdi@student.it;TSLA;BUY;2.0;391.0
-alice.verdi@student.it;MSFT;BUY;3.0;416.67
-alice.verdi@student.it;GOOGL;BUY;4.0;368.53
-alice.verdi@student.it;BA;BUY;4.0;215.73
+alice.verdi@student.it;AAPL;BUY;DONE;5.0;307.34;2026-06-13T18:03:29.186405
+alice.verdi@student.it;TSLA;BUY;DONE;2.0;391.0;2026-06-13T18:03:29.228980200
+alice.verdi@student.it;MSFT;BUY;DONE;3.0;416.67;2026-06-13T18:03:29.270188800
+alice.verdi@student.it;GOOGL;BUY;DONE;4.0;368.53;2026-06-13T18:03:29.311731300
+alice.verdi@student.it;BA;BUY;DONE;4.0;215.73;2026-06-13T18:03:29.354173200
+alice.verdi@student.it;TSLA;BUY;DONE;20.0;406.43;2026-06-13T18:03:43.568039100
