@@ -1,6 +1,7 @@
 package org.project.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class Message {
     private final Utente mittente;
@@ -12,7 +13,7 @@ public class Message {
     // 1. Costruttore per i NUOVI messaggi (usato dal Controller)
     public Message(Utente mittente, Utente destinatario, String testo) {
         // usa il timestamp attuale
-        this(mittente, destinatario, testo, LocalDateTime.now());
+        this(mittente, destinatario, testo, LocalDateTime.now(ZoneId.systemDefault()));
     }
 
     // 2. Costruttore per i messaggi ESISTENTI (usato dal DAO)

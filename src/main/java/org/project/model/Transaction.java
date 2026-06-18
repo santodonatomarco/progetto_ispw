@@ -4,6 +4,7 @@ import org.project.ing.enumerations.StatoTransazione;
 import org.project.ing.enumerations.TipoTransazione;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class Transaction {
 
@@ -22,7 +23,7 @@ public class Transaction {
         this.impostaQuantita(quantita);
         this.registraPrezzo(prezzoAlMomento);
         this.stato = StatoTransazione.PENDING;  // inizia sempre come pending
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public final void collegaStock(Stock stock) {

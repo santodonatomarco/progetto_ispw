@@ -41,7 +41,7 @@ public class Context {
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    public Context() {}
+    public Context() {} // viene lasciato vuoto perche serve alla sessione
 
     // ── Sessione e utente ─────────────────────────────────────────────────────
 

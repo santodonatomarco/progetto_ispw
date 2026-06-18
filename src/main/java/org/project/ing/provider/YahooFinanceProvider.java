@@ -1,4 +1,4 @@
-package org.project.ing.adapter;
+package org.project.ing.provider;
 
 import org.project.model.Stock;
 
@@ -174,12 +174,12 @@ public class YahooFinanceProvider implements StockDataProvider {
             char c = json.charAt(i);
             if (Character.isDigit(c) || c == '.' || c == '-' || c == 'E' || c == 'e') {
                 num.append(c);
-            } else if (num.length() > 0) {
+            } else if (!num.isEmpty()) {
                 break;
             }
             i++;
         }
-        if (num.length() == 0) return 0.0;
+        if (num.isEmpty()) return 0.0;
         try { return Double.parseDouble(num.toString()); } catch (NumberFormatException e) { return 0.0; }
     }
 
@@ -197,7 +197,7 @@ public class YahooFinanceProvider implements StockDataProvider {
             if (i < json.length()) sb.append(json.charAt(i));
             i++;
         }
-        return sb.length() > 0 ? sb.toString() : null;
+        return !sb.isEmpty() ? sb.toString() : null;
     }
 
     private String primoNonNullo(String... valori) {

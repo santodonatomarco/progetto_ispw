@@ -15,8 +15,6 @@ import org.project.dao.transazioni.TransactionDAOFile;
 import org.project.dao.posizioni.WalletPositionDAO;
 import org.project.dao.posizioni.WalletPositionDAOFile;
 import org.project.ing.factory.StockFactory;
-import org.project.model.Message;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;

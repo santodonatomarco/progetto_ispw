@@ -1,4 +1,4 @@
-package org.project.ing.adapter;
+package org.project.ing.provider;
 
 import org.project.model.Stock;
 import java.io.IOException;

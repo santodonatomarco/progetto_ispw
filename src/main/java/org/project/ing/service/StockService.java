@@ -1,6 +1,6 @@
 package org.project.ing.service;
 
-import org.project.ing.adapter.StockDataProvider;
+import org.project.ing.provider.StockDataProvider;
 import org.project.ing.factory.StockFactory;
 import org.project.model.Stock;
 
@@ -26,17 +26,20 @@ public class StockService {
     private static final Logger LOG = Logger.getLogger(StockService.class.getName());
     private static final int INTERVALLO_AGGIORNAMENTO_SECONDI = 30;
 
-    private static final StockService instance = new StockService();
+    private static StockService instance = null;
 
     private final Map<String, Stock> stockMonitorati = new HashMap<>();
     private final StockDataProvider dataProvider;
     private ScheduledExecutorService scheduler;
 
-    private StockService() {
+    protected StockService() {
         this.dataProvider = StockFactory.getInstance().getDataProvider();
     }
 
-    public static StockService getInstance() {
+    public static synchronized StockService getInstance() {
+        if (instance == null) {
+            instance = new StockService();
+        }
         return instance;
     }
 

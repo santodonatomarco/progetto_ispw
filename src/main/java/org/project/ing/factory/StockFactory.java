@@ -1,32 +1,34 @@
 package org.project.ing.factory;
 
-import org.project.ing.adapter.StockDataProvider;
-import org.project.ing.adapter.YahooFinanceProvider;
+import org.project.ing.provider.StockDataProvider;
+import org.project.ing.provider.YahooFinanceProvider;
 import org.project.model.Stock;
 
+import java.io.IOException;
+
 /**
- * Factory per la creazione di Stock.
- * Usa SEMPRE YahooFinanceAdapter — a prescindere dalla modalità di persistenza.
- * Gli stock vengono sempre dall'API esterna: non ha senso variarli in base
- * alla versione demo/file/db dell'app.
- *
  * Singleton per evitare istanze duplicate del dataProvider.
  */
 public class StockFactory {
 
-    private static final StockFactory instance = new StockFactory();
+    // lazy loading
+    private static StockFactory instance = null;
+
     private final StockDataProvider dataProvider;
 
-    private StockFactory() {
+    protected StockFactory() {
         this.dataProvider = new YahooFinanceProvider();
     }
 
-    // synchronized non è stato messo perché ho fatto l'istanza prima
-    public static StockFactory getInstance() {
+    // Synchronized getter
+    public static synchronized StockFactory getInstance() {
+        if (instance == null) {
+            instance = new StockFactory();
+        }
         return instance;
     }
 
-    public Stock creaStock(String simbolo) throws Exception {
+    public Stock creaStock(String simbolo) throws IOException {
         return dataProvider.recuperaStock(simbolo);
     }
 

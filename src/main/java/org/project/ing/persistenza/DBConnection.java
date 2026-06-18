@@ -2,7 +2,6 @@ package org.project.ing.persistenza;
 
 import org.project.exceptions.DAOException;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;

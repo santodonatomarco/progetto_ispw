@@ -3,6 +3,7 @@ package org.project.model;
 import org.project.ing.observer.StockSubject;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class Stock extends StockSubject {
 
@@ -47,7 +48,7 @@ public class Stock extends StockSubject {
         if (nuovoPrezzo < 0)
             throw new IllegalArgumentException("Prezzo non può essere negativo.");
         this.prezzoAttuale = nuovoPrezzo;
-        this.ultimoAggiornamento = LocalDateTime.now();
+        this.ultimoAggiornamento = LocalDateTime.now(ZoneId.systemDefault());
         this.notificaObserver();  // <-- notifica automatica!
     }
 

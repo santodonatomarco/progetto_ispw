@@ -87,11 +87,8 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         }
 
         double daScalare = Math.abs(differenza);
-        if (wallet.saldoDisponibile() >= daScalare) {
-            wallet.scalaSaldo(daScalare);
-        } else {
-            wallet.scalaSaldo(wallet.saldoDisponibile()); // Non può andare in negativo
-        }
+        // Non può andare in negativo
+        wallet.scalaSaldo(Math.min(wallet.saldoDisponibile(), daScalare));
     }
 
     private VirtualWallet leggiWalletBase(Studente s, String mailCercata) throws DAOException {
@@ -144,45 +141,59 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-
-                String[] parts = line.split(CSV_SEPARATOR, -1);
-
-                if (parts.length >= 5 && parts[0].trim().equals(mailCercata)) {
-                    try {
-                        String simbolo = parts[1].trim();
-                        TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
-                        StatoTransazione stato;
-                        double quantita;
-                        double prezzo;
-
-                        if (parts.length >= 7) {
-                            // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
-                            stato   = StatoTransazione.valueOf(parts[3].trim());
-                            quantita = Double.parseDouble(parts[4].trim());
-                            prezzo   = Double.parseDouble(parts[5].trim());
-                        } else {
-                            // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
-                            stato   = StatoTransazione.DONE;
-                            quantita = Double.parseDouble(parts[3].trim());
-                            prezzo   = Double.parseDouble(parts[4].trim());
-                        }
-
-                        Stock stock = stockFactory.creaStock(simbolo);
-                        Transaction t = new Transaction(stock, tipo, quantita, prezzo);
-                        if (stato == StatoTransazione.DONE) t.completaTransazione();
-                        wallet.aggiungiTransazione(t);
-
-                    } catch (Exception e) {
-                        System.err.println("[WARN] popolaTransazioni: riga ignorata → " + e.getMessage());
-                    }
-                }
+                processaRigaTransazione(wallet, mailCercata, line);
             }
         } catch (Exception e) {
             System.err.println("[WARN] popolaTransazioni: errore lettura file → " + e.getMessage());
         }
+    }
+
+    private void processaRigaTransazione(VirtualWallet wallet, String mailCercata, String line) {
+        if (line.trim().isEmpty()) {
+            return;
+        }
+
+        String[] parts = line.split(CSV_SEPARATOR, -1);
+
+        if (parts.length < 5 || !parts[0].trim().equals(mailCercata)) {
+            return;
+        }
+
+        try {
+            aggiungiTransazioneDaArray(wallet, parts);
+        } catch (Exception e) {
+            System.err.println("[WARN] popolaTransazioni: riga ignorata → " + e.getMessage());
+        }
+    }
+
+
+    private void aggiungiTransazioneDaArray(VirtualWallet wallet, String[] parts) throws Exception {
+        String simbolo = parts[1].trim();
+        TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
+        StatoTransazione stato;
+        double quantita;
+        double prezzo;
+
+        if (parts.length >= 7) {
+            // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
+            stato = StatoTransazione.valueOf(parts[3].trim());
+            quantita = Double.parseDouble(parts[4].trim());
+            prezzo = Double.parseDouble(parts[5].trim());
+        } else {
+            // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
+            stato = StatoTransazione.DONE;
+            quantita = Double.parseDouble(parts[3].trim());
+            prezzo = Double.parseDouble(parts[4].trim());
+        }
+
+        Stock stock = stockFactory.creaStock(simbolo);
+        Transaction t = new Transaction(stock, tipo, quantita, prezzo);
+
+        if (stato == StatoTransazione.DONE) {
+            t.completaTransazione();
+        }
+
+        wallet.aggiungiTransazione(t);
     }
 
     @Override
@@ -369,17 +380,25 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] parts = line.split(CSV_SEPARATOR, -1);
-                // Colonna 0 = emailStudente nel tuo CSV wallet
-                if (parts.length > 0 && parts[0].trim().equals(email)) continue;
-                righe.add(line);
+
+                if (parts.length == 0 || !parts[0].trim().equals(email)) {
+                    righe.add(line);
+                }
             }
         } catch (IOException e) {
             throw new DAOException("Errore lettura wallet file per delete: " + e.getMessage());
         }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
-            for (String r : righe) { bw.write(r); bw.newLine(); }
+            for (String r : righe) {
+                bw.write(r);
+                bw.newLine();
+            }
         } catch (IOException e) {
             throw new DAOException("Errore scrittura wallet file per delete: " + e.getMessage());
         }
