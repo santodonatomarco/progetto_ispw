@@ -15,18 +15,14 @@ import java.util.List;
 /**
  * Controller GUI (JavaFX) per la schermata Inbox / Exchange Messages.
  * Corrisponde a Inbox.fxml — caricato con Approccio A (setController).
- *
- * La schermata è condivisa tra studente e professore:
- *  • la sidebar mostra la navigazione corretta in base al ruolo
- *  • il campo "A:" è pre-compilato con l'email del professore per lo studente
- *
- * Layout principale:
- *  ├── Sezione messaggi ricevuti (VBox dinamica con card)
- *  └── Form di composizione (TextField destinatario + TextArea testo)
  */
 public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphicController {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    // ── Costanti di Stile ─────────────────────────────────────────────────────
+    private static final String STYLE_CARD_PROFESSORE = "card-professore";
+    private static final String STYLE_CARD_STUDENTE   = "card-studente";
 
     // ── Sidebar ───────────────────────────────────────────────────────────────
     @FXML private VBox  boxInfoUtente;
@@ -74,9 +70,10 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
             lblEmailUtente.setText(s.getEmail());
 
             // Stile card studente
-            boxInfoUtente.getStyleClass().removeAll("card-professore");
-            if (!boxInfoUtente.getStyleClass().contains("card-studente"))
-                boxInfoUtente.getStyleClass().add("card-studente");
+            boxInfoUtente.getStyleClass().removeAll(STYLE_CARD_PROFESSORE);
+            if (!boxInfoUtente.getStyleClass().contains(STYLE_CARD_STUDENTE)) {
+                boxInfoUtente.getStyleClass().add(STYLE_CARD_STUDENTE);
+            }
 
             mostraSezione(boxNavStudente);
             nascondiSezione(boxNavProfessore);
@@ -87,9 +84,10 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
             lblEmailUtente.setText(p.getEmail());
 
             // Stile card professore
-            boxInfoUtente.getStyleClass().removeAll("card-studente");
-            if (!boxInfoUtente.getStyleClass().contains("card-professore"))
-                boxInfoUtente.getStyleClass().add("card-professore");
+            boxInfoUtente.getStyleClass().removeAll(STYLE_CARD_STUDENTE);
+            if (!boxInfoUtente.getStyleClass().contains(STYLE_CARD_PROFESSORE)) {
+                boxInfoUtente.getStyleClass().add(STYLE_CARD_PROFESSORE);
+            }
 
             nascondiSezione(boxNavStudente);
             mostraSezione(boxNavProfessore);
@@ -129,10 +127,6 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
         }
     }
 
-    /**
-     * Costruisce una card visuale per un singolo messaggio ricevuto.
-     * Layout: riga superiore (mittente + data) + riga inferiore (testo).
-     */
     private VBox creaCardMessaggio(MessageBean m) {
         VBox card = new VBox(6);
         card.setStyle(
@@ -193,8 +187,7 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
         MessageBean inviato = eseguiInviaMessaggio(emailDest, testo);
         if (inviato != null) {
             txtTestoMessaggio.clear();
-            // Mantieni il campo destinatario (utile per conversazioni multiple)
-            caricaInbox(); // aggiorna la inbox
+            caricaInbox();
         }
     }
 

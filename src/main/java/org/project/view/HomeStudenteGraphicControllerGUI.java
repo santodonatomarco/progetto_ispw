@@ -12,6 +12,7 @@ import org.project.view.bean.WalletPositionBean;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +26,12 @@ import java.util.Locale;
  * dal LoginAppController al momento del login.
  */
 public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicController {
+
+    // ── Costanti di Stile ─────────────────────────────────────────────────────
+    private static final String STYLE_TESTO_NORMALE    = "testo-normale";
+    private static final String STYLE_TESTO_SECONDARIO = "testo-secondario";
+    private static final String STYLE_SIMBOLO_STOCK    = "simbolo-stock";
+    private static final String STYLE_CARD_TRANSAZIONE = "card-transazione";
 
     // ── Sidebar ───────────────────────────────────────────────────────────────
     @FXML private Label lblNomeUtente;
@@ -75,7 +82,7 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
     @Override
     public void start() {
         nascondiMessaggio();
-        lblDataOra.setText(LocalDateTime.now().format(FMT_DATA));
+        lblDataOra.setText(LocalDateTime.now(ZoneId.systemDefault()).format(FMT_DATA));
 
         StudenteBean studente = getStudenteLoggato();
         if (studente == null) {
@@ -164,26 +171,26 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
      */
     private HBox creaRigaPosizione(WalletPositionBean pos) {
         HBox riga = new HBox();
-        riga.getStyleClass().add("card-transazione");
+        riga.getStyleClass().add(STYLE_CARD_TRANSAZIONE);
 
         Label lblSimbolo = new Label(pos.getStock().getSimbolo());
-        lblSimbolo.getStyleClass().add("simbolo-stock");
+        lblSimbolo.getStyleClass().add(STYLE_SIMBOLO_STOCK);
         lblSimbolo.setPrefWidth(80);
 
         Label lblNome = new Label(pos.getStock().getNomeAzienda());
-        lblNome.getStyleClass().add("testo-secondario");
+        lblNome.getStyleClass().add(STYLE_TESTO_SECONDARIO);
         lblNome.setPrefWidth(160);
 
         Label lblQta = new Label(String.format("%.2f", pos.getQuantita()));
-        lblQta.getStyleClass().add("testo-normale");
+        lblQta.getStyleClass().add(STYLE_TESTO_NORMALE);
         lblQta.setPrefWidth(70);
 
         Label lblPrezzoMedio = new Label(VALUTA.format(pos.getPrezzoMedioAcquisto()));
-        lblPrezzoMedio.getStyleClass().add("testo-normale");
+        lblPrezzoMedio.getStyleClass().add(STYLE_TESTO_NORMALE);
         lblPrezzoMedio.setPrefWidth(100);
 
         Label lblValore = new Label(VALUTA.format(pos.getValoreAttuale()));
-        lblValore.getStyleClass().add("testo-normale");
+        lblValore.getStyleClass().add(STYLE_TESTO_NORMALE);
         lblValore.setPrefWidth(110);
 
         double pl = pos.getProfittoPerdita();
@@ -200,15 +207,15 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
      */
     private HBox creaRigaTransazione(TransactionBean tx) {
         HBox riga = new HBox(12);
-        riga.getStyleClass().add("card-transazione");
+        riga.getStyleClass().add(STYLE_CARD_TRANSAZIONE);
 
         String tipoIcon = (tx.getTipo() != null && tx.getTipo().name().equals("BUY")) ? "🟢" : "🔴";
         Label lblTipo = new Label(tipoIcon + " " + tx.getStock().getSimbolo());
-        lblTipo.getStyleClass().add("simbolo-stock");
+        lblTipo.getStyleClass().add(STYLE_SIMBOLO_STOCK);
         lblTipo.setPrefWidth(100);
 
         Label lblImporto = new Label(VALUTA.format(tx.getImportoTotale()));
-        lblImporto.getStyleClass().add("testo-normale");
+        lblImporto.getStyleClass().add(STYLE_TESTO_NORMALE);
         lblImporto.setPrefWidth(120);
 
         String statoStyle = "tag-done";
@@ -226,7 +233,7 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
         String dataStr = (tx.getQuando() != null) ?
                 tx.getQuando().format(DateTimeFormatter.ofPattern("dd/MM HH:mm")) : "—";
         Label lblData = new Label(dataStr);
-        lblData.getStyleClass().add("testo-secondario");
+        lblData.getStyleClass().add(STYLE_TESTO_SECONDARIO);
 
         riga.getChildren().addAll(lblTipo, lblImporto, lblStato, spacer, lblData);
         return riga;

@@ -1,8 +1,6 @@
 package org.project.view;
 
 import org.project.view.bean.*;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**

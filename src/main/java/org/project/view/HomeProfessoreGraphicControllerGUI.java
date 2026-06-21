@@ -7,9 +7,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SchoolClassBean;
-import org.project.view.bean.StudenteBean;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class HomeProfessoreGraphicControllerGUI extends HomeProfessoreGraphicCon
     @Override
     public void start() {
         nascondiMessaggio();
-        lblDataOra.setText(LocalDateTime.now().format(FMT_DATA));
+        lblDataOra.setText(LocalDateTime.now(ZoneId.systemDefault()).format(FMT_DATA));
 
         ProfessoreBean professore = getProfessoreLoggato();
         if (professore == null) {

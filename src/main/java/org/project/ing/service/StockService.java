@@ -48,7 +48,7 @@ public class StockService {
     /**
      * Restituisce lo stock se già monitorato, altrimenti lo crea dall'API e lo registra.
      */
-    public Stock ottieniOCreaStock(String simbolo) throws Exception {
+    public Stock ottieniOCreaStock(String simbolo) throws IOException {
         String sym = simbolo.toUpperCase();
         if (stockMonitorati.containsKey(sym)) {
             return stockMonitorati.get(sym);

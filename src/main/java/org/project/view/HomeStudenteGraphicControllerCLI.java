@@ -50,51 +50,62 @@ public class HomeStudenteGraphicControllerCLI extends HomeStudenteGraphicControl
 
     // ── aggiornaUIPortafoglio ─────────────────────────────────────────────────
 
+    // ── aggiornaUIPortafoglio ─────────────────────────────────────────────────
+
     @Override
     protected void aggiornaUIPortafoglio(PortafoglioBean portafoglio) {
         System.out.println("\n  ── PORTAFOGLIO ──────────────────────────────");
         System.out.printf("  Saldo disponibile : € %.2f%n", portafoglio.getSaldoDisponibile());
         System.out.printf("  Valore totale     : € %.2f%n", portafoglio.getValoreTotalePortafoglio());
 
-        // Posizioni aperte
-        List<WalletPositionBean> posizioni = portafoglio.getPosizioni();
+        mostraPosizioni(portafoglio.getPosizioni());
+        mostraTransazioni(portafoglio.getTransazioni());
+    }
+
+    private void mostraPosizioni(List<WalletPositionBean> posizioni) {
         System.out.println("\n  ── POSIZIONI APERTE ─────────────────────────");
+
         if (posizioni == null || posizioni.isEmpty()) {
             System.out.println("  Nessuna posizione aperta.");
-        } else {
-            System.out.printf("  %-8s %-20s %8s %12s %12s %10s%n",
-                    "Simbolo", "Azienda", "Qtà", "P.Medio", "Valore att.", "P/L");
-            System.out.println("  " + "-".repeat(76));
-            for (WalletPositionBean p : posizioni) {
-                String pl = String.format("%+.2f €", p.getProfittoPerdita());
-                System.out.printf("  %-8s %-20s %8.2f %12.2f %12.2f %10s%n",
-                        p.getStock().getSimbolo(),
-                        tronca(p.getStock().getNomeAzienda(), 20),
-                        p.getQuantita(),
-                        p.getPrezzoMedioAcquisto(),
-                        p.getValoreAttuale(),
-                        pl);
-            }
+            return;
         }
 
-        // Ultime 5 transazioni
-        List<TransactionBean> transazioni = portafoglio.getTransazioni();
+        System.out.printf("  %-8s %-20s %8s %12s %12s %10s%n",
+                "Simbolo", "Azienda", "Qtà", "P.Medio", "Valore att.", "P/L");
+        System.out.println("  " + "-".repeat(76));
+
+        for (WalletPositionBean p : posizioni) {
+            String pl = String.format("%+.2f €", p.getProfittoPerdita());
+            System.out.printf("  %-8s %-20s %8.2f %12.2f %12.2f %10s%n",
+                    p.getStock().getSimbolo(),
+                    tronca(p.getStock().getNomeAzienda(), 20),
+                    p.getQuantita(),
+                    p.getPrezzoMedioAcquisto(),
+                    p.getValoreAttuale(),
+                    pl);
+        }
+    }
+
+    private void mostraTransazioni(List<TransactionBean> transazioni) {
         System.out.println("\n  ── ULTIME TRANSAZIONI ───────────────────────");
+
         if (transazioni == null || transazioni.isEmpty()) {
             System.out.println("  Nessuna transazione ancora effettuata.");
-        } else {
-            int limite = Math.min(5, transazioni.size());
-            System.out.printf("  %-8s %-6s %12s %-10s%n",
-                    "Simbolo", "Tipo", "Importo", "Stato");
-            System.out.println("  " + "-".repeat(42));
-            for (int i = 0; i < limite; i++) {
-                TransactionBean tx = transazioni.get(i);
-                System.out.printf("  %-8s %-6s %12.2f %-10s%n",
-                        tx.getStock().getSimbolo(),
-                        tx.getTipo() != null ? tx.getTipo().name() : "—",
-                        tx.getImportoTotale(),
-                        tx.getStato() != null ? tx.getStato().name() : "—");
-            }
+            return;
+        }
+
+        int limite = Math.min(5, transazioni.size());
+        System.out.printf("  %-8s %-6s %12s %-10s%n",
+                "Simbolo", "Tipo", "Importo", "Stato");
+        System.out.println("  " + "-".repeat(42));
+
+        for (int i = 0; i < limite; i++) {
+            TransactionBean tx = transazioni.get(i);
+            System.out.printf("  %-8s %-6s %12.2f %-10s%n",
+                    tx.getStock().getSimbolo(),
+                    tx.getTipo() != null ? tx.getTipo().name() : "—",
+                    tx.getImportoTotale(),
+                    tx.getStato() != null ? tx.getStato().name() : "—");
         }
     }
 

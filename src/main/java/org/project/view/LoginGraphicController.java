@@ -3,7 +3,6 @@ package org.project.view;
 import org.project.control.LoginAppController;
 import org.project.exceptions.ControllerException;
 import org.project.exceptions.CredenzialNonValideException;
-import org.project.view.Navigator;
 import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
@@ -62,12 +61,6 @@ public abstract class LoginGraphicController {
         } catch (CredenzialNonValideException e) {
             mostraErrore(e.getMessage());
         } catch (ControllerException e) {
-            // 1. STAMPA IL VERO ERRORE NELLA CONSOLE DELL'IDE IN ROSSO
-            // e.printStackTrace();
-
-            // 2. MOSTRA LA CAUSA REALE DIRETTAMENTE NEL POP-UP DELLA GUI
-            // String causaReale = (e.getCause() != null) ? e.getCause().getMessage() : e.getMessage();
-            // showMessage("ERRORE: " + causaReale);
             showMessage("Si è verificato un problema. Riprova più tardi.");
         }
     }

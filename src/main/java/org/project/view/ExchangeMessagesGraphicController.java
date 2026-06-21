@@ -6,6 +6,7 @@ import org.project.view.bean.MessageBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,13 +44,13 @@ public abstract class ExchangeMessagesGraphicController {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
             mostraErrore("Sessione non valida. Effettua nuovamente il login.");
-            return null;
+            return Collections.emptyList();
         }
         try {
             return new ExchangeMessagesAppController().ottieniInbox(sessione);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare la inbox: " + e.getMessage());
-            return null;
+            return Collections.emptyList();
         }
     }
 

@@ -2,7 +2,6 @@ package org.project.view;
 
 import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SchoolClassBean;
-import org.project.view.bean.StudenteBean;
 
 import java.util.List;
 import java.util.Scanner;
@@ -107,7 +106,9 @@ public class HomeProfessoreGraphicControllerCLI extends HomeProfessoreGraphicCon
                             vaiAGestioneClasse();
                             return;
                         }
-                    } catch (NumberFormatException ignored) { }
+                    } catch (NumberFormatException ignored) {
+                        // eccezione ignorata, verrà mostrato il messaggio di scelta non valida
+                    }
                 }
                 mostraMessaggio("Scelta non valida.");
                 mostraMenu(classi);

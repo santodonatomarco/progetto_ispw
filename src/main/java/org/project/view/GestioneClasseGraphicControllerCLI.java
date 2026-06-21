@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 /**
  * Implementazione CLI della schermata Gestione Classe (professore).
- *
  * Permette di:
  *  - Visualizzare le classi esistenti con budget
  *  - Selezionare una classe e modificarne il budget
@@ -82,7 +81,9 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
                             flussoModificaBudget(classi.get(idx));
                             return;
                         }
-                    } catch (NumberFormatException ignored) {}
+                    } catch (NumberFormatException ignored) {
+                        // eccezione ignorata
+                    }
                 }
                 mostraErrore("Scelta non valida.");
                 mostraMenu(classi);

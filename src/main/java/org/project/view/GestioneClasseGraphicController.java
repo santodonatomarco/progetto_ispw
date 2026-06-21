@@ -6,20 +6,22 @@ import org.project.view.bean.SchoolClassBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Controller grafico astratto per la schermata Gestione Classe (professore).
- *
  * Logica condivisa tra CLI e GUI:
- *  - caricamento classi del professore
- *  - creazione nuova classe
- *  - impostazione budget su classe esistente
- *  - navigazione
- *
+ * - caricamento classi del professore
+ * - creazione nuova classe
+ * - impostazione budget su classe esistente
+ * - navigazione
  * Le sottoclassi implementano la visualizzazione concreta (CLI o JavaFX).
  */
 public abstract class GestioneClasseGraphicController {
+
+    // ── Costanti ──────────────────────────────────────────────────────────────
+    private static final String ERRORE_SESSIONE_NON_VALIDA = "Sessione non valida.";
 
     protected Navigator navigator;
 
@@ -34,21 +36,21 @@ public abstract class GestioneClasseGraphicController {
     protected List<SchoolClassBean> caricaClassi() {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
-            mostraErrore("Sessione non valida. Effettua nuovamente il login.");
-            return null;
+            mostraErrore(ERRORE_SESSIONE_NON_VALIDA + " Effettua nuovamente il login.");
+            return Collections.emptyList();
         }
         try {
             return new GestioneClasseAppController().getClassiDelProfessore(sessione);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare le classi: " + e.getMessage());
-            return null;
+            return Collections.emptyList();
         }
     }
 
     protected SchoolClassBean eseguiCreaClasse(String nomeClasse, double budget) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
-            mostraErrore("Sessione non valida.");
+            mostraErrore(ERRORE_SESSIONE_NON_VALIDA);
             return null;
         }
         try {
@@ -63,11 +65,10 @@ public abstract class GestioneClasseGraphicController {
         }
     }
 
-    // GestioneClasseGraphicController.java
     protected SchoolClassBean eseguiImpostaBudget(String nomeClasse, double nuovoBudget) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
-            mostraErrore("Sessione non valida.");
+            mostraErrore(ERRORE_SESSIONE_NON_VALIDA);
             return null;
         }
         try {
@@ -101,7 +102,7 @@ public abstract class GestioneClasseGraphicController {
     protected boolean eseguiAggiungiStudente(String email, String nomeClasse) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
-            mostraErrore("Sessione non valida.");
+            mostraErrore(ERRORE_SESSIONE_NON_VALIDA);
             return false;
         }
         try {
@@ -118,15 +119,15 @@ public abstract class GestioneClasseGraphicController {
     protected List<StudenteBean> eseguiCaricaStudenti(String nomeClasse) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
-            mostraErrore("Sessione non valida.");
-            return null;
+            mostraErrore(ERRORE_SESSIONE_NON_VALIDA);
+            return Collections.emptyList();
         }
         try {
             return new GestioneClasseAppController()
                     .getStudentiDellaClasseProfessore(sessione, nomeClasse);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare gli studenti: " + e.getMessage());
-            return null;
+            return Collections.emptyList();
         }
     }
 
