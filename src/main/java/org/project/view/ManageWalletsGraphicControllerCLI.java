@@ -10,7 +10,6 @@ import java.util.Scanner;
 
 /**
  * Implementazione CLI del controller grafico ManageWallets.
- *
  * Gestisce in un unico controller tutti i sotto-flussi testuali:
  * – Browsing mercato (ricerca, lista monitorati)
  * – Dettaglio stock + avvio acquisto
@@ -31,6 +30,9 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
     private static final String MSG_SCELTA_NON_VALIDA = "Scelta non valida.";
     private static final String LBL_TORNA_DASHBOARD = "Torna alla Dashboard";
     private static final String LBL_VAI_MERCATO = "Vai al Mercato";
+    private static final String OPT_ZERO = "  [0] ";
+    private static final String PROMPT_SCELTA = "  Scelta: ";
+    private static final String MENU_DIVIDER = "  ─────────────────────────────────────────────";
 
     private final Scanner sc = new Scanner(System.in);
 
@@ -186,44 +188,53 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
         mostraMenuPortafoglio(isProprietario);
     }
 
-    // ── Visualizzazione storico ───────────────────────────────────────────────
 
     @Override
     protected void mostraStorico(List<TransactionBean> storico, String emailTarget) {
         if (storico == null || storico.isEmpty()) {
             System.out.println("\n  Nessuna transazione registrata.");
-        } else {
-            System.out.printf("%n  ── Transazioni (%d) ─────────────────────────────────────────%n",
-                    storico.size());
-            System.out.printf("  %-12s %-8s %-8s %10s %10s  %-16s%n",
-                    "Data", LBL_SIMBOLO, "Tipo", "Quantità", "Importo", "Stato");
-            System.out.println("  " + "─".repeat(72));
-            for (TransactionBean t : storico) {
-                String data = t.getQuando() != null ? t.getQuando().format(FMT) : "—";
-                System.out.printf("  %-12s %-8s %-8s %10.4f %10s  %-16s%n",
-                        data,
-                        t.getStock() != null ? t.getStock().getSimbolo() : "?",
-                        t.getTipo() != null ? t.getTipo().name() : "?",
-                        t.getQuantita(),
-                        VALUTA.format(t.getImportoTotale()),
-                        t.getStato() != null ? t.getStato().name() : "?");
-            }
+            mostraMenuStorico(emailTarget == null);
+            return;
+        }
+
+        System.out.printf("%n  ── Transazioni (%d) ─────────────────────────────────────────%n",
+                storico.size());
+        System.out.printf("  %-12s %-8s %-8s %10s %10s  %-16s%n",
+                "Data", LBL_SIMBOLO, "Tipo", "Quantità", "Importo", "Stato");
+        System.out.println("  " + "─".repeat(72));
+
+        for (TransactionBean t : storico) {
+            stampaRigaTransazione(t);
         }
 
         mostraMenuStorico(emailTarget == null);
     }
 
-    // ── Menu testuali ─────────────────────────────────────────────────────────
+    private void stampaRigaTransazione(TransactionBean t) {
+        String data = t.getQuando() != null ? t.getQuando().format(FMT) : "—";
+        String simbolo = t.getStock() != null ? t.getStock().getSimbolo() : "?";
+        String tipo = t.getTipo() != null ? t.getTipo().name() : "?";
+        String stato = t.getStato() != null ? t.getStato().name() : "?";
+
+        System.out.printf("  %-12s %-8s %-8s %10.4f %10s  %-16s%n",
+                data,
+                simbolo,
+                tipo,
+                t.getQuantita(),
+                VALUTA.format(t.getImportoTotale()),
+                stato);
+    }
+
 
     private void mostraMenuPrincipale() {
-        System.out.println("  ─────────────────────────────────────────────");
+        System.out.println(MENU_DIVIDER);
         System.out.println("  [1] Cerca uno stock");
         if (isStudente) {
             System.out.println("  [2] Vai al Portafoglio");
             System.out.println("  [3] Storico transazioni");
         }
-        System.out.println("  [0] " + LBL_TORNA_DASHBOARD);
-        System.out.print("  Scelta: ");
+        System.out.println(OPT_ZERO + LBL_TORNA_DASHBOARD);
+        System.out.print(PROMPT_SCELTA);
 
         switch (sc.nextLine().trim()) {
             case "1" -> {
@@ -244,13 +255,13 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
     }
 
     private void mostraMenuPortafoglio(boolean isProprietario) {
-        System.out.println("\n  ─────────────────────────────────────────────");
+        System.out.println("\n" + MENU_DIVIDER);
         if (isProprietario) {
             System.out.println("  [1] Storico transazioni");
             System.out.println("  [2] " + LBL_VAI_MERCATO);
         }
-        System.out.println("  [0] " + LBL_TORNA_DASHBOARD);
-        System.out.print("  Scelta: ");
+        System.out.println(OPT_ZERO + LBL_TORNA_DASHBOARD);
+        System.out.print(PROMPT_SCELTA);
 
         switch (sc.nextLine().trim()) {
             case "1" -> { if (isProprietario) navigator.goToStorico(); else tornaDashboard(); }
@@ -261,13 +272,13 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
     }
 
     private void mostraMenuStorico(boolean isProprietario) {
-        System.out.println("\n  ─────────────────────────────────────────────");
+        System.out.println("\n" + MENU_DIVIDER);
         if (isProprietario) {
             System.out.println("  [1] Vai al Portafoglio");
             System.out.println("  [2] " + LBL_VAI_MERCATO);
         }
-        System.out.println("  [0] " + LBL_TORNA_DASHBOARD);
-        System.out.print("  Scelta: ");
+        System.out.println(OPT_ZERO + LBL_TORNA_DASHBOARD);
+        System.out.print(PROMPT_SCELTA);
 
         switch (sc.nextLine().trim()) {
             case "1" -> { if (isProprietario) navigator.goToPortafoglio(); else tornaDashboard(); }
@@ -281,7 +292,6 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
 
     @Override
     protected void mostraDettaglioStock(StockBean s) {
-        /** Ultimo stock aperto nel pannello dettaglio. */
         System.out.println("\n  ── Dettaglio: " + s.getSimbolo() + " ─────────────────────────");
         System.out.printf("  Azienda:     %s (%s)%n", s.getNomeAzienda(), s.getSettore());
         System.out.printf("  Prezzo:      $ %.4f%n",  s.getPrezzoAttuale());
@@ -289,8 +299,8 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
         System.out.printf("  Var.sett.:   %+.2f%%%n", s.getVariazioneSettimanale());
 
         System.out.println("\n  [1] Compra" + (isStudente ? "" : " (disabilitato — sola lettura)"));
-        System.out.println("  [0] Torna al mercato");
-        System.out.print("  Scelta: ");
+        System.out.println(OPT_ZERO + "Torna al mercato");
+        System.out.print(PROMPT_SCELTA);
 
         String scelta = sc.nextLine().trim();
         if ("1".equals(scelta) && isStudente) {

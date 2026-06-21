@@ -13,33 +13,40 @@ import org.project.view.bean.*;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
  * Implementazione GUI (JavaFX) di ManageWalletsGraphicController.
- *
  * Gestisce via panel show/hide tutti i sotto-flussi del caso d'uso:
- *  – Mercato (panelDettaglio + griglia stock)
- *  – Conferma ordine (panelConfermaOrdine)
- *  – Portafoglio proprio / esterno (panelPortafoglio)
- *  – Storico transazioni (panelStorico)
- *
+ * – Mercato (panelDettaglio + griglia stock)
+ * – Conferma ordine (panelConfermaOrdine)
+ * – Portafoglio proprio / esterno (panelPortafoglio)
+ * – Storico transazioni (panelStorico)
  * Tutti i pannelli centrali partono hidden/unmanaged e vengono attivati
  * dal controller nei metodi start*().
- *
  * FXML: ManageWallets.fxml (fx:controller = org.project.view.ManageWalletsGraphicControllerGUI)
  */
 public class ManageWalletsGraphicControllerGUI
         extends ManageWalletsGraphicController
         implements StockObserver {
 
+    // ── Costanti di formattazione e UI ────────────────────────────────────────
+    private static final String LABEL_TOTALE_VUOTO = "Totale: —";
+    private static final String CSS_TESTO_SECONDARIO = "testo-secondario";
+    private static final String CSS_TESTO_GRIGIO = "-fx-text-fill:#555555;";
+    private static final String FORMATO_PREZZO = "$ %.2f";
+    private static final String FORMATO_VARIAZIONE = "%+.2f%%";
+    private static final String TAG_POSITIVO = "tag-positivo";
+    private static final String TAG_NEGATIVO = "tag-negativo";
+
     // ── FXML Sidebar ──────────────────────────────────────────────────────────
     @FXML private Label            lblRuoloSidebar;
     @FXML private VBox             boxInfoUtente;
     @FXML private Label            lblNomeUtente;
     @FXML private Label            lblSaldoSidebar;
-    @FXML private VBox             boxNavWallet;   // Portafoglio + Storico nav (solo studente)
+    @FXML private VBox             boxNavWallet;
 
     // ── FXML Header ───────────────────────────────────────────────────────────
     @FXML private Label            lblSottotitoloMercato;
@@ -79,14 +86,14 @@ public class ManageWalletsGraphicControllerGUI
     @FXML private Label            lblTitoloPortafoglio;
     @FXML private Label            lblSaldoPortafoglio;
     @FXML private Label            lblTotalePortafoglio;
-    @FXML private VBox             vboxPosizioni;       // righe posizioni popolate dinamicamente
+    @FXML private VBox             vboxPosizioni;
     @FXML private Button           btnPortafoglioStorico;
-    @FXML private Button           btnPortafoglioTorna;  // "Torna al Mercato" / "Torna alla Dashboard"
+    @FXML private Button           btnPortafoglioTorna;
 
     // ── FXML Pannello storico transazioni ─────────────────────────────────────
     @FXML private VBox             panelStorico;
     @FXML private Label            lblTitoloStorico;
-    @FXML private VBox             vboxStorico;         // righe transazioni popolate dinamicamente
+    @FXML private VBox             vboxStorico;
 
     // ── FXML Griglia mercato ──────────────────────────────────────────────────
     @FXML private FlowPane         flowStocks;
@@ -97,13 +104,12 @@ public class ManageWalletsGraphicControllerGUI
     // ── Stato locale ──────────────────────────────────────────────────────────
     private Parent  view;
     private String  simboloCorrente;
-    private boolean portafoglioEsterno = false; // true = sto guardando wallet altrui
+    private boolean portafoglioEsterno = false;
 
     private final Map<String, Label> prezziInGriglia = new HashMap<>();
 
     private static final NumberFormat  VALUTA = NumberFormat.getCurrencyInstance(Locale.ITALY);
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     // ── Setter / Getter ───────────────────────────────────────────────────────
 
@@ -133,7 +139,6 @@ public class ManageWalletsGraphicControllerGUI
             lblSaldoSidebar.setText(pf != null
                     ? "Saldo: " + VALUTA.format(pf.getSaldoDisponibile()) : "");
 
-            // Mostra navigazione wallet solo per lo studente
             if (boxNavWallet != null) {
                 boxNavWallet.setVisible(true);
                 boxNavWallet.setManaged(true);
@@ -163,45 +168,56 @@ public class ManageWalletsGraphicControllerGUI
     @Override
     public void startConfermaOrdine() {
         TransactionBean t = navigator.getTransazionePending();
-        if (t == null) { mostraErrore("Nessun ordine da confermare."); return; }
+        if (t == null) {
+            mostraErrore("Nessun ordine da confermare.");
+            return;
+        }
 
         nascondiTuttiIPannelli();
         nascondiMessaggio();
 
         lblOrdineStock.setText(t.getStock().getSimbolo() + " — " + t.getStock().getNomeAzienda());
-        lblOrdinePrezzo.setText(String.format("Prezzo unitario: $ %.2f", t.getPrezzoAlMomento()));
+        lblOrdinePrezzo.setText(String.format("Prezzo unitario: " + FORMATO_PREZZO, t.getPrezzoAlMomento()));
 
         PortafoglioBean pf = navigator.getPortafoglio();
         lblOrdineSaldo.setText(pf != null
                 ? "Saldo disponibile: " + VALUTA.format(pf.getSaldoDisponibile()) : "");
 
-        txtQuantita.clear();
-        lblOrdineTotale.setText("Totale: —");
-        if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(true);
+        resettaCampiOrdine();
 
-        txtQuantita.textProperty().addListener((obs, oldV, newV) -> {
-            try {
-                double q = Double.parseDouble(newV.replace(",", "."));
-                if (q > 0) {
-                    double totale = q * t.getPrezzoAlMomento();
-                    lblOrdineTotale.setText("Totale: " + VALUTA.format(totale));
-                    boolean saldoOk = pf == null || pf.getSaldoDisponibile() >= totale;
-                    if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(!saldoOk);
-                    lblOrdineTotale.setStyle(saldoOk
-                            ? "-fx-text-fill:#2e7d32; -fx-font-weight:bold;"
-                            : "-fx-text-fill:#d32f2f; -fx-font-weight:bold;");
-                } else {
-                    lblOrdineTotale.setText("Totale: —");
-                    if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(true);
-                }
-            } catch (NumberFormatException e) {
-                lblOrdineTotale.setText("Totale: —");
-                if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(true);
-            }
-        });
+        txtQuantita.textProperty().addListener((obs, oldV, newV) ->
+                aggiornaTotaleOrdine(newV, t, pf)
+        );
 
         panelConfermaOrdine.setVisible(true);
         panelConfermaOrdine.setManaged(true);
+    }
+
+    private void resettaCampiOrdine() {
+        txtQuantita.clear();
+        lblOrdineTotale.setText(LABEL_TOTALE_VUOTO);
+        if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(true);
+    }
+
+    private void aggiornaTotaleOrdine(String quantitaInserita, TransactionBean t, PortafoglioBean pf) {
+        try {
+            double q = Double.parseDouble(quantitaInserita.replace(",", "."));
+            if (q > 0) {
+                double totale = q * t.getPrezzoAlMomento();
+                lblOrdineTotale.setText("Totale: " + VALUTA.format(totale));
+                boolean saldoOk = pf == null || pf.getSaldoDisponibile() >= totale;
+
+                if (btnConfermaOrdine != null) btnConfermaOrdine.setDisable(!saldoOk);
+
+                lblOrdineTotale.setStyle(saldoOk
+                        ? "-fx-text-fill:#2e7d32; -fx-font-weight:bold;"
+                        : "-fx-text-fill:#d32f2f; -fx-font-weight:bold;");
+            } else {
+                resettaCampiOrdine();
+            }
+        } catch (NumberFormatException e) {
+            resettaCampiOrdine();
+        }
     }
 
     // ── startPortafoglio() ────────────────────────────────────────────────────
@@ -238,54 +254,63 @@ public class ManageWalletsGraphicControllerGUI
     @Override
     protected void mostraPortafoglio(PortafoglioBean pf, boolean isProprietario) {
         Platform.runLater(() -> {
-            lblTitoloPortafoglio.setText(isProprietario
-                    ? "📊 Il Tuo Portafoglio"
-                    : "📊 Portafoglio (sola lettura)");
+            impostaTitoloPortafoglio(isProprietario);
 
             if (pf == null) {
-                lblSaldoPortafoglio.setText("Nessun dato disponibile.");
-                lblTotalePortafoglio.setText("");
-                vboxPosizioni.getChildren().clear();
+                mostraPortafoglioVuoto();
             } else {
-                lblSaldoPortafoglio.setText(
-                        "💵 Saldo disponibile: " + VALUTA.format(pf.getSaldoDisponibile()));
-                lblTotalePortafoglio.setText(
-                        "📈 Valore totale wallet: " + VALUTA.format(pf.getValoreTotalePortafoglio()));
-
-                vboxPosizioni.getChildren().clear();
-
-                if (pf.getPosizioni() == null || pf.getPosizioni().isEmpty()) {
-                    Label nessuna = new Label("Nessuna posizione aperta.");
-                    nessuna.getStyleClass().add("testo-secondario");
-                    vboxPosizioni.getChildren().add(nessuna);
-                } else {
-                    // Intestazione colonne
-                    HBox header = creaRigaIntestazione(
-                            "Simbolo", "Azienda", "Quantità", "Pr.Medio", "Val.Att.", "P/L");
-                    vboxPosizioni.getChildren().add(header);
-
-                    for (WalletPositionBean p : pf.getPosizioni()) {
-                        vboxPosizioni.getChildren().add(creaRigaPosizione(p));
-                    }
-                }
+                popolaDatiPortafoglio(pf);
             }
 
-            // Il pulsante "Storico" appare solo per il proprietario
-            if (btnPortafoglioStorico != null) {
-                btnPortafoglioStorico.setVisible(isProprietario);
-                btnPortafoglioStorico.setManaged(isProprietario);
-            }
-
-            // Il pulsante "Torna al Mercato" appare solo per il proprietario;
-            // il professore in sola lettura usa la freccia in sidebar — nessun bottone qui
-            if (btnPortafoglioTorna != null) {
-                btnPortafoglioTorna.setVisible(isProprietario);
-                btnPortafoglioTorna.setManaged(isProprietario);
-            }
+            impostaPulsantiNavigazionePortafoglio(isProprietario);
 
             panelPortafoglio.setVisible(true);
             panelPortafoglio.setManaged(true);
         });
+    }
+
+    private void impostaTitoloPortafoglio(boolean isProprietario) {
+        lblTitoloPortafoglio.setText(isProprietario
+                ? "📊 Il Tuo Portafoglio"
+                : "📊 Portafoglio (sola lettura)");
+    }
+
+    private void mostraPortafoglioVuoto() {
+        lblSaldoPortafoglio.setText("Nessun dato disponibile.");
+        lblTotalePortafoglio.setText("");
+        vboxPosizioni.getChildren().clear();
+    }
+
+    private void popolaDatiPortafoglio(PortafoglioBean pf) {
+        lblSaldoPortafoglio.setText("💵 Saldo disponibile: " + VALUTA.format(pf.getSaldoDisponibile()));
+        lblTotalePortafoglio.setText("📈 Valore totale wallet: " + VALUTA.format(pf.getValoreTotalePortafoglio()));
+
+        vboxPosizioni.getChildren().clear();
+
+        if (pf.getPosizioni() == null || pf.getPosizioni().isEmpty()) {
+            Label nessuna = new Label("Nessuna posizione aperta.");
+            nessuna.getStyleClass().add(CSS_TESTO_SECONDARIO);
+            vboxPosizioni.getChildren().add(nessuna);
+        } else {
+            HBox header = creaRigaIntestazione("Simbolo", "Azienda", "Quantità", "Pr.Medio", "Val.Att.", "P/L");
+            vboxPosizioni.getChildren().add(header);
+
+            for (WalletPositionBean p : pf.getPosizioni()) {
+                vboxPosizioni.getChildren().add(creaRigaPosizione(p));
+            }
+        }
+    }
+
+    private void impostaPulsantiNavigazionePortafoglio(boolean isProprietario) {
+        if (btnPortafoglioStorico != null) {
+            btnPortafoglioStorico.setVisible(isProprietario);
+            btnPortafoglioStorico.setManaged(isProprietario);
+        }
+
+        if (btnPortafoglioTorna != null) {
+            btnPortafoglioTorna.setVisible(isProprietario);
+            btnPortafoglioTorna.setManaged(isProprietario);
+        }
     }
 
     // ── mostraStorico() ───────────────────────────────────────────────────────
@@ -301,7 +326,7 @@ public class ManageWalletsGraphicControllerGUI
 
             if (storico == null || storico.isEmpty()) {
                 Label nessuna = new Label("Nessuna transazione registrata.");
-                nessuna.getStyleClass().add("testo-secondario");
+                nessuna.getStyleClass().add(CSS_TESTO_SECONDARIO);
                 vboxStorico.getChildren().add(nessuna);
             } else {
                 HBox header = creaRigaIntestazione("Data", "Simbolo", "Tipo", "Quantità", "Importo", "Stato");
@@ -323,15 +348,16 @@ public class ManageWalletsGraphicControllerGUI
         Platform.runLater(() -> {
             Label lblGriglia = prezziInGriglia.get(stock.simbolo());
             if (lblGriglia != null)
-                lblGriglia.setText(String.format("$ %.2f", stock.prezzoAttuale()));
+                lblGriglia.setText(String.format(FORMATO_PREZZO, stock.prezzoAttuale()));
 
             if (stock.simbolo().equals(simboloCorrente)) {
-                lblDetPrezzo.setText(String.format("$ %.2f", stock.prezzoAttuale()));
-                lblDetVariazione.setText(String.format("%+.2f%%", stock.variazioneGiornaliera()));
-                lblDetAggiornamento.setText("Aggiornato: " + LocalDateTime.now().format(FMT));
-                lblDetVariazione.getStyleClass().removeAll("tag-positivo", "tag-negativo");
+                lblDetPrezzo.setText(String.format(FORMATO_PREZZO, stock.prezzoAttuale()));
+                lblDetVariazione.setText(String.format(FORMATO_VARIAZIONE, stock.variazioneGiornaliera()));
+                lblDetAggiornamento.setText("Aggiornato: " + LocalDateTime.now(ZoneId.systemDefault()).format(FMT));
+
+                lblDetVariazione.getStyleClass().removeAll(TAG_POSITIVO, TAG_NEGATIVO);
                 lblDetVariazione.getStyleClass().add(
-                        stock.variazioneGiornaliera() >= 0 ? "tag-positivo" : "tag-negativo");
+                        stock.variazioneGiornaliera() >= 0 ? TAG_POSITIVO : TAG_NEGATIVO);
             }
         });
     }
@@ -370,19 +396,21 @@ public class ManageWalletsGraphicControllerGUI
         top.setAlignment(Pos.CENTER_LEFT);
         Label lblSim = new Label(s.getSimbolo());
         lblSim.getStyleClass().add("simbolo-stock");
-        double var = s.getVariazioneGiornaliera();
-        Label lblVar = new Label(String.format("%+.2f%%", var));
-        lblVar.getStyleClass().add(var >= 0 ? "tag-positivo" : "tag-negativo");
+
+        double variazione = s.getVariazioneGiornaliera();
+        Label lblVar = new Label(String.format(FORMATO_VARIAZIONE, variazione));
+        lblVar.getStyleClass().add(variazione >= 0 ? TAG_POSITIVO : TAG_NEGATIVO);
+
         HBox spacer = new HBox(); HBox.setHgrow(spacer, Priority.ALWAYS);
         top.getChildren().addAll(lblSim, spacer, lblVar);
 
         Label lblNome   = new Label(tronca(s.getNomeAzienda(), 28));
-        lblNome.getStyleClass().add("testo-secondario");
-        Label lblPrezzo = new Label(String.format("$ %.2f", s.getPrezzoAttuale()));
+        lblNome.getStyleClass().add(CSS_TESTO_SECONDARIO);
+        Label lblPrezzo = new Label(String.format(FORMATO_PREZZO, s.getPrezzoAttuale()));
         lblPrezzo.setStyle("-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1a1a2e;");
         prezziInGriglia.put(s.getSimbolo(), lblPrezzo);
         Label lblSett = new Label(s.getSettore());
-        lblSett.getStyleClass().add("testo-secondario");
+        lblSett.getStyleClass().add(CSS_TESTO_SECONDARIO);
         lblSett.setStyle(lblSett.getStyle() + "; -fx-font-size:10px;");
         card.getChildren().addAll(top, lblNome, lblPrezzo, lblSett);
 
@@ -403,7 +431,7 @@ public class ManageWalletsGraphicControllerGUI
         row.setStyle("-fx-padding:4 0 4 0; -fx-border-color:transparent transparent #cccccc transparent;");
         for (String col : colonne) {
             Label lbl = new Label(col);
-            lbl.setStyle("-fx-font-weight:bold; -fx-font-size:11px; -fx-text-fill:#555555;");
+            lbl.setStyle("-fx-font-weight:bold; -fx-font-size:11px; " + CSS_TESTO_GRIGIO);
             lbl.setPrefWidth(120);
             row.getChildren().add(lbl);
         }
@@ -419,9 +447,9 @@ public class ManageWalletsGraphicControllerGUI
         String plColor = pl >= 0 ? "#2e7d32" : "#d32f2f";
 
         aggiungiCella(row, p.getStock().getSimbolo(), "-fx-font-weight:bold;");
-        aggiungiCella(row, tronca(p.getStock().getNomeAzienda(), 20), "-fx-text-fill:#555555;");
+        aggiungiCella(row, tronca(p.getStock().getNomeAzienda(), 20), CSS_TESTO_GRIGIO);
         aggiungiCella(row, String.format("%.4f", p.getQuantita()), "");
-        aggiungiCella(row, String.format("$ %.2f", p.getPrezzoMedioAcquisto()), "");
+        aggiungiCella(row, String.format(FORMATO_PREZZO, p.getPrezzoMedioAcquisto()), "");
         aggiungiCella(row, VALUTA.format(p.getValoreAttuale()), "");
         aggiungiCella(row, plStr, "-fx-font-weight:bold; -fx-text-fill:" + plColor + ";");
         return row;
@@ -433,14 +461,14 @@ public class ManageWalletsGraphicControllerGUI
 
         String data = (t.getQuando() != null)
                 ? t.getQuando().format(DateTimeFormatter.ofPattern("dd/MM/yy HH:mm")) : "—";
-        aggiungiCella(row, data, "-fx-text-fill:#555555;");
+        aggiungiCella(row, data, CSS_TESTO_GRIGIO);
         aggiungiCella(row, t.getStock() != null ? t.getStock().getSimbolo() : "?",
                 "-fx-font-weight:bold;");
         aggiungiCella(row, t.getTipo() != null ? t.getTipo().name() : "?", "");
         aggiungiCella(row, String.format("%.4f", t.getQuantita()), "");
         aggiungiCella(row, VALUTA.format(t.getImportoTotale()), "");
         aggiungiCella(row, t.getStato() != null ? t.getStato().name() : "?",
-                "-fx-text-fill:#555555;");
+                CSS_TESTO_GRIGIO);
         return row;
     }
 
@@ -462,15 +490,17 @@ public class ManageWalletsGraphicControllerGUI
         lblDetNome.setText(s.getNomeAzienda());
         lblDetSettore.setText(s.getSettore());
         lblDetPrezzo.setText(String.format("$ %.4f", s.getPrezzoAttuale()));
-        lblDetVariazione.setText(String.format("%+.2f%%", s.getVariazioneGiornaliera()));
-        lblDetVariazione.getStyleClass().removeAll("tag-positivo", "tag-negativo");
+        lblDetVariazione.setText(String.format(FORMATO_VARIAZIONE, s.getVariazioneGiornaliera()));
+
+        lblDetVariazione.getStyleClass().removeAll(TAG_POSITIVO, TAG_NEGATIVO);
         lblDetVariazione.getStyleClass().add(
-                s.getVariazioneGiornaliera() >= 0 ? "tag-positivo" : "tag-negativo");
-        lblDetVarSettimanale.setText(String.format("%+.2f%%", s.getVariazioneSettimanale()));
+                s.getVariazioneGiornaliera() >= 0 ? TAG_POSITIVO : TAG_NEGATIVO);
+
+        lblDetVarSettimanale.setText(String.format(FORMATO_VARIAZIONE, s.getVariazioneSettimanale()));
         lblDetMarketCap.setText(formatMarketCap(s.getMarketCap()));
         lblDetVolume.setText(s.getVolumeSettimanale() > 0
                 ? String.format("%.0f", s.getVolumeSettimanale()) : "—");
-        lblDetAggiornamento.setText("Aggiornato: " + LocalDateTime.now().format(FMT));
+        lblDetAggiornamento.setText("Aggiornato: " + LocalDateTime.now(ZoneId.systemDefault()).format(FMT));
 
         if (isStudente) {
             boxAzioneAcquisto.setVisible(true);  boxAzioneAcquisto.setManaged(true);
@@ -569,7 +599,7 @@ public class ManageWalletsGraphicControllerGUI
         alert.setTitle("Acquisto completato");
         alert.setHeaderText("✅ Ordine eseguito con successo");
         alert.setContentText(String.format(
-                "Stock: %s%nQuantità: %.4f azioni%nPrezzo unitario: $ %.2f%nTotale: %s",
+                "Stock: %s%nQuantità: %.4f azioni%nPrezzo unitario: " + FORMATO_PREZZO + "%nTotale: %s",
                 t.getStock().getSimbolo(), t.getQuantita(),
                 t.getPrezzoAlMomento(), VALUTA.format(t.getImportoTotale())));
         alert.showAndWait();
