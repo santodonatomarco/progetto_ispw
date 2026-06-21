@@ -167,7 +167,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
     }
 
 
-    private void aggiungiTransazioneDaArray(VirtualWallet wallet, String[] parts) throws Exception {
+    private void aggiungiTransazioneDaArray(VirtualWallet wallet, String[] parts) throws IOException {
         String simbolo = parts[1].trim();
         TipoTransazione tipo = TipoTransazione.valueOf(parts[2].trim());
         StatoTransazione stato;
