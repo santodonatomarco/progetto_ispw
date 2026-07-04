@@ -18,9 +18,8 @@ public abstract class StockSubject {
     }
 
     public void notificaObserver() {
-        // "this" è sempre uno Stock (unica sottoclasse)
         for (StockObserver o : new ArrayList<>(observers)) {
-            o.aggiornamento((Stock) this);
+            o.aggiornamento();
         }
     }
 }

@@ -49,19 +49,26 @@ public class Stock extends StockSubject {
             throw new IllegalArgumentException("Prezzo non può essere negativo.");
         this.prezzoAttuale = nuovoPrezzo;
         this.ultimoAggiornamento = LocalDateTime.now(ZoneId.systemDefault());
-        this.notificaObserver();  // <-- notifica automatica!
+        notificaObserver();
     }
 
 
     public final void aggiornaVariazioni(double daily, double weekly) {
         this.variazioneGiornaliera = daily;
         this.variazioneSettimanale = weekly;
+        notificaObserver();
     }
 
     public final void aggiornaMarketData(double marketCap, double volume) {
         this.marketCap = marketCap;
         this.volumeSettimanale = volume;
+        notificaObserver();
     }
+
+    public double getState() {
+        return this.prezzoAttuale;
+    }
+
 
     public String simbolo()             { return simbolo; }
     public String nomeAzienda()         { return nomeAzienda; }

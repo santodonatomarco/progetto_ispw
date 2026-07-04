@@ -32,7 +32,6 @@ public class ManageWalletsGraphicControllerGUI
         extends ManageWalletsGraphicController
         implements StockObserver {
 
-    // ── Costanti di formattazione e UI ────────────────────────────────────────
     private static final String LABEL_TOTALE_VUOTO = "Totale: —";
     private static final String CSS_TESTO_SECONDARIO = "testo-secondario";
     private static final String CSS_TESTO_GRIGIO = "-fx-text-fill:#555555;";
@@ -101,12 +100,12 @@ public class ManageWalletsGraphicControllerGUI
     @FXML private Label            lblContatore;
     @FXML private Label            lblNessunoStock;
 
-    // ── Stato locale ──────────────────────────────────────────────────────────
     private Parent  view;
     private String  simboloCorrente;
     private boolean portafoglioEsterno = false;
 
     private final Map<String, Label> prezziInGriglia = new HashMap<>();
+    private final Map<String, Stock> subjectMap = new HashMap<>();
 
     private static final NumberFormat  VALUTA = NumberFormat.getCurrencyInstance(Locale.ITALY);
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -344,20 +343,30 @@ public class ManageWalletsGraphicControllerGUI
     // ── StockObserver ─────────────────────────────────────────────────────────
 
     @Override
-    public void aggiornamento(Stock stock) {
+    public void aggiornamento() {
         Platform.runLater(() -> {
-            Label lblGriglia = prezziInGriglia.get(stock.simbolo());
-            if (lblGriglia != null)
-                lblGriglia.setText(String.format(FORMATO_PREZZO, stock.prezzoAttuale()));
 
-            if (stock.simbolo().equals(simboloCorrente)) {
-                lblDetPrezzo.setText(String.format(FORMATO_PREZZO, stock.prezzoAttuale()));
-                lblDetVariazione.setText(String.format(FORMATO_VARIAZIONE, stock.variazioneGiornaliera()));
-                lblDetAggiornamento.setText("Aggiornato: " + LocalDateTime.now(ZoneId.systemDefault()).format(FMT));
+            for (Map.Entry<String, Stock> entry : subjectMap.entrySet()) {
+                double nuovoPrezzo = entry.getValue().getState(); // getState() GoF
+                Label lbl = prezziInGriglia.get(entry.getKey());
+                if (lbl != null)
+                    lbl.setText(String.format(FORMATO_PREZZO, nuovoPrezzo));
+            }
 
-                lblDetVariazione.getStyleClass().removeAll(TAG_POSITIVO, TAG_NEGATIVO);
-                lblDetVariazione.getStyleClass().add(
-                        stock.variazioneGiornaliera() >= 0 ? TAG_POSITIVO : TAG_NEGATIVO);
+            // Aggiorna il pannello dettaglio se è aperto
+            if (simboloCorrente != null) {
+                Stock s = subjectMap.get(simboloCorrente);
+                if (s != null) {
+                    lblDetPrezzo.setText(String.format(FORMATO_PREZZO, s.getState()));
+                    lblDetVariazione.setText(String.format(FORMATO_VARIAZIONE,
+                            s.variazioneGiornaliera()));
+                    lblDetAggiornamento.setText("Aggiornato: "
+                            + LocalDateTime.now(ZoneId.systemDefault()).format(FMT));
+
+                    lblDetVariazione.getStyleClass().removeAll(TAG_POSITIVO, TAG_NEGATIVO);
+                    lblDetVariazione.getStyleClass().add(
+                            s.variazioneGiornaliera() >= 0 ? TAG_POSITIVO : TAG_NEGATIVO);
+                }
             }
         });
     }
@@ -382,7 +391,10 @@ public class ManageWalletsGraphicControllerGUI
         for (StockBean s : lista) {
             flowStocks.getChildren().add(creaCardStock(s));
             Stock sm = StockService.getInstance().trovaStock(s.getSimbolo());
-            if (sm != null) sm.aggiungiObserver(this);
+            if (sm != null) {
+                sm.aggiungiObserver(this);
+                subjectMap.put(s.getSimbolo(), sm);
+            }
         }
     }
 
@@ -518,7 +530,10 @@ public class ManageWalletsGraphicControllerGUI
         }
 
         Stock stockModel = StockService.getInstance().trovaStock(s.getSimbolo());
-        if (stockModel != null) stockModel.aggiungiObserver(this);
+        if (stockModel != null){
+            stockModel.aggiungiObserver(this);
+            subjectMap.put(s.getSimbolo(), stockModel);
+        }
 
         panelDettaglio.setVisible(true);
         panelDettaglio.setManaged(true);

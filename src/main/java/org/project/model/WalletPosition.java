@@ -60,8 +60,8 @@ public class WalletPosition implements StockObserver {
 
     /** Chiamato automaticamente da Stock.aggiornaPrezzo() tramite observer. */
     @Override
-    public void aggiornamento(Stock stock) {
-        this.valoreCorrente = stock.prezzoAttuale() * this.quantita;
+    public void aggiornamento() {
+        this.valoreCorrente = this.stock.getState() * this.quantita;
     }
 
     public Stock stock()                { return stock; }
