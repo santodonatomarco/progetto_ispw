@@ -1,7 +1,4 @@
 package org.project.ing.observer;
-
-import org.project.model.Stock;
-
 import java.util.ArrayList;
 import java.util.List;
 

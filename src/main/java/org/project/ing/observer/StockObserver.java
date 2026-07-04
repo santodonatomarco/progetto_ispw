@@ -1,6 +1,5 @@
 package org.project.ing.observer;
 
-import org.project.model.Stock;
 
 /**
  * Observer nel pattern Observer applicato agli Stock.
