@@ -16,32 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller applicativo unificato per il caso d'uso "Manage Wallets".
- *
- * Responsabilità:
- *  ── Studente PROPRIETARIO ──────────────────────────────────────────────────
- *   • Consultazione mercato (cercaStock)
- *   • Acquisto stock (avviaOrdineAcquisto → confermaAcquisto | annullaOrdine)
- *   • Visualizzazione portafoglio proprio (ottieniPortafoglio, emailTarget=null)
- *   • Storico transazioni proprio      (ottieniStorico,      emailTarget=null)
- *
- *  ── Studente NON proprietario / Professore ─────────────────────────────────
- *   • Consultazione mercato in sola lettura
- *   • Visualizzazione portafoglio di un altro studente
- *     (ottieniPortafoglio, emailTarget=<email studente target>)
- *   • Storico transazioni di un altro studente (stesse regole di accesso)
- *
- *  Regole di accesso portafoglio:
- *   1. emailTarget == email richiedente        → proprietario, accesso libero
- *   2. richiedente è studente della stessa classe del target → lettura
- *   3. richiedente è professore che gestisce la classe del target → lettura
- *
- * Sostituisce ManageStockAppController (che a sua volta aveva già sostituito
- * MercatoAppController + OrdineAppController).
- *
- * Stateless (GRASP Controller): lo stato pending vive nella Sessione, non qui.
- */
+
 public class ManageWalletsAppController {
 
     private static final int TIMEOUT_MINUTI = 5;
@@ -53,7 +28,8 @@ public class ManageWalletsAppController {
      * Accessibile a qualsiasi utente autenticato; l'acquisto è riservato
      * al solo studente proprietario e gestito da avviaOrdineAcquisto().
      */
-    public StockBean cercaStock(String simbolo) throws ControllerException {
+    public StockBean cercaStock(RicercaStockBean input) throws ControllerException {
+        String simbolo = input.getSimbolo();
         try {
             Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
             if (stock == null)
@@ -73,7 +49,7 @@ public class ManageWalletsAppController {
      * Avvia un ordine: crea una Transaction PENDING e la salva nella sessione.
      * Lo studente ha {@value #TIMEOUT_MINUTI} minuti per confermare.
      */
-    public TransactionBean avviaOrdineAcquisto(SessioneBean sessione, String simbolo)
+    public TransactionBean avviaOrdineAcquisto(SessioneBean sessione, AvvioOrdineBean input)
             throws ControllerException {
 
         Sessione sm = validaSessione(sessione);
@@ -86,14 +62,14 @@ public class ManageWalletsAppController {
             throw new ControllerException("Wallet non trovato per lo studente.");
 
         try {
-            Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
-            // quantita=1 come placeholder, aggiornata alla conferma
+            Stock stock = StockService.getInstance().ottieniOCreaStock(input.getSimbolo());
             Transaction t = new Transaction(stock, TipoTransazione.BUY, 1, stock.prezzoAttuale());
             sm.setTransazionePending(t);
             sm.setStockCorrente(stock);
             return toTransactionBean(t);
         } catch (Exception e) {
-            throw new ControllerException("Errore nell'avvio dell'ordine per: " + simbolo, e);
+            throw new ControllerException(
+                    "Errore nell'avvio dell'ordine per: " + input.getSimbolo(), e);
         }
     }
 
@@ -101,7 +77,7 @@ public class ManageWalletsAppController {
      * Conferma l'ordine pending con la quantità scelta dallo studente.
      * Verifica: timeout, saldo, poi delega l'acquisto a VirtualWallet (Expert).
      */
-    public TransactionBean confermaAcquisto(SessioneBean sessione, double quantitaScelta)
+    public TransactionBean confermaAcquisto(SessioneBean sessione, ConfermaAcquistoBean input)
             throws ControllerException {
 
         Sessione sm = validaSessione(sessione);
@@ -120,7 +96,7 @@ public class ManageWalletsAppController {
                     "Il tempo per confermare è scaduto (limite: " + TIMEOUT_MINUTI + " min). Riprova.");
         }
 
-        transazione.impostaQuantita(quantitaScelta);
+        transazione.impostaQuantita(input.getQuantitaScelta());
 
         VirtualWallet wallet = sm.getWalletCorrente();
         if (wallet == null)
@@ -139,7 +115,7 @@ public class ManageWalletsAppController {
         try {
             boolean posizioneEsisteva = wallet.trovaPosizione(transazione.stock()) != null;
             WalletPosition posizione  = wallet.eseguiAcquisto(
-                    transazione.stock(), quantitaScelta, transazione.prezzoAlMomento());
+                    transazione.stock(), input.getQuantitaScelta(), transazione.prezzoAlMomento());
 
             transazione.completaTransazione();
             wallet.aggiungiTransazione(transazione);
@@ -167,14 +143,8 @@ public class ManageWalletsAppController {
 
     // ── Portafoglio ───────────────────────────────────────────────────────────
 
-    /**
-     * Restituisce il portafoglio del soggetto target.
-     *
-     * @param sessione    sessione del richiedente
-     * @param emailTarget email del proprietario da consultare;
-     *                    {@code null} = proprio wallet (studente loggato)
-     */
-    public PortafoglioBean ottieniPortafoglio(SessioneBean sessione, String emailTarget)
+
+    public PortafoglioBean ottieniPortafoglio(SessioneBean sessione, UtenteBean input)
             throws ControllerException {
 
         Sessione sm = validaSessione(sessione);
@@ -186,8 +156,7 @@ public class ManageWalletsAppController {
 
             // Caso 1 — proprietario: lo studente legge il suo
             if (studenteLoggato != null &&
-                    (emailTarget == null
-                            || emailTarget.equals(studenteLoggato.presentaEmail()))) {
+                    (input == null || input.getEmail().equals(studenteLoggato.presentaEmail()))) {
                 VirtualWallet wallet = sm.getWalletCorrente();
                 if (wallet == null)
                     wallet = walletDAO.getPortafoglioByEmail(studenteLoggato.presentaEmail());
@@ -195,12 +164,10 @@ public class ManageWalletsAppController {
             }
 
             // Caso 2 — non proprietario: verifica accesso poi legge
-            if (emailTarget == null)
-                throw new ControllerException("Nessun target specificato per la consultazione.");
 
-            VirtualWallet walletTarget = walletDAO.getPortafoglioByEmail(emailTarget);
+            VirtualWallet walletTarget = walletDAO.getPortafoglioByEmail(input.getEmail());
             if (walletTarget == null)
-                throw new ControllerException("Portafoglio non trovato per: " + emailTarget);
+                throw new ControllerException("Portafoglio non trovato per: " + input.getEmail());
 
             verificaAccesso(sm, walletTarget);
             return convertiWalletInBean(walletTarget);
@@ -216,7 +183,7 @@ public class ManageWalletsAppController {
      * Restituisce lo storico transazioni del soggetto target.
      * Stesse regole di accesso di {@link #ottieniPortafoglio}.
      */
-    public List<TransactionBean> ottieniStorico(SessioneBean sessione, String emailTarget)
+    public List<TransactionBean> ottieniStorico(SessioneBean sessione, UtenteBean input)
             throws ControllerException {
 
         Sessione sm = validaSessione(sessione);
@@ -229,17 +196,17 @@ public class ManageWalletsAppController {
             Studente studenteLoggato = sm.getStudenteCorrente();
 
             if (studenteLoggato != null &&
-                    (emailTarget == null
-                            || emailTarget.equals(studenteLoggato.presentaEmail()))) {
+                    (input.getEmail() == null
+                            || input.getEmail().equals(studenteLoggato.presentaEmail()))) {
                 wallet = sm.getWalletCorrente();
                 if (wallet == null)
                     wallet = walletDAO.getPortafoglioByEmail(studenteLoggato.presentaEmail());
             } else {
-                if (emailTarget == null)
+                if (input.getEmail() == null)
                     throw new ControllerException("Nessun target specificato per lo storico.");
-                wallet = walletDAO.getPortafoglioByEmail(emailTarget);
+                wallet = walletDAO.getPortafoglioByEmail(input.getEmail());
                 if (wallet == null)
-                    throw new ControllerException("Portafoglio non trovato per: " + emailTarget);
+                    throw new ControllerException("Portafoglio non trovato per: " + input.getEmail());
                 verificaAccesso(sm, wallet);
             }
 
@@ -306,20 +273,12 @@ public class ManageWalletsAppController {
                 transazioniBeans);
     }
 
-    // ── Metodi privati ────────────────────────────────────────────────────────
-
     private Sessione validaSessione(SessioneBean sessione) throws ControllerException {
         Sessione s = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (s == null) throw new ControllerException("Sessione non valida o scaduta.");
         return s;
     }
 
-    /**
-     * Verifica che il richiedente abbia diritto di leggere walletTarget.
-     *
-     *  - Professore: solo se la classe del target è gestita da lui
-     *  - Studente:   solo se si trova nella stessa classe del target
-     */
     private void verificaAccesso(Sessione sm, VirtualWallet walletTarget)
             throws ControllerException {
 

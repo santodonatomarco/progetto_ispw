@@ -25,13 +25,8 @@ public class GestioneClasseAppController {
     /**
      * Crea una nuova classe con il budget dato e la assegna al professore in sessione.
      */
-    public SchoolClassBean creaClasse(SessioneBean sessione, String nomeClasse, double budgetIniziale)
+    public SchoolClassBean creaClasse(SessioneBean sessione, ClasseBean input)
             throws ControllerException {
-
-        if (nomeClasse == null || nomeClasse.isBlank())
-            throw new ControllerException("Il nome della classe non può essere vuoto.");
-        if (budgetIniziale < 0)
-            throw new ControllerException("Il budget per la classe non può essere negativo.");
 
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null)
@@ -46,12 +41,12 @@ public class GestioneClasseAppController {
 
         try {
             // Verifica che la classe non esista già per questo professore
-            SchoolClass esistente = classeDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            SchoolClass esistente = classeDAO.getClasseByNomeEProfessore(input.getNomeDellaClasse(), professore);
             if (esistente != null)
-                throw new ControllerException("Esiste già una classe \"" + nomeClasse + "\" per questo professore.");
+                throw new ControllerException("Esiste già una classe \"" + input.getNomeDellaClasse() + "\" per questo professore.");
 
-            SchoolClass nuovaClasse = new SchoolClass(nomeClasse, professore);
-            nuovaClasse.impostaBudget(budgetIniziale);
+            SchoolClass nuovaClasse = new SchoolClass(input.getNomeDellaClasse(), professore);
+            nuovaClasse.impostaBudget(input.getBudgetIniziale());
             classeDAO.salvaClasse(nuovaClasse);
 
             return toBean(nuovaClasse);
@@ -66,11 +61,8 @@ public class GestioneClasseAppController {
      * e aggiorna RETROATTIVAMENTE i portafogli di tutti gli studenti iscritti.
      */
 
-    public SchoolClassBean impostaBudget(SessioneBean sessione, String nomeClasse, double nuovoBudget)
+    public SchoolClassBean impostaBudget(SessioneBean sessione, ClasseBean input_class, ImpostaBudgetBean input_budget)
             throws ControllerException {
-
-        if (nuovoBudget < 0)
-            throw new ControllerException("Il budget non può essere negativo.");
 
         // Validazione sessione e recupero professore — estratti per ridurre nesting
         Professore professore = validaSessioneEOttieniProfessore(sessione,
@@ -82,19 +74,19 @@ public class GestioneClasseAppController {
         PortafoglioDAO portafoglioDAO = factory.createPortafoglioDAO();
 
         try {
-            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(input_class.getNomeDellaClasse(), professore);
             if (classe == null)
-                throw new ControllerException("Classe \"" + nomeClasse + "\" non trovata.");
+                throw new ControllerException("Classe \"" + input_class.getNomeDellaClasse() + "\" non trovata.");
 
-            double differenza = nuovoBudget - classe.budgetIniziale();
+            double differenza = input_budget.getNuovoBudget() - classe.budgetIniziale();
 
-            classe.impostaBudget(nuovoBudget);
+            classe.impostaBudget(input_budget.getNuovoBudget());
             classeDAO.salvaClasse(classe);
 
             if (differenza != 0)
                 aggiornaPortafogli(studenteDAO, portafoglioDAO, classe, differenza);
 
-            sincronizzaSessione(sessione, nomeClasse, nuovoBudget);
+            sincronizzaSessione(sessione, input_class.getNomeDellaClasse(), input_budget.getNuovoBudget());
 
             return toBean(classe);
 

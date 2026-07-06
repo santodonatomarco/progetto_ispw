@@ -15,17 +15,12 @@ import java.util.List;
 
 public class ExchangeMessagesAppController {
 
-    public MessageBean inviaMessaggio(SessioneBean sessione, String emailDestinatario, String testo)
+    public MessageBean inviaMessaggio(SessioneBean sessione, InvioMessaggioBean input)
             throws ControllerException {
-
-        if (emailDestinatario == null || emailDestinatario.isBlank() || !emailDestinatario.contains("@"))
-            throw new ControllerException("L'email del destinatario non è valida.");
-        if (testo == null || testo.isBlank())
-            throw new ControllerException("Il testo del messaggio non può essere vuoto.");
 
         Utente mittente = validaSessioneEOttieniUtente(sessione);
 
-        if (mittente.presentaEmail().equalsIgnoreCase(emailDestinatario.trim()))
+        if (mittente.presentaEmail().equalsIgnoreCase(input.getDestinatario().trim()))
             throw new ControllerException("Non puoi inviare un messaggio a te stesso.");
 
         DAOFactory factory = DAOFactory.getDAOFactory();
@@ -33,17 +28,15 @@ public class ExchangeMessagesAppController {
 
         try {
             // Cerchiamo il destinatario interrogando i DAO specifici
-            Utente destinatario = trovaUtentePerEmail(emailDestinatario.trim().toLowerCase());
+            Utente destinatario = trovaUtentePerEmail(input.getDestinatario().trim().toLowerCase());
 
             if (destinatario == null)
-                throw new ControllerException("Utente destinatario \"" + emailDestinatario + "\" non trovato.");
+                throw new ControllerException("Utente destinatario \"" + input.getDestinatario() + "\" non trovato.");
 
-            Message nuovoMessaggio = new Message(mittente, destinatario, testo);
+            Message nuovoMessaggio = new Message(mittente, destinatario, input.getTesto());
 
             destinatario.aggiungiAllaInbox(nuovoMessaggio);
 
-            // Nota per l'implementazione MariaDB: il MessageDAO utilizzerà il Codice Fiscale (CF)
-            // di mittente e destinatario come Chiavi Esterne per l'inserimento nel database relazionale.
             messageDAO.salvaMessaggio(nuovoMessaggio);
 
             return toMessageBean(nuovoMessaggio);

@@ -2,6 +2,7 @@ package org.project.view;
 
 import org.project.control.ExchangeMessagesAppController;
 import org.project.exceptions.ControllerException;
+import org.project.view.bean.InvioMessaggioBean;
 import org.project.view.bean.MessageBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
@@ -9,21 +10,6 @@ import org.project.view.bean.StudenteBean;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Controller grafico astratto per la schermata Inbox / Exchange Messages.
- *
- * Logica condivisa tra CLI e GUI:
- *  - caricamento della inbox dell'utente loggato
- *  - invio di un messaggio a un destinatario
- *  - navigazione verso dashboard / altre schermate
- *  - utility di ruolo (isStudente, isProfessore, getEmailProfessore)
- *
- * Il caso d'uso prevede:
- *  • Studente → manda messaggi al proprio professore di classe
- *  • Professore → manda messaggi agli studenti delle proprie classi
- *
- * Le sottoclassi implementano la visualizzazione concreta (CLI o JavaFX).
- */
 public abstract class ExchangeMessagesGraphicController {
 
     protected Navigator navigator;
@@ -65,11 +51,16 @@ public abstract class ExchangeMessagesGraphicController {
             return null;
         }
         try {
+            InvioMessaggioBean input = new InvioMessaggioBean(emailDestinatario, testo);
             MessageBean inviato = new ExchangeMessagesAppController()
-                    .inviaMessaggio(sessione, emailDestinatario, testo);
+                    .inviaMessaggio(sessione, input);
             mostraSuccesso("Messaggio inviato a " + emailDestinatario + ".");
             return inviato;
-        } catch (ControllerException e) {
+        } catch (IllegalArgumentException e){
+                mostraErrore("Errore nell'invio del messaggio: " + e.getMessage());
+                return null;
+        }
+        catch (ControllerException e) {
             mostraErrore(e.getMessage());
             return null;
         }

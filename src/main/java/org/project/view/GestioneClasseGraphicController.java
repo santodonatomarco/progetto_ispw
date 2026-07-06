@@ -2,9 +2,7 @@ package org.project.view;
 
 import org.project.control.GestioneClasseAppController;
 import org.project.exceptions.ControllerException;
-import org.project.view.bean.SchoolClassBean;
-import org.project.view.bean.SessioneBean;
-import org.project.view.bean.StudenteBean;
+import org.project.view.bean.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,12 +52,17 @@ public abstract class GestioneClasseGraphicController {
             return null;
         }
         try {
+            ClasseBean input = new ClasseBean(nomeClasse, budget);
             SchoolClassBean nuova = new GestioneClasseAppController()
-                    .creaClasse(sessione, nomeClasse.trim().toUpperCase(), budget);
+                    .creaClasse(sessione, input);
             mostraSuccesso("Classe \"" + nuova.getNome() + "\" creata con budget € " +
                     String.format("%.2f", budget));
             return nuova;
-        } catch (ControllerException e) {
+        } catch (IllegalArgumentException e){
+            mostraErrore("Errore di sintassi" + e.getMessage());
+            return null;
+        }
+        catch (ControllerException e) {
             mostraErrore(e.getMessage());
             return null;
         }
@@ -72,8 +75,10 @@ public abstract class GestioneClasseGraphicController {
             return null;
         }
         try {
+            ClasseBean in_1 = new ClasseBean(nomeClasse);
+            ImpostaBudgetBean in_2 = new ImpostaBudgetBean(nuovoBudget);
             SchoolClassBean aggiornata = new GestioneClasseAppController()
-                    .impostaBudget(sessione, nomeClasse, nuovoBudget);
+                    .impostaBudget(sessione, in_1, in_2);
 
             // Aggiorna classeCorrente nel contesto
             navigator.impostaClasseCorrente(aggiornata);
@@ -93,7 +98,11 @@ public abstract class GestioneClasseGraphicController {
 
             mostraSuccesso("Budget aggiornato: € " + String.format("%.2f", nuovoBudget));
             return aggiornata;
-        } catch (ControllerException e) {
+        } catch (IllegalArgumentException e){
+            mostraErrore("Errore di sintassi" + e.getMessage());
+            return null;
+        }
+        catch (ControllerException e) {
             mostraErrore(e.getMessage());
             return null;
         }

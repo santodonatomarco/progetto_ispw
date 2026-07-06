@@ -62,15 +62,11 @@ public abstract class ManageWalletsGraphicController {
 
     // ── Logica condivisa — Mercato ────────────────────────────────────────────
 
-    protected void eseguiRicerca(String simbolo) {
-        if (simbolo == null || simbolo.isBlank()) {
-            mostraErrore("Inserisci un simbolo valido (es. AAPL, TSLA).");
-            return;
-        }
-        String sim = simbolo.trim().toUpperCase();
-        mostraCaricamento(true);
+    protected void eseguiRicerca(String simboloRaw) {
         try {
-            StockBean stock = new ManageWalletsAppController().cercaStock(sim);
+            RicercaStockBean input = new RicercaStockBean(simboloRaw);
+            mostraCaricamento(true);
+            StockBean stock = new ManageWalletsAppController().cercaStock(input);
             navigator.impostaStockCorrente(stock);
 
             List<StockBean> lista = navigator.getListaStock();
@@ -81,9 +77,11 @@ public abstract class ManageWalletsGraphicController {
             }
             mostraCaricamento(false);
             mostraDettaglioStock(stock);
+        } catch (IllegalArgumentException e) {
+            mostraErrore(e.getMessage());
         } catch (ControllerException e) {
             mostraCaricamento(false);
-            mostraErrore("Impossibile recuperare \"" + sim + "\". Verifica il simbolo e riprova.");
+            mostraErrore("Impossibile recuperare lo stock. Verifica il simbolo e riprova.");
         }
     }
 
@@ -98,11 +96,15 @@ public abstract class ManageWalletsGraphicController {
             return;
         }
         try {
+            AvvioOrdineBean input = new AvvioOrdineBean(simbolo);
             TransactionBean t = new ManageWalletsAppController()
-                    .avviaOrdineAcquisto(sessione, simbolo);
+                    .avviaOrdineAcquisto(sessione, input);
             navigator.impostaTransazionePending(t);
             navigator.goToConfermaOrdine();
-        } catch (ControllerException e) {
+        }  catch (IllegalArgumentException e){
+            mostraErrore(e.getMessage());
+        }
+        catch (ControllerException e) {
             mostraErrore("Impossibile avviare l'ordine: " + e.getMessage());
         }
     }
@@ -116,8 +118,9 @@ public abstract class ManageWalletsGraphicController {
             return;
         }
         try {
+            ConfermaAcquistoBean input = new ConfermaAcquistoBean(quantita);
             TransactionBean t = new ManageWalletsAppController()
-                    .confermaAcquisto(sessione, quantita);
+                    .confermaAcquisto(sessione, input);
             navigator.impostaTransazionePending(null);
 
             // Aggiorna il PortafoglioBean nel Navigator con il wallet fresco
@@ -128,7 +131,10 @@ public abstract class ManageWalletsGraphicController {
                 navigator.impostaPortafoglio(pf);
             }
             mostraAcquistoCompletato(t);
-        } catch (ControllerException e) {
+        } catch (IllegalArgumentException e){
+            mostraErrore(e.getMessage());
+        }
+        catch (ControllerException e) {
             mostraErrore("Errore nella conferma: " + e.getMessage());
         }
     }
@@ -155,30 +161,48 @@ public abstract class ManageWalletsGraphicController {
             mostraErrore("Sessione non valida.");
             return;
         }
+        UtenteBean input = null;
+        if (emailTarget != null) {
+            try {
+                input = new UtenteBean(emailTarget);
+            } catch (IllegalArgumentException e) {
+                mostraErrore(e.getMessage());
+                return;
+            }
+        }
+
         try {
             PortafoglioBean pf = new ManageWalletsAppController()
-                    .ottieniPortafoglio(sessione, emailTarget);
-            if (emailTarget == null) navigator.impostaPortafoglio(pf);
-            mostraPortafoglio(pf, emailTarget == null);
+                    .ottieniPortafoglio(sessione, input);
+            if (input == null) navigator.impostaPortafoglio(pf);
+            mostraPortafoglio(pf, input == null);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare il portafoglio: " + e.getMessage());
         }
     }
 
-    /**
-     * Carica lo storico transazioni e chiama mostraStorico().
-     * emailTarget null = proprio storico.
-     */
+    // mettendo email a null carica il proprio storico, la mail serve
+    // quando il richiedente è il professore e viene specificato quale studente si vuole visualizzare
     protected void eseguiCaricaStorico(String emailTarget) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
             mostraErrore("Sessione non valida.");
             return;
         }
+        UtenteBean input = null;
+        if (emailTarget != null) {
+            try {
+                input = new UtenteBean(emailTarget);
+            } catch (IllegalArgumentException e) {
+                mostraErrore(e.getMessage());
+                return;
+            }
+        }
+
         try {
             List<TransactionBean> storico = new ManageWalletsAppController()
-                    .ottieniStorico(sessione, emailTarget);
-            if (emailTarget == null) navigator.impostaStoricoTransazioni(storico);
+                    .ottieniStorico(sessione, input);
+            if (input == null) navigator.impostaStoricoTransazioni(storico);
             mostraStorico(storico, emailTarget);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare lo storico: " + e.getMessage());
