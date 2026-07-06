@@ -196,13 +196,13 @@ public class ManageWalletsAppController {
             Studente studenteLoggato = sm.getStudenteCorrente();
 
             if (studenteLoggato != null &&
-                    (input.getEmail() == null
+                    (input == null || input.getEmail() == null
                             || input.getEmail().equals(studenteLoggato.presentaEmail()))) {
                 wallet = sm.getWalletCorrente();
                 if (wallet == null)
                     wallet = walletDAO.getPortafoglioByEmail(studenteLoggato.presentaEmail());
             } else {
-                if (input.getEmail() == null)
+                if (input == null || input.getEmail() == null)
                     throw new ControllerException("Nessun target specificato per lo storico.");
                 wallet = walletDAO.getPortafoglioByEmail(input.getEmail());
                 if (wallet == null)
@@ -223,13 +223,8 @@ public class ManageWalletsAppController {
         }
     }
 
-    // ── Conversione model → bean (usata anche dai graphic controller) ─────────
+    // Conversione model → bean
 
-    /**
-     * Converte un VirtualWallet in PortafoglioBean per la view.
-     * Esposto pubblicamente perché usato dai graphic controller dopo un acquisto
-     * per aggiornare il PortafoglioBean nel Navigator senza un secondo accesso DAO.
-     */
     public PortafoglioBean convertiWalletInBean(VirtualWallet wallet) {
         if (wallet == null) return null;
 

@@ -40,18 +40,16 @@ public abstract class LoginGraphicController {
             if (isStudente) {
                 StudenteBean bean = new StudenteBean(email, password);
                 SessioneBean sessione = appController.loginStudente(bean);
-
-                navigator.impostaStudente(sessione.getStudente());
                 navigator.impostaSessione(sessione);
+                navigator.impostaStudente(sessione.getStudente());
                 navigator.impostaPortafoglio(sessione.getPortafoglio());
                 navigator.goToHomeStudente();
 
             } else {
                 ProfessoreBean bean = new ProfessoreBean(email, password);
                 SessioneBean sessione = appController.loginProfessore(bean);
-
-                navigator.impostaProfessore(sessione.getProfessore());
                 navigator.impostaSessione(sessione);
+                navigator.impostaProfessore(sessione.getProfessore());
                 if (sessione.getListaClassi() != null) {
                     navigator.impostaListaClassi(sessione.getListaClassi());
                 }

@@ -226,6 +226,7 @@ public class ManageWalletsGraphicControllerGUI
         nascondiTuttiIPannelli();
         nascondiMessaggio();
         portafoglioEsterno = false;
+        // Portafoglio proprio: non richiedere uno studente target (emailTarget = null)
         eseguiCaricaPortafoglio(null);
     }
 
@@ -235,6 +236,7 @@ public class ManageWalletsGraphicControllerGUI
     public void startStorico() {
         nascondiTuttiIPannelli();
         nascondiMessaggio();
+        // Storico proprio: non richiedere uno studente target (emailTarget = null)
         eseguiCaricaStorico(null);
     }
 

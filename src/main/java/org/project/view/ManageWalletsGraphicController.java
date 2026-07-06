@@ -2,7 +2,6 @@ package org.project.view;
 
 import org.project.control.ManageWalletsAppController;
 import org.project.exceptions.ControllerException;
-import org.project.model.SessionManager;
 import org.project.view.bean.*;
 
 import java.util.ArrayList;
@@ -122,13 +121,12 @@ public abstract class ManageWalletsGraphicController {
             TransactionBean t = new ManageWalletsAppController()
                     .confermaAcquisto(sessione, input);
             navigator.impostaTransazionePending(null);
-
-            // Aggiorna il PortafoglioBean nel Navigator con il wallet fresco
-            var sm = SessionManager.getInstance().ottieniSessione(sessione.getId());
-            if (sm != null && sm.getWalletCorrente() != null) {
-                var pf = new ManageWalletsAppController()
-                        .convertiWalletInBean(sm.getWalletCorrente());
+            try {
+                // input messo a null perché siamo i proprietari in questo caso specifico
+                PortafoglioBean pf = new ManageWalletsAppController().ottieniPortafoglio(sessione, null);
                 navigator.impostaPortafoglio(pf);
+            } catch (ControllerException e) {
+                showMessage("Portafoglio aggiornato non disponibile al momento.");
             }
             mostraAcquistoCompletato(t);
         } catch (IllegalArgumentException e){
@@ -189,6 +187,12 @@ public abstract class ManageWalletsGraphicController {
             mostraErrore("Sessione non valida.");
             return;
         }
+        // Normalizza input: trim e considera stringa vuota come null
+        if (emailTarget != null) {
+            emailTarget = emailTarget.trim();
+            if (emailTarget.isEmpty()) emailTarget = null;
+        }
+
         UtenteBean input = null;
         if (emailTarget != null) {
             try {
@@ -199,6 +203,8 @@ public abstract class ManageWalletsGraphicController {
             }
         }
 
+        // Mostra indicatore di caricamento (le sottoclassi lo implementano)
+        mostraCaricamento(true);
         try {
             List<TransactionBean> storico = new ManageWalletsAppController()
                     .ottieniStorico(sessione, input);
@@ -206,6 +212,8 @@ public abstract class ManageWalletsGraphicController {
             mostraStorico(storico, emailTarget);
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare lo storico: " + e.getMessage());
+        } finally {
+            mostraCaricamento(false);
         }
     }
 

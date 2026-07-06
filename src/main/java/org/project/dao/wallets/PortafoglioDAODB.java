@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.project.ing.classifunzionali.WalletBuilder.build;
+
 public class PortafoglioDAODB extends PortafoglioDAO {
 
     private final StudenteDAO studenteDAO;
@@ -40,7 +42,7 @@ public class PortafoglioDAODB extends PortafoglioDAO {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        wallet = new VirtualWallet(studente, rs.getDouble("saldo_disponibile"));
+                        wallet = new VirtualWallet(null, rs.getDouble("saldo_disponibile"));
                     } else {
                         return null;
                     }
@@ -78,7 +80,7 @@ public class PortafoglioDAODB extends PortafoglioDAO {
             throw new DAOException("Errore caricamento stock per il portafoglio: " + e.getMessage());
         }
 
-        return wallet;
+        return build(wallet, studente);
     }
 
     @Override

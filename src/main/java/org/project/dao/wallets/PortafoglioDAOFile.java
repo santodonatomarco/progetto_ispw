@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.project.ing.classifunzionali.WalletBuilder.build;
 
 
 public class PortafoglioDAOFile extends PortafoglioDAO {
@@ -46,7 +47,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
 
         allineaBudgetClasse(wallet, studente);
 
-        return wallet;
+        return build(wallet, studente);
     }
 
 

@@ -18,8 +18,8 @@ public class VirtualWallet {
     }
 
     public final void collegaStudente(Studente owner) {
-        if (owner == null)
-            throw new IllegalArgumentException("Il proprietario non può essere nullo.");
+        // if (owner == null)
+        //     throw new IllegalArgumentException("Il proprietario non può essere nullo.");
         this.owner = owner;
     }
 
