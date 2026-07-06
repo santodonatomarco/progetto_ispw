@@ -75,10 +75,10 @@ public abstract class GestioneClasseGraphicController {
             return null;
         }
         try {
-            ClasseBean in_1 = new ClasseBean(nomeClasse);
-            ImpostaBudgetBean in_2 = new ImpostaBudgetBean(nuovoBudget);
+            ClasseBean inputClass = new ClasseBean(nomeClasse);
+            ImpostaBudgetBean inputBudget = new ImpostaBudgetBean(nuovoBudget);
             SchoolClassBean aggiornata = new GestioneClasseAppController()
-                    .impostaBudget(sessione, in_1, in_2);
+                    .impostaBudget(sessione, inputClass, inputBudget);
 
             // Aggiorna classeCorrente nel contesto
             navigator.impostaClasseCorrente(aggiornata);

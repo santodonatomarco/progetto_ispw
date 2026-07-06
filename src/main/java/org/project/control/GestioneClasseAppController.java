@@ -61,7 +61,7 @@ public class GestioneClasseAppController {
      * e aggiorna RETROATTIVAMENTE i portafogli di tutti gli studenti iscritti.
      */
 
-    public SchoolClassBean impostaBudget(SessioneBean sessione, ClasseBean input_class, ImpostaBudgetBean input_budget)
+    public SchoolClassBean impostaBudget(SessioneBean sessione, ClasseBean inputClass, ImpostaBudgetBean inputBudget)
             throws ControllerException {
 
         // Validazione sessione e recupero professore — estratti per ridurre nesting
@@ -74,19 +74,19 @@ public class GestioneClasseAppController {
         PortafoglioDAO portafoglioDAO = factory.createPortafoglioDAO();
 
         try {
-            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(input_class.getNomeDellaClasse(), professore);
+            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(inputClass.getNomeDellaClasse(), professore);
             if (classe == null)
-                throw new ControllerException("Classe \"" + input_class.getNomeDellaClasse() + "\" non trovata.");
+                throw new ControllerException("Classe \"" + inputClass.getNomeDellaClasse() + "\" non trovata.");
 
-            double differenza = input_budget.getNuovoBudget() - classe.budgetIniziale();
+            double differenza = inputBudget.getNuovoBudget() - classe.budgetIniziale();
 
-            classe.impostaBudget(input_budget.getNuovoBudget());
+            classe.impostaBudget(inputBudget.getNuovoBudget());
             classeDAO.salvaClasse(classe);
 
             if (differenza != 0)
                 aggiornaPortafogli(studenteDAO, portafoglioDAO, classe, differenza);
 
-            sincronizzaSessione(sessione, input_class.getNomeDellaClasse(), input_budget.getNuovoBudget());
+            sincronizzaSessione(sessione, inputClass.getNomeDellaClasse(), inputBudget.getNuovoBudget());
 
             return toBean(classe);
 
