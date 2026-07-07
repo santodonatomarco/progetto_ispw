@@ -16,7 +16,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ManageWalletsAppController {
 
     private static final int TIMEOUT_MINUTI = 5;
@@ -81,32 +80,25 @@ public class ManageWalletsAppController {
             throws ControllerException {
 
         Sessione sm = validaSessione(sessione);
-
         Transaction transazione = sm.getTransazionePending();
+
         if (transazione == null)
             throw new ControllerException("Nessun ordine pending trovato. Riprova.");
 
-        // Calcolo del timeout: Sonar suggerisce di non usare LocalDateTime
-        // direttamente in Duration/ChronoUnit.between perché LocalDateTime non
-        // è zonato. Qui ancoriamo esplicitamente il LocalDateTime al fuso
-        // orario della JVM (`systemDefault`) usando `atZone(...)` e confrontiamo
-        // due ZonedDateTime. In questo modo il risultato rappresenta la
-        // reale durata trascorsa nella timeline e la regola di Sonar è rispettata.
         long minuti = ChronoUnit.MINUTES.between(
                 transazione.quando().atZone(java.time.ZoneId.systemDefault()),
                 java.time.ZonedDateTime.now(ZoneId.systemDefault())
         );
 
         if (minuti > TIMEOUT_MINUTI) {
-
             sm.setTransazionePending(null);
             throw new ControllerException(
                     "Il tempo per confermare è scaduto (limite: " + TIMEOUT_MINUTI + " min). Riprova.");
         }
 
         transazione.impostaQuantita(input.getQuantitaScelta());
-
         VirtualWallet wallet = sm.getWalletCorrente();
+
         if (wallet == null)
             throw new ControllerException("Wallet non trovato per lo studente.");
 
@@ -126,47 +118,27 @@ public class ManageWalletsAppController {
                     transazione.stock(), input.getQuantitaScelta(), transazione.prezzoAlMomento());
 
             transazione.completaTransazione();
-
             String email = wallet.proprietario().presentaEmail();
+            Transaction risultato;
 
-            Transaction risultato = null;
             if (posizioneEsisteva) {
-                // Se la posizione esisteva già, aggiorniamo la posizione e AGGREGA
-                // la transazione corrispondente (non creiamo una nuova riga).
                 // Troviamo l'ultima transazione DONE per questo simbolo nel wallet
-                Transaction esistente = null;
-                if (wallet.transazioni() != null) {
-                    for (Transaction t : wallet.transazioni()) {
-                        if (t.stock().simbolo().equals(transazione.stock().simbolo())
-                                && t.stato() == org.project.ing.enumerations.StatoTransazione.DONE) {
-                            if (esistente == null || t.quando().isAfter(esistente.quando())) {
-                                esistente = t;
-                            }
-                        }
-                    }
-                }
+                Transaction esistente = trovaUltimaTransazione(wallet, transazione.stock().simbolo());
 
                 if (esistente != null) {
                     java.time.LocalDateTime oldTs = esistente.quando();
-                    // Aggiorna la transazione esistente con i dati aggregati
                     esistente.impostaQuantita(posizione.quantita());
                     esistente.registraPrezzo(posizione.prezzoMedioAcquisto());
                     esistente.aggiornaTimestamp(transazione.quando());
-                    // Persisti l'aggiornamento (incluso il nuovo timestamp)
                     transactionDAO.aggiornaTransazione(email, esistente, oldTs);
                     risultato = esistente;
                 } else {
-                    // Se non esiste nessuna transazione precedente, fallback a salvataggio
                     wallet.aggiungiTransazione(transazione);
                     transactionDAO.salvaTransazione(email, transazione);
                     risultato = transazione;
                 }
-
-                // Aggiorna la posizione (esisteva)
                 posizioneDAO.aggiornaPosizione(email, posizione);
-
             } else {
-                // Nuova posizione: aggiungi transazione e salva
                 wallet.aggiungiTransazione(transazione);
                 transactionDAO.salvaTransazione(email, transazione);
                 posizioneDAO.salvaPosizione(email, posizione);
@@ -174,10 +146,10 @@ public class ManageWalletsAppController {
             }
 
             walletDAO.aggiornaPortafoglio(wallet);
-
             sm.setTransazionePending(null);
-            // Se abbiamo aggiornato/creato, ritorniamo il bean della transazione risultante.
-            return toTransactionBean(risultato != null ? risultato : transazione);
+
+            // Risultato is always strictly initialized, ternary operator was redundant
+            return toTransactionBean(risultato);
 
         } catch (DAOException e) {
             throw new ControllerException("Errore durante il salvataggio dell'ordine.", e);
@@ -192,7 +164,6 @@ public class ManageWalletsAppController {
     }
 
     // ── Portafoglio ───────────────────────────────────────────────────────────
-
 
     public PortafoglioBean ottieniPortafoglio(SessioneBean sessione, UtenteBean input)
             throws ControllerException {
@@ -214,7 +185,6 @@ public class ManageWalletsAppController {
             }
 
             // Caso 2 — non proprietario: verifica accesso poi legge
-
             VirtualWallet walletTarget = walletDAO.getPortafoglioByEmail(input.getEmail());
             if (walletTarget == null)
                 throw new ControllerException("Portafoglio non trovato per: " + input.getEmail());
@@ -242,28 +212,15 @@ public class ManageWalletsAppController {
         TransactionDAO transactionDAO  = factory.createTransactionDAO();
 
         try {
-            VirtualWallet wallet;
-            Studente studenteLoggato = sm.getStudenteCorrente();
-
-            if (studenteLoggato != null &&
-                    (input == null || input.getEmail() == null
-                            || input.getEmail().equals(studenteLoggato.presentaEmail()))) {
-                wallet = sm.getWalletCorrente();
-                if (wallet == null)
-                    wallet = walletDAO.getPortafoglioByEmail(studenteLoggato.presentaEmail());
-            } else {
-                if (input == null || input.getEmail() == null)
-                    throw new ControllerException("Nessun target specificato per lo storico.");
-                wallet = walletDAO.getPortafoglioByEmail(input.getEmail());
-                if (wallet == null)
-                    throw new ControllerException("Portafoglio non trovato per: " + input.getEmail());
-                verificaAccesso(sm, wallet);
-            }
-
+            VirtualWallet wallet = getWalletAutorizzatoPerStorico(sm, input, walletDAO);
             List<Transaction> transazioni = transactionDAO.getTransazioniWallet(wallet);
             List<TransactionBean> beans = new ArrayList<>();
-            if (transazioni != null)
-                for (Transaction t : transazioni) beans.add(toTransactionBean(t));
+
+            if (transazioni != null) {
+                for (Transaction t : transazioni) {
+                    beans.add(toTransactionBean(t));
+                }
+            }
             return beans;
 
         } catch (ControllerException e) {
@@ -273,7 +230,52 @@ public class ManageWalletsAppController {
         }
     }
 
-    // Conversione model → bean
+    // ── Metodi Privati di Supporto (Estratti per abbattere Cognitive Complexity) ─
+
+    private Transaction trovaUltimaTransazione(VirtualWallet wallet, String simbolo) {
+        Transaction esistente = null;
+        if (wallet.transazioni() != null) {
+            for (Transaction t : wallet.transazioni()) {
+                // If statement merged to satisfy SonarQube's nested boolean conditions requirement
+                if (t.stock().simbolo().equals(simbolo)
+                        && t.stato() == org.project.ing.enumerations.StatoTransazione.DONE
+                        && (esistente == null || t.quando().isAfter(esistente.quando()))) {
+                    esistente = t;
+                }
+            }
+        }
+        return esistente;
+    }
+
+    private VirtualWallet getWalletAutorizzatoPerStorico(Sessione sm, UtenteBean input, PortafoglioDAO walletDAO)
+            throws ControllerException, DAOException {
+
+        Studente studenteLoggato = sm.getStudenteCorrente();
+        boolean isRichiestaPersonale = (studenteLoggato != null &&
+                (input == null || input.getEmail() == null || input.getEmail().equals(studenteLoggato.presentaEmail())));
+
+        if (isRichiestaPersonale) {
+            VirtualWallet wallet = sm.getWalletCorrente();
+            if (wallet == null) {
+                wallet = walletDAO.getPortafoglioByEmail(studenteLoggato.presentaEmail());
+            }
+            return wallet;
+        }
+
+        if (input == null || input.getEmail() == null) {
+            throw new ControllerException("Nessun target specificato per lo storico.");
+        }
+
+        VirtualWallet wallet = walletDAO.getPortafoglioByEmail(input.getEmail());
+        if (wallet == null) {
+            throw new ControllerException("Portafoglio non trovato per: " + input.getEmail());
+        }
+
+        verificaAccesso(sm, wallet);
+        return wallet;
+    }
+
+    // ── Conversione model → bean ──────────────────────────────────────────────
 
     public PortafoglioBean convertiWalletInBean(VirtualWallet wallet) {
         if (wallet == null) return null;
