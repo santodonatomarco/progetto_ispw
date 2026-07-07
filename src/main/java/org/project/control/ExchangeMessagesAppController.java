@@ -27,7 +27,6 @@ public class ExchangeMessagesAppController {
         MessageDAO messageDAO = factory.createMessageDAO();
 
         try {
-            // Cerchiamo il destinatario interrogando i DAO specifici
             Utente destinatario = trovaUtentePerEmail(input.getDestinatario().trim().toLowerCase());
 
             if (destinatario == null)
@@ -46,11 +45,8 @@ public class ExchangeMessagesAppController {
         }
     }
 
-    // ── Lettura Inbox ─────────────────────────────────────────────────────────
+    // Lettura Inbox
 
-    /**
-     * Recupera l'elenco di tutti i messaggi ricevuti dall'utente loggato.
-     */
     public List<MessageBean> ottieniInbox(SessioneBean sessione) throws ControllerException {
 
         Utente utenteLoggato = validaSessioneEOttieniUtente(sessione);
@@ -74,12 +70,8 @@ public class ExchangeMessagesAppController {
         }
     }
 
-    // ── Metodi privati ────────────────────────────────────────────────────────
+    // Metodi privati per sonarcloud
 
-    /**
-     * Cerca un utente nel sistema interrogando prima gli studenti e poi i professori.
-     * Restituisce l'istanza astratta Utente per sfruttare il polimorfismo.
-     */
     private Utente trovaUtentePerEmail(String email) throws DAOException {
         DAOFactory factory = DAOFactory.getDAOFactory();
         StudenteDAO studenteDAO = factory.createStudenteDAO();
@@ -94,9 +86,7 @@ public class ExchangeMessagesAppController {
         return null; // Nessun utente trovato con questa email
     }
 
-    /**
-     * Valida la sessione e restituisce l'utente corrente.
-     */
+
     private Utente validaSessioneEOttieniUtente(SessioneBean sessione) throws ControllerException {
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null)
@@ -111,7 +101,7 @@ public class ExchangeMessagesAppController {
         throw new ControllerException("Nessun utente autenticato associato alla sessione.");
     }
 
-    // ── Conversione model → bean ──────────────────────────────────────────────
+    // Conversione model → bean usata dal controller applicativo
 
     private MessageBean toMessageBean(Message m) {
         String nominativoMittente = m.getMittente().presentaNome() + " " + m.getMittente().presentaCognome();

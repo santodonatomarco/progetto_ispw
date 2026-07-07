@@ -13,18 +13,9 @@ import org.project.view.bean.StudenteBean;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller applicativo per la gestione classe da parte del professore.
- * Responsabilità:
- *  - Crea una nuova classe assegnata al professore loggato
- *  - Imposta/modifica il budget iniziale di una classe esistente
- *  - Legge l'elenco delle classi del professore
- */
+
 public class GestioneClasseAppController {
 
-    /**
-     * Crea una nuova classe con il budget dato e la assegna al professore in sessione.
-     */
     public SchoolClassBean creaClasse(SessioneBean sessione, ClasseBean input)
             throws ControllerException {
 
@@ -56,15 +47,10 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Aggiorna il budget iniziale di una classe esistente
-     * e aggiorna RETROATTIVAMENTE i portafogli di tutti gli studenti iscritti.
-     */
 
     public SchoolClassBean impostaBudget(SessioneBean sessione, ClasseBean inputClass, ImpostaBudgetBean inputBudget)
             throws ControllerException {
 
-        // Validazione sessione e recupero professore — estratti per ridurre nesting
         Professore professore = validaSessioneEOttieniProfessore(sessione,
                 "Solo i professori possono modificare il budget.");
 
@@ -95,12 +81,8 @@ public class GestioneClasseAppController {
         }
     }
 
-// ── Metodi privati estratti ───────────────────────────────────────────────────
+// metodi privati per sonarcloud
 
-    /**
-     * Valida la sessione e restituisce il professore corrente.
-     * Centralizza la logica ripetuta in tutti i metodi del controller.
-     */
     private Professore validaSessioneEOttieniProfessore(SessioneBean sessione, String msgErroreProfessore)
             throws ControllerException {
 
@@ -115,10 +97,7 @@ public class GestioneClasseAppController {
         return professore;
     }
 
-    /**
-     * Aggiorna retroattivamente i portafogli di tutti gli studenti della classe
-     * in base alla variazione di budget (delta positivo = accredito, negativo = addebito).
-     */
+
     private void aggiornaPortafogli(StudenteDAO studenteDAO, PortafoglioDAO portafoglioDAO,
                                     SchoolClass classe, double differenza)
             throws DAOException {
@@ -135,11 +114,7 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Applica la variazione di budget al singolo portafoglio.
-     * Se il delta è negativo e il saldo è insufficiente, azzera il portafoglio
-     * invece di andare in negativo.
-     */
+
     private void applicaDeltaWallet(VirtualWallet wallet, double differenza) {
         if (differenza > 0) {
             wallet.accreditaSaldo(differenza);
@@ -149,10 +124,7 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Se la classe modificata è quella correntemente in sessione,
-     * aggiorna anche il riferimento in-memory per mantenerlo consistente.
-     */
+
     private void sincronizzaSessione(SessioneBean sessione, String nomeClasse, double nuovoBudget) {
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null) return;
@@ -162,14 +134,7 @@ public class GestioneClasseAppController {
             classeInSessione.impostaBudget(nuovoBudget);
     }
 
-    /**
-     * Pre-aggiunge uno studente alla classe del professore come "pending".
-     * Lo studente viene creato con email e classe, senza password né nome:
-     * completerà la registrazione autonomamente (controller da implementare)
-     * Vincoli:
-     * - L'email non deve appartenere a uno studente già registrato
-     * - La classe deve esistere e appartenere al professore in sessione
-     */
+
     public StudenteBean aggiungiStudente(SessioneBean sessione, String emailStudente, String nomeClasse)
             throws ControllerException {
 
@@ -218,9 +183,6 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Recupera la lista delle classi del professore loggato.
-     */
     public List<SchoolClassBean> getClassiDelProfessore(SessioneBean sessione) throws ControllerException {
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null)
@@ -243,10 +205,7 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Recupera gli studenti di una classe specifica del professore loggato.
-     * Usato dal professore in GestioneClasse per vedere la lista e aprire i portafogli.
-     */
+
     public List<StudenteBean> getStudentiDellaClasseProfessore(SessioneBean sessione, String nomeClasse)
             throws ControllerException {
 
@@ -277,12 +236,9 @@ public class GestioneClasseAppController {
         }
     }
 
-    /**
-     * Recupera gli studenti della stessa classe dello studente loggato.
-     * Usato da ElencoStudenti per permettere allo studente di vedere i compagni.
-     */
 
-    // ── Conversione model → bean ──────────────────────────────────────────────
+
+    // Conversione model → bean per controller applicativo
 
     private SchoolClassBean toBean(SchoolClass c) {
         ProfessoreBean profBean = new ProfessoreBean(

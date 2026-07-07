@@ -10,13 +10,10 @@ public class Message {
     private final LocalDateTime timestamp;
 
 
-    // 1. Costruttore per i NUOVI messaggi (usato dal Controller)
     public Message(Utente mittente, Utente destinatario, String testo) {
-        // usa il timestamp attuale
         this(mittente, destinatario, testo, LocalDateTime.now(ZoneId.systemDefault()));
     }
 
-    // 2. Costruttore per i messaggi ESISTENTI (usato dal DAO)
     public Message(Utente mittente, Utente destinatario, String testo, LocalDateTime timestampOriginale) {
         if (mittente == null || destinatario == null) {
             throw new IllegalArgumentException("Mittente e destinatario non possono essere nulli.");
