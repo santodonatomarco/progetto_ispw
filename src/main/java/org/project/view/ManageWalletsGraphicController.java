@@ -127,26 +127,34 @@ public abstract class ManageWalletsGraphicController {
             mostraErrore("Sessione non valida. Effettua nuovamente il login.");
             return;
         }
+
         try {
             ConfermaAcquistoBean input = new ConfermaAcquistoBean(quantita);
-            TransactionBean t = new ManageWalletsAppController()
-                    .confermaAcquisto(sessione, input);
+            TransactionBean t = new ManageWalletsAppController().confermaAcquisto(sessione, input);
             navigator.impostaTransazionePending(null);
-            try {
-                // input messo a null perché siamo i proprietari in questo caso specifico
-                PortafoglioBean pf = new ManageWalletsAppController().ottieniPortafoglio(sessione, null);
-                navigator.impostaPortafoglio(pf);
-            } catch (ControllerException e) {
-                showMessage("Portafoglio aggiornato non disponibile al momento.");
-            }
+
+            aggiornaPortafoglioInBackground(sessione);
+
             mostraAcquistoCompletato(t);
-        } catch (IllegalArgumentException e){
+
+        } catch (IllegalArgumentException e) {
             mostraErrore(e.getMessage());
-        }
-        catch (ControllerException e) {
+        } catch (ControllerException e) {
             mostraErrore("Errore nella conferma: " + e.getMessage());
         }
     }
+
+    private void aggiornaPortafoglioInBackground(SessioneBean sessione) {
+        try {
+            // input messo a null perché siamo i proprietari in questo caso specifico
+            PortafoglioBean pf = new ManageWalletsAppController().ottieniPortafoglio(sessione, null);
+            navigator.impostaPortafoglio(pf);
+        } catch (ControllerException e) {
+            showMessage("Portafoglio aggiornato non disponibile al momento.");
+        }
+    }
+
+
 
     protected void eseguiAnnullaOrdine() {
         SessioneBean sessione = navigator.getSessione();
