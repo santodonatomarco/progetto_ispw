@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import static org.project.ing.classifunzionali.WalletBuilder.build;
 
@@ -175,25 +176,21 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         double quantita;
         double prezzo;
 
-        if (parts.length >= 7) {
-            // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
-            stato = StatoTransazione.valueOf(parts[3].trim());
-            quantita = Double.parseDouble(parts[4].trim());
-            prezzo = Double.parseDouble(parts[5].trim());
-        } else {
-            // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
-            stato = StatoTransazione.DONE;
-            quantita = Double.parseDouble(parts[3].trim());
-            prezzo = Double.parseDouble(parts[4].trim());
+        // We expect the current CSV format with 7 fields:
+        // email;simbolo;tipo;stato;quantita;prezzo;timestamp
+        if (parts.length < 7) {
+            throw new IOException("Formato transazione non valido: numero campi < 7");
         }
+
+        // Parse fields
+        stato = StatoTransazione.valueOf(parts[3].trim());
+        quantita = Double.parseDouble(parts[4].trim());
+        prezzo = Double.parseDouble(parts[5].trim());
+        LocalDateTime ts = LocalDateTime.parse(parts[6].trim());
 
         Stock stock = stockFactory.creaStock(simbolo);
-        Transaction t = new Transaction(stock, tipo, quantita, prezzo);
-
-        if (stato == StatoTransazione.DONE) {
-            t.completaTransazione();
-        }
-
+        Transaction t = new Transaction(stock, tipo, quantita, prezzo, ts);
+        if (stato == StatoTransazione.DONE) t.completaTransazione();
         wallet.aggiungiTransazione(t);
     }
 

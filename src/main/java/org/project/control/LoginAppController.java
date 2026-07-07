@@ -44,7 +44,7 @@ public class LoginAppController {
 
             if (provider == AuthProvider.LOCAL &&
                     !trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                throw new CredenzialNonValideException("Password errata.");
+                throw new CredenzialNonValideException("Email o password errate.");
             }
 
             switch (provider) {
@@ -80,7 +80,7 @@ public class LoginAppController {
 
             if (provider == AuthProvider.LOCAL &&
                     !trovato.getPasswordHash().equals(Hasher.codifica(bean.getPassword()))) {
-                throw new CredenzialNonValideException("Password errata.");
+                throw new CredenzialNonValideException("Email o password errate.");
             }
 
             switch (provider) {

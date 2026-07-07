@@ -5,30 +5,38 @@
 <?import javafx.geometry.Insets?>
 
 <!--
-    HomeProfessore.fxml
-    Layout: sidebar sinistra (navigazione) + area centrale (classi + accesso mercato).
-    Colori: tema blu professore (#1a237e).
+    HomeProfessore.fxml  — REVISED
+    Fix applicati:
+      1. Sidebar VBox: prefWidth 220 → 270, aggiunto minWidth="260" (non si comprime più)
+      2. Card info utente: HBox invece di VBox → nome + mail sulla stessa riga, font ridotti
+      3. Bottoni secondari: rimosso -fx-text-fill:#1a237e (testo scuro su sfondo scuro)
+         → testo bianco, bordo blu, identico alla logica di HomeStudente
+    Colori tema professore: #1a237e (blu).
 -->
 <HBox xmlns:fx="http://javafx.com/fxml"
       stylesheets="@../style.css"
       prefWidth="1100" prefHeight="680">
 
     <!-- ══ SIDEBAR SINISTRA ══════════════════════════════════════════════════ -->
-    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+    <VBox prefWidth="270" minWidth="260" spacing="6"
+          styleClass="schermata-scura" HBox.hgrow="NEVER">
         <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
 
         <!-- Brand -->
         <Label text="UNIFINANCE" styleClass="titolo-app"/>
         <Label text="Area Professore" styleClass="sottotitolo-app"/>
 
-        <VBox minHeight="24"/>
+        <VBox minHeight="20"/>
 
-        <!-- Info utente -->
-        <VBox styleClass="card-professore" spacing="4">
-            <Label fx:id="lblNomeUtente" text="Prof. —"
-                   style="-fx-text-fill:#000000; -fx-font-weight:bold; -fx-font-size:13px;"/>
-            <Label fx:id="lblEmailUtente" text=""
-                   style="-fx-text-fill:#9b8ec4; -fx-font-size:10px;" wrapText="true"/>
+        <!-- Info utente: nome e mail sulla STESSA riga -->
+        <VBox styleClass="card-professore" spacing="0">
+            <HBox spacing="6" alignment="CENTER_LEFT">
+                <Label fx:id="lblNomeUtente" text="Prof. —"
+                       style="-fx-text-fill:#000000; -fx-font-weight:bold; -fx-font-size:11px;"/>
+                <Label fx:id="lblEmailUtente" text=""
+                       style="-fx-text-fill:#9b8ec4; -fx-font-size:9px;"
+                       wrapText="false" HBox.hgrow="ALWAYS"/>
+            </HBox>
         </VBox>
 
         <VBox minHeight="12"/>
@@ -37,28 +45,27 @@
         <Label text="MENU" style="-fx-text-fill:#9b8ec4; -fx-font-size:9px; -fx-font-weight:bold;"/>
         <VBox minHeight="4"/>
 
+        <!-- Dashboard (attivo) -->
         <Button fx:id="btnHomeSidebar" text="🏠  Dashboard"
                 maxWidth="Infinity"
                 onAction="#clickHome"
-                styleClass="btn-primario-professore"/>
+                styleClass="btn-primario-studente"/>
 
+        <!-- Bottoni secondari: match layout HomeStudente (stessi styleClass) -->
         <Button text="📈  Mercato (sola lettura)"
                 maxWidth="Infinity"
                 onAction="#clickMercato"
-                styleClass="btn-secondario"
-                style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+                styleClass="btn-secondario"/>
 
         <Button text="🏫  Gestione Classi"
                 maxWidth="Infinity"
                 onAction="#clickGestioneClasse"
-                styleClass="btn-secondario"
-                style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+                styleClass="btn-secondario"/>
 
         <Button text="✉️  Inbox"
                 maxWidth="Infinity"
                 onAction="#clickInbox"
-                styleClass="btn-secondario"
-                style="-fx-border-color:#1a237e; -fx-text-fill:#1a237e;"/>
+                styleClass="btn-secondario"/>
 
         <!-- Spacer -->
         <VBox VBox.vgrow="ALWAYS"/>

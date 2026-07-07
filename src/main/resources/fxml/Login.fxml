@@ -2,6 +2,8 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
 
 <HBox xmlns:fx="http://javafx.com/fxml"
@@ -9,26 +11,45 @@
       styleClass="schermata-scura"
       prefWidth="900" prefHeight="600">
 
-    <!-- ══ LATO SINISTRO — branding ══════════════════════════════════════════ -->
-    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" styleClass="schermata-scura">
-        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+    <!-- ══ LATO SINISTRO — branding ══════════════════════════════════════════
+         prefWidth="300"  (era 450) → pannello bianco prende i 2/3
+         alignment="CENTER" → branding centrato verticalmente, non schiacciato in alto
+         spacing="8"       → gap naturale tra logo / titolo / tagline           -->
+    <VBox alignment="CENTER" spacing="8"
+          HBox.hgrow="ALWAYS" prefWidth="300" maxWidth="Infinity"
+          styleClass="schermata-scura">
+        <padding><Insets top="40" right="30" bottom="40" left="30"/></padding>
 
-        <Label text="UNIFINANCE" styleClass="titolo-app"/>
-        <Label text="Investi, impara, cresci." styleClass="sottotitolo-app"/>
+        <ImageView fx:id="logoImageSmall" fitWidth="200" preserveRatio="true" pickOnBounds="true">
+            <image>
+                <Image url="@../images/logo_no_scritta.png" />
+            </image>
+        </ImageView>
+
+        <Label text="UNIFINANCE"
+               style="-fx-font-size:26px; -fx-text-fill:WHITE; -fx-font-weight:bold;"/>
+        <Label text="Where learning meets the market."
+               style="-fx-font-size:14px; -fx-text-fill:WHITE;"
+               wrapText="true" textAlignment="CENTER"/>
     </VBox>
 
-    <!-- ══ PANNELLO BIANCO — form login ══════════════════════════════════════ -->
-    <VBox alignment="TOP_CENTER" minWidth="540" styleClass="pannello-bianco-sinistra">
-        <padding><Insets top="50" right="50" bottom="50" left="50"/></padding>
+    <!-- ══ PANNELLO BIANCO — form login ══════════════════════════════════════
+         prefWidth="600"  (era 450) → ~2/3 della finestra a 900px
+         padding laterale 35px      → 530px disponibili per le card
+         (530 - 16 gap) / 2 = 257px per card → pulsanti e placeholder leggibili -->
+    <VBox alignment="TOP_CENTER"
+          HBox.hgrow="ALWAYS" prefWidth="600" maxWidth="Infinity"
+          styleClass="pannello-bianco-sinistra">
+        <padding><Insets top="40" right="35" bottom="40" left="35"/></padding>
 
-        <Label text="Accedi" styleClass="titolo-schermata"/>
+        <Label text="Accedi" styleClass="titolo-schermata" style="-fx-font-size:28px;"/>
         <Label text="Scegli il tuo ruolo e inserisci le credenziali"
-               styleClass="sottotitolo-schermata"/>
+               styleClass="sottotitolo-schermata" style="-fx-font-size:14px;"/>
 
-        <VBox minHeight="20"/>
+        <VBox minHeight="14"/>
 
         <!-- ── Due colonne: Studente | Professore ────────────────────────── -->
-        <HBox spacing="20" alignment="TOP_CENTER">
+        <HBox spacing="16" alignment="TOP_CENTER">
 
             <!-- COLONNA STUDENTE -->
             <VBox spacing="10" HBox.hgrow="ALWAYS" alignment="TOP_LEFT"
@@ -39,12 +60,14 @@
                 <Label text="Email" styleClass="label-campo"/>
                 <TextField fx:id="txtEmailStudente"
                            promptText="email@studente.it"
-                           styleClass="campo-testo"/>
+                           styleClass="campo-testo"
+                           style="-fx-font-size:14px;"/>
 
                 <Label text="Password" styleClass="label-campo"/>
                 <PasswordField fx:id="txtPasswordStudente"
                                promptText="••••••••"
-                               styleClass="campo-password"/>
+                               styleClass="campo-password"
+                               style="-fx-font-size:14px;"/>
 
                 <Label fx:id="lblErroreStudente"
                        styleClass="label-errore"
@@ -54,7 +77,8 @@
                 <Button text="Accedi come Studente"
                         onAction="#clickLoginStudente"
                         maxWidth="Infinity"
-                        styleClass="btn-primario-studente"/>
+                        styleClass="btn-primario-studente"
+                        style="-fx-font-size:14px; -fx-padding:12 16 12 16;"/>
 
                 <Label text="Sei un nuovo studente? Registrati"
                        onMouseClicked="#clickRegistratiStudente"
@@ -70,12 +94,14 @@
                 <Label text="Email" styleClass="label-campo"/>
                 <TextField fx:id="txtEmailProfessore"
                            promptText="email@universita.it"
-                           styleClass="campo-testo"/>
+                           styleClass="campo-testo"
+                           style="-fx-font-size:14px;"/>
 
                 <Label text="Password" styleClass="label-campo"/>
                 <PasswordField fx:id="txtPasswordProfessore"
                                promptText="••••••••"
-                               styleClass="campo-password"/>
+                               styleClass="campo-password"
+                               style="-fx-font-size:14px;"/>
 
                 <Label fx:id="lblErroreProfessore"
                        styleClass="label-errore"
@@ -85,7 +111,8 @@
                 <Button text="Accedi come Professore"
                         onAction="#clickLoginProfessore"
                         maxWidth="Infinity"
-                        styleClass="btn-primario-professore"/>
+                        styleClass="btn-primario-professore"
+                        style="-fx-font-size:14px; -fx-padding:12 16 12 16;"/>
 
                 <Label text="Sei un nuovo professore? Registrati"
                        onMouseClicked="#clickRegistratiProfessore"

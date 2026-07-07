@@ -243,11 +243,13 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
     // ── Utility visibilità ────────────────────────────────────────────────────
 
     private void mostraSezione(VBox box)  {
+        if (box == null) return; // guard per FXML che potrebbe non contenere la sezione
         box.setVisible(true);
         box.setManaged(true);
     }
 
     private void nascondiSezione(VBox box) {
+        if (box == null) return; // guard per FXML che potrebbe non contenere la sezione
         box.setVisible(false);
         box.setManaged(false);
     }

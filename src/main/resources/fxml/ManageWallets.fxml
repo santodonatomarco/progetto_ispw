@@ -40,11 +40,11 @@
       prefWidth="1200" prefHeight="720">
 
     <!-- ══ SIDEBAR SINISTRA — navigazione + filtri ═══════════════════════════ -->
-    <VBox prefWidth="230" spacing="6" styleClass="schermata-scura">
+    <VBox prefWidth="270" minWidth="260" spacing="6" styleClass="schermata-scura" HBox.hgrow="NEVER">
         <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
 
         <Label text="UNIFINANCE" styleClass="titolo-app"/>
-        <Label fx:id="lblRuoloSidebar" text="Manage Wallets" styleClass="sottotitolo-app"/>
+        <Label fx:id="lblRuoloSidebar" text="Market" styleClass="sottotitolo-app"/>
 
         <VBox minHeight="20"/>
 
@@ -122,7 +122,6 @@
             <padding><Insets top="20" right="30" bottom="20" left="30"/></padding>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
-                    <Label text="Manage Wallets" styleClass="titolo-schermata"/>
                     <Label fx:id="lblSottotitoloMercato"
                            text="Esplora il mercato e investi nei tuoi titoli preferiti"
                            styleClass="sottotitolo-schermata"/>

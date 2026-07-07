@@ -33,6 +33,15 @@ public abstract class TransactionDAO extends CachedDAO<Transaction> {
     }
 
     /**
+     * Aggiorna una transazione esistente identificata dal suo timestamp precedente.
+     * Utile quando si desidera modificare anche il campo timestamp (es. aggiornare
+     * la data dell'operazione dopo un'aggregazione).
+     */
+    public void aggiornaTransazione(String email, Transaction t, java.time.LocalDateTime oldTimestamp) throws DAOException {
+        doUpdateTransazione(email, t, oldTimestamp);
+    }
+
+    /**
      * Rimuove tutte le transazioni di uno studente dalla persistenza e dalla cache.
      * Chiamato dalla cascade delete di PortafoglioDAO — invisibile al controller.
      */
@@ -54,6 +63,7 @@ public abstract class TransactionDAO extends CachedDAO<Transaction> {
 
     protected abstract void doSaveTransazione(String email, Transaction t) throws DAOException;
     protected abstract void doUpdateTransazione(String email, Transaction t) throws DAOException;
+    protected abstract void doUpdateTransazione(String email, Transaction t, java.time.LocalDateTime oldTimestamp) throws DAOException;
     protected abstract List<Transaction> doRetrieveTransazioniByEmail(String email) throws DAOException;
     protected abstract void doDeleteTransazioniByEmail(String email) throws DAOException;
 }

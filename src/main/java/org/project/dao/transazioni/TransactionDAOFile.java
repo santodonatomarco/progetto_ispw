@@ -66,6 +66,39 @@ public class TransactionDAOFile extends TransactionDAO {
     }
 
     @Override
+    protected void doUpdateTransazione(String email, Transaction t, java.time.LocalDateTime oldTimestamp) throws DAOException {
+        // Riscrive il file aggiornando la riga con lo stesso simbolo+oldTimestamp
+        File file = new File(fileName);
+        if (!file.exists()) throw new DAOException("File transazioni non trovato.");
+
+        List<String> righe = new ArrayList<>();
+        String chiaveOld = t.stock().simbolo() + SEP + oldTimestamp.toString();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(SEP, -1);
+                // chiave: email (indice 0) + simbolo (indice 1) + timestamp (indice 6)
+                if (parts.length >= 7 && parts[0].trim().equals(email) &&
+                        (parts[1].trim() + SEP + parts[6].trim()).equals(chiaveOld)) {
+                    righe.add(toCSV(email, t));
+                } else {
+                    righe.add(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new DAOException("Errore lettura file transazioni: " + e.getMessage());
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            for (String r : righe) { bw.write(r); bw.newLine(); }
+        } catch (IOException e) {
+            throw new DAOException("Errore aggiornamento file transazioni: " + e.getMessage());
+        }
+    }
+
+    @Override
     protected List<Transaction> doRetrieveTransazioniByEmail(String email) throws DAOException {
         File file = new File(fileName);
         List<Transaction> lista = new ArrayList<>();
@@ -76,7 +109,8 @@ public class TransactionDAOFile extends TransactionDAO {
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split(SEP, -1);
-                if (parts.length >= 5 && parts[0].trim().equals(email)) {
+                // Expect CSV format: email;simbolo;tipo;stato;quantita;prezzo;timestamp
+                if (parts.length >= 7 && parts[0].trim().equals(email)) {
                     Transaction t = parse(parts);
                     if (t != null) lista.add(t);
                 }
@@ -109,21 +143,15 @@ public class TransactionDAOFile extends TransactionDAO {
             double quantita;
             double prezzo;
 
-            if (parts.length >= 7) {
-                // Formato corrente: email;simbolo;tipo;stato;quantita;prezzo;timestamp
-                stato   = StatoTransazione.valueOf(parts[3].trim());
-                quantita = Double.parseDouble(parts[4].trim());
-                prezzo   = Double.parseDouble(parts[5].trim());
-            } else {
-                // Formato legacy (5 campi): email;simbolo;tipo;quantita;prezzo
-                // Scritto dalla vecchia aggiornaFileTransazioni — stato assunto DONE
-                stato   = StatoTransazione.DONE;
-                quantita = Double.parseDouble(parts[3].trim());
-                prezzo   = Double.parseDouble(parts[4].trim());
-            }
+            // We only support the current CSV format with 7 fields
+            stato   = StatoTransazione.valueOf(parts[3].trim());
+            quantita = Double.parseDouble(parts[4].trim());
+            prezzo   = Double.parseDouble(parts[5].trim());
 
             Stock stock = StockService.getInstance().ottieniOCreaStock(simbolo);
-            Transaction t = new Transaction(stock, tipo, quantita, prezzo);
+            // ripristina il timestamp salvato (campo indice 6)
+            java.time.LocalDateTime ts = java.time.LocalDateTime.parse(parts[6].trim());
+            Transaction t = new Transaction(stock, tipo, quantita, prezzo, ts);
             if (stato == StatoTransazione.DONE) t.completaTransazione();
             return t;
         } catch (Exception e) {

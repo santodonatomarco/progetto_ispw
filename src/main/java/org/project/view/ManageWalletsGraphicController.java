@@ -1,6 +1,7 @@
 package org.project.view;
 
 import org.project.control.ManageWalletsAppController;
+import org.project.ing.service.StockService;
 import org.project.exceptions.ControllerException;
 import org.project.view.bean.*;
 
@@ -76,6 +77,16 @@ public abstract class ManageWalletsGraphicController {
             }
             mostraCaricamento(false);
             mostraDettaglioStock(stock);
+
+            // Avvia un aggiornamento in background per ottenere i dati più recenti
+            // (variazione giornaliera/settimanale, marketCap, volume) senza bloccare
+            // l'UI. L'aggiornamento notifierà gli observer e aggiornerà la UI quando
+            // i dati saranno disponibili.
+            new Thread(() -> {
+                try {
+                    StockService.getInstance().aggiornaStocksOra();
+                } catch (Exception ignored) { /* best-effort */ }
+            }, "stock-update-after-search").start();
         } catch (IllegalArgumentException e) {
             mostraErrore(e.getMessage());
         } catch (ControllerException e) {

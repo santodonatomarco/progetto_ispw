@@ -8,6 +8,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ADAPTER — chiama il nuovo endpoint Yahoo Finance v8 /chart/ e converte
@@ -26,7 +28,8 @@ public class YahooFinanceProvider implements StockDataProvider {
 
     private static final String BASE_URL =
             "https://query1.finance.yahoo.com/v8/finance/chart/";
-    private static final String PARAMS = "?interval=1d&range=5d";
+    // chiediamo 7 giorni per avere abbastanza punti storici per la var. settimanale
+    private static final String PARAMS = "?interval=1d&range=7d";
 
     private final HttpClient httpClient;
 
@@ -40,8 +43,10 @@ public class YahooFinanceProvider implements StockDataProvider {
     @Override
     public Stock recuperaStock(String simbolo) throws IOException {
         String json  = chiamaApi(simbolo);
-        String meta  = estraiBloccoPrima(json, "\"meta\"", "\"timestamp\"");
-        return parseStock(simbolo.toUpperCase(), meta);
+        // Passiamo tutto il body al parser perché alcune info (close[], volume[])
+        // risiedono in blocchi diversi da "meta" (indicators) e servono per
+        // calcolare la variazione settimanale e il volume settimanale.
+        return parseStock(simbolo.toUpperCase(), json);
     }
 
     @Override
@@ -55,8 +60,31 @@ public class YahooFinanceProvider implements StockDataProvider {
                 estraiDouble(meta, "\"regularMarketChangePercent\""),
                 prezzo, prevClose);
 
+        // Proviamo a ricavare anche la variazione settimanale e il volume dagli
+        // array storici presenti in "indicators" (close[] e volume[]).
+        List<Double> closes = estraiArrayDouble(json, "\"close\"");
+        List<Double> volumes = estraiArrayDouble(json, "\"volume\"");
+
+        double weekly = calcolaVariazioneSettimanaleDaArray(closes);
+        double volumeSett = calcolaVolumeSettimanaleDaArray(volumes);
+
+        double marketCap = estraiDouble(meta, "\"marketCap\"");
+
+        // Se la variazione giornaliera non è disponibile da meta, proviamo a calcolarla
+        // usando gli ultimi due valori validi in closes[] (se presenti).
+        if (Math.abs(varPercent) < 1e-9 && closes != null && closes.size() >= 2) {
+            Double last = null, prev = null;
+            for (int i = closes.size() - 1; i >= 0; i--) if (closes.get(i) != null) { if (last == null) last = closes.get(i); else { prev = closes.get(i); break; } }
+            if (last != null && prev != null && prev > 0) {
+                varPercent = (last - prev) / prev * 100.0;
+            }
+        }
+
+        // diagnostica rimossa dalle info per non sporcare la console
+
         nostroStock.aggiornaPrezzo(prezzo);          // triggera observer
-        nostroStock.aggiornaVariazioni(varPercent, 0);
+        nostroStock.aggiornaVariazioni(varPercent, weekly);
+        nostroStock.aggiornaMarketData(marketCap, volumeSett);
     }
 
     // ── Chiamata HTTP ─────────────────────────────────────────────────────────
@@ -92,8 +120,11 @@ public class YahooFinanceProvider implements StockDataProvider {
 
     // ── Parsing ───────────────────────────────────────────────────────────────
 
-    private Stock parseStock(String simbolo, String meta) throws IOException {
+    private Stock parseStock(String simbolo, String body) throws IOException {
         try {
+            // Per i campi scalari usiamo il blocco meta (più affidabile per questi)
+            String meta = estraiBloccoPrima(body, "\"meta\"", "\"timestamp\"");
+
             double prezzo    = estraiDouble(meta, "\"regularMarketPrice\"");
             double prevClose = estraiDouble(meta, "\"regularMarketPreviousClose\"");
 
@@ -117,9 +148,27 @@ public class YahooFinanceProvider implements StockDataProvider {
                     "—");
             double marketCap = estraiDouble(meta, "\"marketCap\"");
 
+            // Estrarre gli array storici (close[] e volume[]) dal body per calcolare
+            // la variazione settimanale e il volume totale settimanale.
+            List<Double> closes = estraiArrayDouble(body, "\"close\"");
+            List<Double> volumes = estraiArrayDouble(body, "\"volume\"");
+
+            double weekly = calcolaVariazioneSettimanaleDaArray(closes);
+            double volumeSett = calcolaVolumeSettimanaleDaArray(volumes);
+
+            // Se la variazione giornaliera non è disponibile da meta, proviamo a calcolarla
+            // usando gli ultimi due valori validi in closes[] (se presenti).
+            if (Math.abs(varPercent) < 1e-9 && closes != null && closes.size() >= 2) {
+                Double last = null, prev = null;
+                for (int i = closes.size() - 1; i >= 0; i--) if (closes.get(i) != null) { if (last == null) last = closes.get(i); else { prev = closes.get(i); break; } }
+                if (last != null && prev != null && prev > 0) {
+                    varPercent = (last - prev) / prev * 100.0;
+                }
+            }
+
             Stock stock = new Stock(simbolo, nome, exchange, prezzo);
-            stock.aggiornaVariazioni(varPercent, 0);
-            stock.aggiornaMarketData(marketCap, 0);
+            stock.aggiornaVariazioni(varPercent, weekly);
+            stock.aggiornaMarketData(marketCap, volumeSett);
             return stock;
 
         } catch (IOException e) {
@@ -127,6 +176,61 @@ public class YahooFinanceProvider implements StockDataProvider {
         } catch (Exception e) {
             throw new IOException("Errore parsing Yahoo per " + simbolo + ": " + e.getMessage(), e);
         }
+    }
+
+    /** Estrae un array di double (o null) rappresentato nel JSON dopo la chiave specificata.
+     * Restituisce una lista dei valori (skippa i null). */
+    private List<Double> estraiArrayDouble(String json, String chiave) {
+        List<Double> valori = new ArrayList<>();
+        int idx = json.indexOf(chiave);
+        if (idx < 0) return valori;
+        int i = json.indexOf('[', idx);
+        if (i < 0) return valori;
+        i++; // posizione dopo '['
+        StringBuilder num = new StringBuilder();
+        boolean inNumber = false;
+        while (i < json.length()) {
+            char c = json.charAt(i);
+            if (c == ']') {
+                if (inNumber && num.length() > 0) {
+                    try { valori.add(Double.parseDouble(num.toString())); } catch (NumberFormatException ignored) {}
+                }
+                break;
+            }
+            if (c == 'n') {
+                // possibile "null", saltare il token
+                if (i + 4 <= json.length() && json.substring(i, i + 4).equals("null")) {
+                    inNumber = false; num.setLength(0); i += 4; continue;
+                }
+            }
+            if (Character.isDigit(c) || c == '.' || c == '-' || c == 'E' || c == 'e') {
+                num.append(c); inNumber = true;
+            } else if (c == ',' || Character.isWhitespace(c)) {
+                if (inNumber && num.length() > 0) {
+                    try { valori.add(Double.parseDouble(num.toString())); } catch (NumberFormatException ignored) {}
+                }
+                inNumber = false; num.setLength(0);
+            }
+            i++;
+        }
+        return valori;
+    }
+
+    private double calcolaVariazioneSettimanaleDaArray(List<Double> closes) {
+        if (closes == null || closes.size() < 2) return 0.0;
+        // prendiamo il primo e l'ultimo valore validi
+        Double first = null, last = null;
+        for (Double d : closes) if (d != null) { first = d; break; }
+        for (int i = closes.size() - 1; i >= 0; i--) if (closes.get(i) != null) { last = closes.get(i); break; }
+        if (first == null || last == null || first == 0.0) return 0.0;
+        return (last - first) / first * 100.0;
+    }
+
+    private double calcolaVolumeSettimanaleDaArray(List<Double> volumes) {
+        if (volumes == null || volumes.isEmpty()) return 0.0;
+        double sum = 0.0;
+        for (Double v : volumes) if (v != null && v > 0) sum += v;
+        return sum;
     }
 
     /**

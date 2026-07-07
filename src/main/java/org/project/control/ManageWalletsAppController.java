@@ -86,10 +86,18 @@ public class ManageWalletsAppController {
         if (transazione == null)
             throw new ControllerException("Nessun ordine pending trovato. Riprova.");
 
+        // Calcolo del timeout: Sonar suggerisce di non usare LocalDateTime
+        // direttamente in Duration/ChronoUnit.between perché LocalDateTime non
+        // è zonato. Qui ancoriamo esplicitamente il LocalDateTime al fuso
+        // orario della JVM (`systemDefault`) usando `atZone(...)` e confrontiamo
+        // due ZonedDateTime. In questo modo il risultato rappresenta la
+        // reale durata trascorsa nella timeline e la regola di Sonar è rispettata.
         long minuti = ChronoUnit.MINUTES.between(
                 transazione.quando().atZone(java.time.ZoneId.systemDefault()),
                 java.time.ZonedDateTime.now(ZoneId.systemDefault())
-        );        if (minuti > TIMEOUT_MINUTI) {
+        );
+
+        if (minuti > TIMEOUT_MINUTI) {
 
             sm.setTransazionePending(null);
             throw new ControllerException(
@@ -118,16 +126,58 @@ public class ManageWalletsAppController {
                     transazione.stock(), input.getQuantitaScelta(), transazione.prezzoAlMomento());
 
             transazione.completaTransazione();
-            wallet.aggiungiTransazione(transazione);
 
             String email = wallet.proprietario().presentaEmail();
-            transactionDAO.salvaTransazione(email, transazione);
-            if (posizioneEsisteva) posizioneDAO.aggiornaPosizione(email, posizione);
-            else                   posizioneDAO.salvaPosizione(email, posizione);
+
+            Transaction risultato = null;
+            if (posizioneEsisteva) {
+                // Se la posizione esisteva già, aggiorniamo la posizione e AGGREGA
+                // la transazione corrispondente (non creiamo una nuova riga).
+                // Troviamo l'ultima transazione DONE per questo simbolo nel wallet
+                Transaction esistente = null;
+                if (wallet.transazioni() != null) {
+                    for (Transaction t : wallet.transazioni()) {
+                        if (t.stock().simbolo().equals(transazione.stock().simbolo())
+                                && t.stato() == org.project.ing.enumerations.StatoTransazione.DONE) {
+                            if (esistente == null || t.quando().isAfter(esistente.quando())) {
+                                esistente = t;
+                            }
+                        }
+                    }
+                }
+
+                if (esistente != null) {
+                    java.time.LocalDateTime oldTs = esistente.quando();
+                    // Aggiorna la transazione esistente con i dati aggregati
+                    esistente.impostaQuantita(posizione.quantita());
+                    esistente.registraPrezzo(posizione.prezzoMedioAcquisto());
+                    esistente.aggiornaTimestamp(transazione.quando());
+                    // Persisti l'aggiornamento (incluso il nuovo timestamp)
+                    transactionDAO.aggiornaTransazione(email, esistente, oldTs);
+                    risultato = esistente;
+                } else {
+                    // Se non esiste nessuna transazione precedente, fallback a salvataggio
+                    wallet.aggiungiTransazione(transazione);
+                    transactionDAO.salvaTransazione(email, transazione);
+                    risultato = transazione;
+                }
+
+                // Aggiorna la posizione (esisteva)
+                posizioneDAO.aggiornaPosizione(email, posizione);
+
+            } else {
+                // Nuova posizione: aggiungi transazione e salva
+                wallet.aggiungiTransazione(transazione);
+                transactionDAO.salvaTransazione(email, transazione);
+                posizioneDAO.salvaPosizione(email, posizione);
+                risultato = transazione;
+            }
+
             walletDAO.aggiornaPortafoglio(wallet);
 
             sm.setTransazionePending(null);
-            return toTransactionBean(transazione);
+            // Se abbiamo aggiornato/creato, ritorniamo il bean della transazione risultante.
+            return toTransactionBean(risultato != null ? risultato : transazione);
 
         } catch (DAOException e) {
             throw new ControllerException("Errore durante il salvataggio dell'ordine.", e);

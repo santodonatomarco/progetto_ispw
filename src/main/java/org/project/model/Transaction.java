@@ -26,6 +26,20 @@ public class Transaction {
         this.timestamp = LocalDateTime.now(ZoneId.systemDefault());
     }
 
+    // Costruttore usato per ricreare una transazione esistente (quando si legge dal DB/file)
+    public Transaction(Stock stock, TipoTransazione tipo, double quantita, double prezzoAlMomento, LocalDateTime timestampOriginale) {
+        this.collegaStock(stock);
+        this.stabilisciTipo(tipo);
+        this.impostaQuantita(quantita);
+        this.registraPrezzo(prezzoAlMomento);
+        this.stato = StatoTransazione.PENDING;
+        if (timestampOriginale == null) {
+            this.timestamp = LocalDateTime.now(ZoneId.systemDefault());
+        } else {
+            this.timestamp = timestampOriginale;
+        }
+    }
+
     public final void collegaStock(Stock stock) {
         if (stock == null)
             throw new IllegalArgumentException("Lo stock non può essere nullo.");
@@ -54,6 +68,12 @@ public class Transaction {
 
     public final void completaTransazione() {
         this.stato = StatoTransazione.DONE;
+    }
+
+    // Permette di aggiornare il timestamp (utile quando si aggregano transazioni)
+    public final void aggiornaTimestamp(java.time.LocalDateTime nuovoTimestamp) {
+        if (nuovoTimestamp == null) throw new IllegalArgumentException("Timestamp non può essere nullo.");
+        this.timestamp = nuovoTimestamp;
     }
 
     public final void impostaEmailStudente(String email) {

@@ -14,7 +14,7 @@
       prefWidth="1100" prefHeight="680">
 
     <!-- ══ SIDEBAR SINISTRA ══════════════════════════════════════════════════ -->
-    <VBox prefWidth="220" spacing="6" styleClass="schermata-scura">
+    <VBox prefWidth="270" minWidth="260" spacing="6" styleClass="schermata-scura" HBox.hgrow="NEVER">
         <padding><Insets top="30" right="16" bottom="30" left="16"/></padding>
 
         <Label text="UNIFINANCE" styleClass="titolo-app"/>
