@@ -52,7 +52,7 @@ public class YahooFinanceProvider implements StockDataProvider {
     @Override
     public void aggiornaStock(Stock nostroStock) throws IOException {
         String json  = chiamaApi(nostroStock.simbolo());
-        String meta  = estraiBloccoPrima(json, "\"meta\"", "\"timestamp\"");
+        String meta  = estraiBloccoPrima(json);
 
         double prezzo    = estraiDouble(meta, "\"regularMarketPrice\"");
         double prevClose = estraiDouble(meta, "\"regularMarketPreviousClose\"");
@@ -72,7 +72,7 @@ public class YahooFinanceProvider implements StockDataProvider {
 
         // Se la variazione giornaliera non è disponibile da meta, proviamo a calcolarla
         // usando gli ultimi due valori validi in closes[] (se presenti).
-        if (Math.abs(varPercent) < 1e-9 && closes != null && closes.size() >= 2) {
+        if (Math.abs(varPercent) < 1e-9 && closes.size() >= 2) {
             Double last = null, prev = null;
             for (int i = closes.size() - 1; i >= 0; i--) if (closes.get(i) != null) { if (last == null) last = closes.get(i); else { prev = closes.get(i); break; } }
             if (last != null && prev != null && prev > 0) {
@@ -123,7 +123,7 @@ public class YahooFinanceProvider implements StockDataProvider {
     private Stock parseStock(String simbolo, String body) throws IOException {
         try {
             // Per i campi scalari usiamo il blocco meta (più affidabile per questi)
-            String meta = estraiBloccoPrima(body, "\"meta\"", "\"timestamp\"");
+            String meta = estraiBloccoPrima(body);
 
             double prezzo    = estraiDouble(meta, "\"regularMarketPrice\"");
             double prevClose = estraiDouble(meta, "\"regularMarketPreviousClose\"");
@@ -158,7 +158,7 @@ public class YahooFinanceProvider implements StockDataProvider {
 
             // Se la variazione giornaliera non è disponibile da meta, proviamo a calcolarla
             // usando gli ultimi due valori validi in closes[] (se presenti).
-            if (Math.abs(varPercent) < 1e-9 && closes != null && closes.size() >= 2) {
+            if (Math.abs(varPercent) < 1e-9 && closes.size() >= 2) {
                 Double last = null, prev = null;
                 for (int i = closes.size() - 1; i >= 0; i--) if (closes.get(i) != null) { if (last == null) last = closes.get(i); else { prev = closes.get(i); break; } }
                 if (last != null && prev != null && prev > 0) {
@@ -192,21 +192,21 @@ public class YahooFinanceProvider implements StockDataProvider {
         while (i < json.length()) {
             char c = json.charAt(i);
             if (c == ']') {
-                if (inNumber && num.length() > 0) {
+                if (inNumber && !num.isEmpty()) {
                     try { valori.add(Double.parseDouble(num.toString())); } catch (NumberFormatException ignored) {}
                 }
                 break;
             }
             if (c == 'n') {
                 // possibile "null", saltare il token
-                if (i + 4 <= json.length() && json.substring(i, i + 4).equals("null")) {
+                if (i + 4 <= json.length() && json.startsWith("null", i)) {
                     inNumber = false; num.setLength(0); i += 4; continue;
                 }
             }
             if (Character.isDigit(c) || c == '.' || c == '-' || c == 'E' || c == 'e') {
                 num.append(c); inNumber = true;
             } else if (c == ',' || Character.isWhitespace(c)) {
-                if (inNumber && num.length() > 0) {
+                if (inNumber && !num.isEmpty()) {
                     try { valori.add(Double.parseDouble(num.toString())); } catch (NumberFormatException ignored) {}
                 }
                 inNumber = false; num.setLength(0);
@@ -252,10 +252,10 @@ public class YahooFinanceProvider implements StockDataProvider {
      * Estrae il testo che va dall'inizio di {chiaveInizio} fino all'inizio di {chiaveFine}.
      * Serve a lavorare solo sul blocco "meta" ed evitare i valori storici degli array.
      */
-    private String estraiBloccoPrima(String json, String chiaveInizio, String chiaveFine) {
-        int start = json.indexOf(chiaveInizio);
+    private String estraiBloccoPrima(String json) {
+        int start = json.indexOf("\"meta\"");
         if (start < 0) return json;
-        int end = json.indexOf(chiaveFine, start);
+        int end = json.indexOf("\"timestamp\"", start);
         return end > start ? json.substring(start, end) : json.substring(start);
     }
 
@@ -271,7 +271,7 @@ public class YahooFinanceProvider implements StockDataProvider {
         while (i < json.length() && (json.charAt(i) == ':' || json.charAt(i) == ' ')) i++;
 
         // null esplicito → 0.0
-        if (i + 4 <= json.length() && json.substring(i, i + 4).equals("null")) return 0.0;
+        if (i + 4 <= json.length() && json.startsWith("null", i)) return 0.0;
 
         StringBuilder num = new StringBuilder();
         while (i < json.length()) {

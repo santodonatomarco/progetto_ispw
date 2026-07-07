@@ -2,7 +2,7 @@
 
 <!-- Per aggiungere il logo: salva il tuo file immagine nella stessa cartella del README
      e sostituisci "logo.png" con il nome del tuo file -->
-<img src="logo_uni.png" alt="UniFinance Logo" width="180"/>
+<img src="logo1.png" alt="UniFinance Logo" width="180"/>
 
 # UNIFINANCE
 

@@ -3,7 +3,7 @@ package org.project.ing.classifunzionali;
 import org.project.model.Studente;
 import org.project.model.VirtualWallet;
 
-public class WalletBuilder {
+public final class WalletBuilder {
     public static VirtualWallet build(VirtualWallet wallet, Studente studente){
 
         if(wallet == null || studente == null)
