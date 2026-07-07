@@ -92,9 +92,6 @@ public abstract class Navigator {
     public void              impostaClasseCorrente(SchoolClassBean c){ this.contesto.setClasseCorrente(c); }
     public SchoolClassBean   getClasseCorrente()             { return this.contesto.getClasseCorrente(); }
 
-    public void              impostaStudentiClasse(List<StudenteBean> l){ this.contesto.setStudentiClasse(l); }
-    public List<StudenteBean> getStudentiClasse()            { return this.contesto.getStudentiClasse(); }
-
     public void               impostaListaClassi(List<SchoolClassBean> l){ this.contesto.setListaClassi(l); }
     public List<SchoolClassBean> getListaClassi()            { return this.contesto.getListaClassi(); }
 

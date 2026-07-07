@@ -268,35 +268,6 @@ public class ManageWalletsGraphicControllerGUI
         });
     }
 
-    private void aggiornaSidebarPortafoglio(PortafoglioBean pf, boolean isProprietario) {
-        SessioneBean sessione = navigator.getSessione();
-        if (isProprietario) {
-            if (isStudente && sessione != null && sessione.getStudente() != null) {
-                lblNomeUtente.setText(sessione.getStudente().getNome());
-                lblRuoloSidebar.setText(ROLE_STUDENTE);
-                boxInfoUtente.getStyleClass().removeAll(CARD_PROFESSORE);
-                boxInfoUtente.getStyleClass().add(CARD_STUDENTE);
-            } else if (sessione != null && sessione.getProfessore() != null) {
-                lblNomeUtente.setText(PREFIX_PROF + sessione.getProfessore().getNome());
-                lblRuoloSidebar.setText(ROLE_PROFESSORE);
-                boxInfoUtente.getStyleClass().removeAll(CARD_STUDENTE);
-                boxInfoUtente.getStyleClass().add(CARD_PROFESSORE);
-            }
-            lblSaldoSidebar.setText(pf != null ? LBL_SALDO_PREFIX + VALUTA.format(pf.getSaldoDisponibile()) : "");
-            if (boxNavWallet != null) { boxNavWallet.setVisible(isStudente); boxNavWallet.setManaged(isStudente); }
-        } else {
-            StudenteBean target = navigator.getStudenteTarget();
-            if (target != null) {
-                lblNomeUtente.setText(target.getNome());
-                lblRuoloSidebar.setText("Portafoglio: " + target.getEmail());
-            } else {
-                lblNomeUtente.setText("Portafoglio (esterno)");
-            }
-            lblSaldoSidebar.setText(pf != null ? LBL_SALDO_PREFIX + VALUTA.format(pf.getSaldoDisponibile()) : "");
-            if (boxNavWallet != null) { boxNavWallet.setVisible(false); boxNavWallet.setManaged(false); }
-        }
-    }
-
     private void impostaTitoloPortafoglio(boolean isProprietario) {
         lblTitoloPortafoglio.setText(isProprietario
                 ? "📊 Il Tuo Portafoglio"
@@ -358,34 +329,6 @@ public class ManageWalletsGraphicControllerGUI
         });
     }
 
-    private void aggiornaSidebarStorico(String emailTarget) {
-        SessioneBean sessione = navigator.getSessione();
-        if (emailTarget == null) {
-            if (isStudente && sessione != null && sessione.getStudente() != null) {
-                lblNomeUtente.setText(sessione.getStudente().getNome());
-                lblRuoloSidebar.setText(ROLE_STUDENTE);
-                boxInfoUtente.getStyleClass().removeAll(CARD_PROFESSORE);
-                boxInfoUtente.getStyleClass().add(CARD_STUDENTE);
-                PortafoglioBean pf = navigator.getPortafoglio();
-                lblSaldoSidebar.setText(pf != null ? LBL_SALDO_PREFIX + VALUTA.format(pf.getSaldoDisponibile()) : "");
-                if (boxNavWallet != null) { boxNavWallet.setVisible(true); boxNavWallet.setManaged(true); }
-            } else if (sessione != null && sessione.getProfessore() != null) {
-                lblNomeUtente.setText(PREFIX_PROF + sessione.getProfessore().getNome());
-                lblRuoloSidebar.setText(ROLE_PROFESSORE);
-                boxInfoUtente.getStyleClass().removeAll(CARD_STUDENTE);
-                boxInfoUtente.getStyleClass().add(CARD_PROFESSORE);
-                lblSaldoSidebar.setText("Visualizzazione in sola lettura");
-                if (boxNavWallet != null) { boxNavWallet.setVisible(false); boxNavWallet.setManaged(false); }
-            }
-        } else {
-            StudenteBean target = navigator.getStudenteTarget();
-            if (target != null) lblNomeUtente.setText(target.getNome());
-            else lblNomeUtente.setText(emailTarget);
-            lblSaldoSidebar.setText("");
-            if (boxNavWallet != null) { boxNavWallet.setVisible(false); boxNavWallet.setManaged(false); }
-        }
-    }
-
     private void popolaDatiStorico(List<TransactionBean> storico) {
         vboxStorico.getChildren().clear();
         if (storico == null || storico.isEmpty()) {
@@ -401,6 +344,88 @@ public class ManageWalletsGraphicControllerGUI
         }
     }
 
+    // ── Refactored Methods e Helpers Sidebar ──────────────────────────────────
+
+    private void aggiornaSidebarPortafoglio(PortafoglioBean pf, boolean isProprietario) {
+        if (isProprietario) {
+            applicaInfoProprietario();
+            impostaVisibilitaNavWallet(isStudente);
+        } else {
+            applicaInfoTargetPortafoglio();
+            impostaVisibilitaNavWallet(false);
+        }
+        lblSaldoSidebar.setText(pf != null ? LBL_SALDO_PREFIX + VALUTA.format(pf.getSaldoDisponibile()) : "");
+    }
+
+    private void aggiornaSidebarStorico(String emailTarget) {
+        if (emailTarget == null) {
+            applicaInfoProprietarioStorico();
+        } else {
+            applicaInfoTargetStorico(emailTarget);
+        }
+    }
+
+    private void applicaInfoProprietario() {
+        SessioneBean sessione = navigator.getSessione();
+        if (sessione == null) return;
+
+        if (isStudente && sessione.getStudente() != null) {
+            impostaInterfacciaUtente(sessione.getStudente().getNome(), ROLE_STUDENTE, CARD_STUDENTE, CARD_PROFESSORE);
+        } else if (sessione.getProfessore() != null) {
+            impostaInterfacciaUtente(PREFIX_PROF + sessione.getProfessore().getNome(), ROLE_PROFESSORE, CARD_PROFESSORE, CARD_STUDENTE);
+        }
+    }
+
+    private void applicaInfoTargetPortafoglio() {
+        StudenteBean target = navigator.getStudenteTarget();
+        if (target != null) {
+            lblNomeUtente.setText(target.getNome());
+            lblRuoloSidebar.setText("Portafoglio: " + target.getEmail());
+        } else {
+            lblNomeUtente.setText("Portafoglio (esterno)");
+        }
+    }
+
+    private void applicaInfoProprietarioStorico() {
+        SessioneBean sessione = navigator.getSessione();
+        if (sessione == null) return;
+
+        if (isStudente && sessione.getStudente() != null) {
+            impostaInterfacciaUtente(sessione.getStudente().getNome(), ROLE_STUDENTE, CARD_STUDENTE, CARD_PROFESSORE);
+
+            PortafoglioBean pf = navigator.getPortafoglio();
+            lblSaldoSidebar.setText(pf != null ? LBL_SALDO_PREFIX + VALUTA.format(pf.getSaldoDisponibile()) : "");
+            impostaVisibilitaNavWallet(true);
+
+        } else if (sessione.getProfessore() != null) {
+            impostaInterfacciaUtente(PREFIX_PROF + sessione.getProfessore().getNome(), ROLE_PROFESSORE, CARD_PROFESSORE, CARD_STUDENTE);
+
+            lblSaldoSidebar.setText("Visualizzazione in sola lettura");
+            impostaVisibilitaNavWallet(false);
+        }
+    }
+
+    private void applicaInfoTargetStorico(String emailTarget) {
+        StudenteBean target = navigator.getStudenteTarget();
+        lblNomeUtente.setText(target != null ? target.getNome() : emailTarget);
+        lblSaldoSidebar.setText("");
+        impostaVisibilitaNavWallet(false);
+    }
+
+    private void impostaInterfacciaUtente(String nome, String ruolo, String cssDaAggiungere, String cssDaRimuovere) {
+        lblNomeUtente.setText(nome);
+        lblRuoloSidebar.setText(ruolo);
+        boxInfoUtente.getStyleClass().removeAll(cssDaRimuovere);
+        boxInfoUtente.getStyleClass().add(cssDaAggiungere);
+    }
+
+    private void impostaVisibilitaNavWallet(boolean isVisible) {
+        if (boxNavWallet != null) {
+            boxNavWallet.setVisible(isVisible);
+            boxNavWallet.setManaged(isVisible);
+        }
+    }
+
     // ── StockObserver ─────────────────────────────────────────────────────────
 
     @Override
@@ -408,7 +433,7 @@ public class ManageWalletsGraphicControllerGUI
         Platform.runLater(() -> {
 
             for (Map.Entry<String, Stock> entry : subjectMap.entrySet()) {
-                double nuovoPrezzo = entry.getValue().getState(); // getState() GoF
+                double nuovoPrezzo = entry.getValue().getState();
                 Label lbl = prezziInGriglia.get(entry.getKey());
                 if (lbl != null)
                     lbl.setText(String.format(FORMATO_PREZZO, nuovoPrezzo));
@@ -479,7 +504,7 @@ public class ManageWalletsGraphicControllerGUI
 
         Label lblNome   = new Label(tronca(s.getNomeAzienda(), 28));
         lblNome.getStyleClass().add(CSS_TESTO_SECONDARIO);
-        // mostra anche la variazione settimanale nella card (se disponibile)
+
         Stock stockModel = StockService.getInstance().trovaStock(s.getSimbolo());
         double weeklyVar = stockModel != null ? stockModel.variazioneSettimanale() : s.getVariazioneSettimanale();
         Label lblWeekly = new Label(String.format(FORMATO_VARIAZIONE, weeklyVar));
