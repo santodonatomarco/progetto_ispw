@@ -36,13 +36,15 @@ public class Studente extends Utente {
         this.schoolClass = classe;
     }
 
-    public final void assegnaWallet(VirtualWallet wallet) {
-        if (wallet == null)
-            throw new IllegalArgumentException("Il wallet non può essere nullo.");
-        this.wallet = wallet;
+    public final void creaWallet(double saldoIniziale) {
+        if (saldoIniziale < 0)
+            throw new IllegalArgumentException("Il saldo iniziale non può essere negativo.");
+        if (this.wallet != null)
+            this.wallet.chiudi();          // chiudi il vecchio prima di rimpiazzarlo
+        this.wallet = new VirtualWallet(this, saldoIniziale);
     }
 
-    public final void aggiungAmico(Utente amico) {
+    public final void aggiungiAmico(Utente amico) {
         if (amico == null || amico.equals(this))
             throw new IllegalArgumentException("Amico non valido.");
         if (!this.amici.contains(amico))

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 
-import static org.project.ing.classifunzionali.WalletBuilder.build;
 
 
 public class PortafoglioDAOFile extends PortafoglioDAO {
@@ -45,10 +44,30 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
 
         popolaPosizioni(wallet, mailCercata);
         popolaTransazioni(wallet, mailCercata);
-
         allineaBudgetClasse(wallet, studente);
 
-        return build(wallet, studente);
+        return wallet; // niente più build()
+    }
+
+    private VirtualWallet leggiWalletBase(Studente s, String mailCercata) throws DAOException {
+        File file = new File(walletFile);
+        if (!file.exists()) return null;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(CSV_SEPARATOR, -1);
+                if (parts[0].trim().equals(mailCercata)) {
+                    double saldo = Double.parseDouble(parts[1].trim());
+                    s.creaWallet(saldo);       // nasce dentro Studente
+                    return s.portafoglio();    // solo navigazione
+                }
+            }
+        } catch (IOException | NumberFormatException e) {
+            throw new DAOException("Errore lettura file wallet", e);
+        }
+        return null;
     }
 
 
@@ -93,26 +112,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         wallet.scalaSaldo(Math.min(wallet.saldoDisponibile(), daScalare));
     }
 
-    private VirtualWallet leggiWalletBase(Studente s, String mailCercata) throws DAOException {
-        File file = new File(walletFile);
-        if (!file.exists()) return null;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
-                String[] parts = line.split(CSV_SEPARATOR, -1);
-                // Formato: email;saldoDisponibile
-                if (parts[0].trim().equals(mailCercata)) {
-                    double saldo = Double.parseDouble(parts[1].trim());
-                    return new VirtualWallet(s, saldo);
-                }
-            }
-        } catch (IOException | NumberFormatException e) {
-            throw new DAOException("Errore lettura file wallet", e);
-        }
-        return null;
-    }
 
     private void popolaPosizioni(VirtualWallet wallet, String mailCercata) {
         File file = new File(posizioniFile);
@@ -128,7 +127,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                     double quantita = Double.parseDouble(parts[2].trim());
                     double prezzoMedio = Double.parseDouble(parts[3].trim());
 
-                    wallet.aggiungiPosizione(new WalletPosition(stock, quantita, prezzoMedio));
+                    wallet.caricaPosizione(stock, quantita, prezzoMedio);
                 }
             }
         } catch (Exception ignored) {
@@ -188,9 +187,8 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         LocalDateTime ts = LocalDateTime.parse(parts[6].trim());
 
         Stock stock = stockFactory.creaStock(simbolo);
-        Transaction t = new Transaction(stock, tipo, quantita, prezzo, ts);
-        if (stato == StatoTransazione.DONE) t.completaTransazione();
-        wallet.aggiungiTransazione(t);
+        wallet.caricaTransazione(stock, tipo, quantita, prezzo, ts,
+                stato == StatoTransazione.DONE);
     }
 
     @Override

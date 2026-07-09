@@ -110,7 +110,6 @@ public class LoginAppController {
             throw new ControllerException("Wallet non trovato per lo studente: dato corrotto.");
         }
 
-        studente.assegnaWallet(wallet);
         Sessione sessione = SessionManager.getInstance().creaSessione(studente);
 
         StudenteBean studenteBean = new StudenteBean(

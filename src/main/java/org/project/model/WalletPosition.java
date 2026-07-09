@@ -20,7 +20,7 @@ public class WalletPosition implements StockObserver {
         if (stock == null)
             throw new IllegalArgumentException("Lo stock non può essere nullo.");
         this.stock = stock;
-        stock.aggiungiObserver(this);  // si registra come observer al momento del collegamento
+        // registrazione observer delegata a VirtualWallet, dato che abbiamo una composizione
     }
 
     public final void impostaQuantita(double quantita) {

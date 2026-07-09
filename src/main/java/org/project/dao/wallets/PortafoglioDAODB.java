@@ -11,8 +11,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
-import static org.project.ing.classifunzionali.WalletBuilder.build;
 
 public class PortafoglioDAODB extends PortafoglioDAO {
 
@@ -29,10 +29,8 @@ public class PortafoglioDAODB extends PortafoglioDAO {
         Studente studente = studenteDAO.getStudenteByEmail(mail);
         if (studente == null) return null;
 
-        VirtualWallet wallet = null;
-
-        String sqlSaldo      = "SELECT saldo_disponibile FROM virtual_wallet WHERE studente_email = ?";
-        String sqlPosizioni  = "SELECT simbolo, quantita, prezzo_medio_acquisto FROM wallet_position WHERE email_studente = ?";
+        String sqlSaldo       = "SELECT saldo_disponibile FROM virtual_wallet WHERE studente_email = ?";
+        String sqlPosizioni   = "SELECT simbolo, quantita, prezzo_medio_acquisto FROM wallet_position WHERE email_studente = ?";
         String sqlTransazioni = "SELECT simbolo, tipo, quantita, prezzo_al_momento, timestamp FROM transazione WHERE email_studente = ?";
 
         try (Connection conn = DBConnection.getInstance().getConnection()) {
@@ -41,20 +39,23 @@ public class PortafoglioDAODB extends PortafoglioDAO {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        wallet = new VirtualWallet(null, rs.getDouble("saldo_disponibile"));
+                        studente.creaWallet(rs.getDouble("saldo_disponibile")); // nasce dentro Studente
                     } else {
                         return null;
                     }
                 }
             }
 
+            VirtualWallet wallet = studente.portafoglio(); // solo navigazione, non creazione
+
             try (PreparedStatement ps = conn.prepareStatement(sqlPosizioni)) {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));          // ← era "simbolo_stock"
-                        wallet.aggiungiPosizione(new WalletPosition(stock,
-                                rs.getDouble("quantita"), rs.getDouble("prezzo_medio_acquisto"))); // ← era "prezzo_medio"
+                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));
+                        wallet.caricaPosizione(stock,
+                                rs.getDouble("quantita"),
+                                rs.getDouble("prezzo_medio_acquisto"));
                     }
                 }
             }
@@ -63,23 +64,25 @@ public class PortafoglioDAODB extends PortafoglioDAO {
                 ps.setString(1, mail);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));          // ← era "simbolo_stock"
-                        Transaction t = new Transaction(stock,
+                        Stock stock = stockFactory.creaStock(rs.getString("simbolo"));
+                        LocalDateTime ts = rs.getTimestamp("timestamp").toLocalDateTime();
+                        wallet.caricaTransazione(stock,
                                 TipoTransazione.valueOf(rs.getString("tipo")),
-                                rs.getDouble("quantita"), rs.getDouble("prezzo_al_momento"));
-                        t.completaTransazione();
-                        wallet.aggiungiTransazione(t);
+                                rs.getDouble("quantita"),
+                                rs.getDouble("prezzo_al_momento"),
+                                ts,
+                                true); // dal DB sono sempre DONE
                     }
                 }
             }
+
+            return wallet;
 
         } catch (SQLException e) {
             throw new DAOException("Errore DB caricamento portafoglio: " + e.getMessage());
         } catch (Exception e) {
             throw new DAOException("Errore caricamento stock per il portafoglio: " + e.getMessage());
         }
-
-        return build(wallet, studente);
     }
 
     @Override

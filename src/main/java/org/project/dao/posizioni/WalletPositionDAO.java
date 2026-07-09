@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class WalletPositionDAO extends CachedDAO<WalletPosition> {
 
-    
+
     @Override
     protected String ottieniChiave(WalletPosition p) {
         return p.stock().simbolo();

@@ -17,17 +17,10 @@ class TestStudente {
         assertEquals(sc, s.classeFrequentata());
 
         Studente amico = new Studente("s2@uni.it", "Luca", "Blu", AuthProvider.LOCAL);
-        s.aggiungAmico(amico);
+        s.aggiungiAmico(amico);
         assertTrue(s.presentaAmici().contains(amico));
 
     }
 
-    @Test
-    void testAssegnaWallet() {
-        Studente s = new Studente("s1@uni.it", "Mario", "Neri", AuthProvider.LOCAL);
-        VirtualWallet w = new VirtualWallet(s, 100.0);
-        s.assegnaWallet(w);
-        assertEquals(w, s.portafoglio());
-    }
 }
 
