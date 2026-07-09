@@ -92,7 +92,7 @@ public class LoginAppController {
         }
     }
 
-    // ── Logout ────
+    // Logout (usando la sessione)
 
     public void logout(SessioneBean sessione) {
         SessionManager.getInstance().cancellaSessione(sessione.getId());
