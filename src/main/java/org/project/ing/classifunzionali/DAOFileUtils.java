@@ -6,10 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Utility class condivisa per le operazioni I/O CSV comuni ai DAO su file.
- * Elimina il boilerplate duplicato tra WalletPositionDAOFile e TransactionDAOFile.
- */
+
 public final class DAOFileUtils {
 
     private DAOFileUtils() { /* utility class */}
