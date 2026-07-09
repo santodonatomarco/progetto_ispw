@@ -19,7 +19,7 @@ import java.util.List;
 
 public class LoginAppController {
 
-    // ── Login studente ──
+    //Login studente
 
     public SessioneBean loginStudente(StudenteBean bean)
             throws CredenzialNonValideException, ControllerException {
@@ -56,7 +56,7 @@ public class LoginAppController {
         }
     }
 
-    // ── Login professore ───
+    //Login professore
 
     public SessioneBean loginProfessore(ProfessoreBean bean)
             throws CredenzialNonValideException, ControllerException {
