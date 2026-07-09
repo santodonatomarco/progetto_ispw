@@ -48,7 +48,6 @@ public class DemoDAOFactory extends DAOFactory {
             studenteDAOInstance = new StudenteDAODemo(createSchoolClassDAO(), createProfessoreDAO());
             if (schoolClassDAOInstance instanceof SchoolClassDAODemo scd)
                 scd.setStudenteDAO(studenteDAOInstance);
-            // Inject post-costruzione per la cascade delete
             studenteDAOInstance.setPortafoglioDAO(createPortafoglioDAO());
         }
         return studenteDAOInstance;

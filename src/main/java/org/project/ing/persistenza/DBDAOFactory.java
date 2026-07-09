@@ -38,7 +38,7 @@ public class DBDAOFactory extends DAOFactory {
         if (schoolClassDAOInstance == null) {
             SchoolClassDAODB db = new SchoolClassDAODB();
             if (studenteDAOInstance != null) {
-                db.setStudenteDAO(studenteDAOInstance);  // ← inietta sul schoolClass, non sullo studente
+                db.setStudenteDAO(studenteDAOInstance);
             }
             schoolClassDAOInstance = db;
         }
@@ -49,14 +49,10 @@ public class DBDAOFactory extends DAOFactory {
     public StudenteDAO createStudenteDAO() {
         if (studenteDAOInstance == null) {
             studenteDAOInstance = new StudenteDAODB(createSchoolClassDAO(), createProfessoreDAO());
-            // Risolvi la dipendenza circolare SchoolClass ↔ Studente
             if (schoolClassDAOInstance instanceof SchoolClassDAODB scdb) {
                 scdb.setStudenteDAO(studenteDAOInstance);
             }
-            // Inietta PortafoglioDAO per la cascade delete.
-            // createPortafoglioDAO() richiama createStudenteDAO() internamente,
-            // ma a questo punto studenteDAOInstance è già settato → restituisce
-            // l'istanza esistente senza ricorsione infinita.
+
             studenteDAOInstance.setPortafoglioDAO(createPortafoglioDAO());
         }
         return studenteDAOInstance;

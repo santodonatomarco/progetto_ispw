@@ -58,7 +58,7 @@ public class WalletPosition implements StockObserver {
         return stock.prezzoAttuale() * quantita;
     }
 
-    /** Chiamato automaticamente da Stock.aggiornaPrezzo() tramite observer. */
+    // metodo per il pattern Observer, viene chiamato quando lo stock cambia il suo stato
     @Override
     public void aggiornamento() {
         this.valoreCorrente = this.stock.getState() * this.quantita;

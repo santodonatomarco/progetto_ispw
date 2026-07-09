@@ -18,7 +18,7 @@ public class TransactionDAODemo extends TransactionDAO {
 
     @Override
     protected void doUpdateTransazione(String email, Transaction t) throws DAOException {
-        // L'oggetto è già aggiornato per riferimento — nulla da fare
+        // L'oggetto è già aggiornato per riferimento
     }
 
     @Override

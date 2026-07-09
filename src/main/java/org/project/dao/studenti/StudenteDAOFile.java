@@ -76,7 +76,7 @@ public class StudenteDAOFile extends StudenteDAO {
         scriviRigheSuFile(file, righe);
     }
 
-    // ── Metodi di utilità ─────────────────────────────────────────────────────
+    // ── Metodi di utilità ───
 
     private boolean leggiEAggiornaRighe(File file, Studente studente, List<String> righe) throws DAOException {
         boolean aggiornato = false;

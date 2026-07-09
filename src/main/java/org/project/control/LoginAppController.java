@@ -16,15 +16,10 @@ import org.project.view.bean.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller applicativo per il login.
- * Stateless: nessun campo di istanza.
- * Il bean porta sempre authProvider valorizzato (LOCAL se login classico).
- * La distinzione LOCAL / OAuth viene fatta qui con uno switch sull'enum.
- */
+
 public class LoginAppController {
 
-    // ── Login studente ────────────────────────────────────────────────────────
+    // ── Login studente ──
 
     public SessioneBean loginStudente(StudenteBean bean)
             throws CredenzialNonValideException, ControllerException {
@@ -61,7 +56,7 @@ public class LoginAppController {
         }
     }
 
-    // ── Login professore ──────────────────────────────────────────────────────
+    // ── Login professore ───
 
     public SessioneBean loginProfessore(ProfessoreBean bean)
             throws CredenzialNonValideException, ControllerException {
@@ -97,13 +92,13 @@ public class LoginAppController {
         }
     }
 
-    // ── Logout ────────────────────────────────────────────────────────────────
+    // ── Logout ────
 
     public void logout(SessioneBean sessione) {
         SessionManager.getInstance().cancellaSessione(sessione.getId());
     }
 
-    // ── Metodi privati ────────────────────────────────────────────────────────
+    // ── Metodi privati per sonarcloud
 
     private SessioneBean creaSessioneStudente(Studente studente, DAOFactory factory)
             throws DAOException, ControllerException {
@@ -165,7 +160,7 @@ public class LoginAppController {
         return sessioneBean;
     }
 
-    // ── Conversione model → bean ──────────────────────────────────────────────
+    // ── Conversione model → bean ────
 
     private SchoolClassBean toBean(SchoolClass c) {
         ProfessoreBean profBean = new ProfessoreBean(

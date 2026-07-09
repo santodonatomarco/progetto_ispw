@@ -22,7 +22,6 @@ public class SchoolClassDAODB extends SchoolClassDAO {
         super();
     }
 
-    /** Permette di iniettare lo StudenteDAO dopo la costruzione (evita ciclo di dipendenze). */
     public void setStudenteDAO(StudenteDAO studenteDAO) {
         this.studenteDAO = studenteDAO;
     }
@@ -66,7 +65,6 @@ public class SchoolClassDAODB extends SchoolClassDAO {
         List<SchoolClass> classi = new ArrayList<>();
         String sql = "SELECT nome, budget_iniziale FROM schoolclass WHERE professore_email = ?";
 
-        // ── Passo 1: leggi SOLO i dati grezzi dal ResultSet ──────────────────────
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -78,13 +76,14 @@ public class SchoolClassDAODB extends SchoolClassDAO {
                     classe.impostaBudget(rs.getDouble("budget_iniziale"));
                     classi.add(classe);
                 }
-            } // ← ResultSet chiuso qui
+            }
 
         } catch (SQLException e) {
             throw new DAOException("Errore SQL nel recupero delle classi del prof: " + e.getMessage());
         }
 
-        // ── Passo 2: ora la connessione è libera, carica gli studenti ─────────────
+        // secondo step, lista degli studenti
+
         for (SchoolClass classe : classi) {
             if (studenteDAO != null) {
                 try {

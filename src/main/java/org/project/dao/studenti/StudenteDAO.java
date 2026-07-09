@@ -26,7 +26,7 @@ public abstract class StudenteDAO extends CachedDAO<Studente> {
         return s.presentaEmail();
     }
 
-    // ── Operazioni di lettura ──────────────────────────────────────────────────
+    // ── Operazioni di lettura ────
 
     public Studente getStudenteByEmail(String mail) throws DAOException {
         if (inCache(mail)) return fetchFromCache(mail);
@@ -39,28 +39,18 @@ public abstract class StudenteDAO extends CachedDAO<Studente> {
         return doRetrieveStudentiClasse(classe.nome());
     }
 
-    // ── Operazioni di scrittura ────────────────────────────────────────────────
+    // ── Operazioni di scrittura ───
 
     public void salvaStudente(Studente studente) throws DAOException {
         doSaveStudente(studente);
         addToCache(studente);
     }
 
-    /**
-     * Rimuove lo studente e tutte le sue entità figlie (portafoglio, transazioni,
-     * posizioni) sia dalla persistenza sia dalle cache Java.
-     *
-     * Il controller chiama solo questo metodo: la cascata è completamente
-     * opaca rispetto a GRASP Creator / Low Coupling.
-     */
     public void rimuoviStudente(String email) throws DAOException {
-        // 1. Prima le entità figlie (composizione → il wallet non esiste senza lo studente)
         if (portafoglioDAO != null) {
             portafoglioDAO.rimuoviPortafoglio(email); // propaga a transazioni e posizioni
         }
-        // 2. Poi il payload principale
         doDeleteStudente(email);
-        // 3. Pulizia cache Java
         deleteFromCacheByKey(email);
     }
 

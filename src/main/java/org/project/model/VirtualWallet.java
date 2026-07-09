@@ -51,18 +51,7 @@ public class VirtualWallet {
         this.saldoDisponibile += importo;
     }
 
-    /**
-     * Esegue un acquisto: scala il saldo, crea o aggiorna la WalletPosition,
-     * registra la posizione come observer dello stock.
-     *
-     * Incapsula tutta la logica di business dell'acquisto (Expert Pattern GRASP)
-     * — il controller non deve sapere come funziona internamente.
-     *
-     * @param stock    lo stock da acquistare
-     * @param quantita numero di azioni
-     * @param prezzo   prezzo unitario al momento dell'acquisto
-     * @return la WalletPosition aggiornata o creata (nuova o esistente)
-     */
+
     public final WalletPosition eseguiAcquisto(Stock stock, double quantita, double prezzo) {
         double importo = quantita * prezzo;
         scalaSaldo(importo);

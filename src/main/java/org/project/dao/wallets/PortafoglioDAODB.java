@@ -31,7 +31,6 @@ public class PortafoglioDAODB extends PortafoglioDAO {
 
         VirtualWallet wallet = null;
 
-        // ← colonne/tabelle allineate allo schema SQL
         String sqlSaldo      = "SELECT saldo_disponibile FROM virtual_wallet WHERE studente_email = ?";
         String sqlPosizioni  = "SELECT simbolo, quantita, prezzo_medio_acquisto FROM wallet_position WHERE email_studente = ?";
         String sqlTransazioni = "SELECT simbolo, tipo, quantita, prezzo_al_momento, timestamp FROM transazione WHERE email_studente = ?";
@@ -100,14 +99,7 @@ public class PortafoglioDAODB extends PortafoglioDAO {
         }
     }
 
-    /**
-     * Rimuove solo il record di virtual_wallet. Le transazioni e le posizioni
-     * vengono rimosse prima da TransactionDAO e WalletPositionDAO (cascade
-     * gestita da PortafoglioDAO.rimuoviPortafoglio).
-     *
-     * In alternativa, a livello SQL puoi definire ON DELETE CASCADE sulla FK
-     * studente_email → studente.email per delegare la pulizia al DBMS.
-     */
+
     @Override
     protected void doDeletePortafoglio(String email) throws DAOException {
         String sql = "DELETE FROM virtual_wallet WHERE studente_email = ?";

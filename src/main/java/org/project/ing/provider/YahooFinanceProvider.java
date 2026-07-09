@@ -12,11 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ADAPTER — chiama il nuovo endpoint Yahoo Finance v8 /chart/ e converte
- * la risposta nel nostro modello Stock.
- *
  * Endpoint: https://query1.finance.yahoo.com/v8/finance/chart/{SIMBOLO}
  */
+
 public class YahooFinanceProvider implements StockDataProvider {
 
     private static final String BASE_URL =

@@ -6,7 +6,6 @@ import org.project.model.VirtualWallet;
 
 public class WalletFactory {
 
-    // Costruttore privato per nascondere quello pubblico implicito
     private WalletFactory() {
         throw new IllegalStateException("Utility class - Non istanziare");
     }
@@ -22,9 +21,7 @@ public class WalletFactory {
 
         SchoolClass classe = studente.classeFrequentata();
 
-        // Se lo studente non è in nessuna classe, diamo budget 0 o lanciamo eccezione?
-        // Supponiamo che debba essere iscritto per avere soldi.
-        double saldoIniziale = 0.0; // deve avere una classe per essere iscritto
+        double saldoIniziale = 0.0; // deve avere una classe per essere iscritto, viene impostato a 0 se non ha una classe
         if (classe != null) {
             saldoIniziale = classe.budgetIniziale();
         }

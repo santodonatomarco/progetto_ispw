@@ -68,7 +68,6 @@ public class PortafoglioDAODemo extends PortafoglioDAO {
     @Override
     protected void doDeletePortafoglio(String email) throws DAOException {
         // Nella demo non c'è un DB fisico: la cache è già stata pulita da rimuoviPortafoglio.
-        // Se hai un fintoDatabase, rimuovi qui l'entry.
     }
 
 

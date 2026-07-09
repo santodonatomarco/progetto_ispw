@@ -35,7 +35,6 @@ public class NavigatorFactory {
             Properties prop = new Properties();
             prop.load(in);
 
-            // Aggiungi .trim() per evitare errori dovuti a spazi accidentali nel file properties
             String grafica = prop.getProperty("ui.type");
 
             if (grafica != null) {

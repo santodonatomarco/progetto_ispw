@@ -16,14 +16,13 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
 
     private String fileName;
     private static final String SEP = ";";
-    private StudenteDAO studenteDAO;  // iniettato opzionalmente per caricare gli studenti
+    private StudenteDAO studenteDAO;
 
     public SchoolClassDAOFile(String fileName) {
         super();
         this.fileName = fileName;
     }
 
-    /** Permette di iniettare lo StudenteDAO dopo la costruzione (evita ciclo di dipendenze). */
     public void setStudenteDAO(StudenteDAO studenteDAO) {
         this.studenteDAO = studenteDAO;
     }
@@ -43,7 +42,6 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                // Delega la logica di controllo e parsing a un metodo esterno
                 SchoolClass classe = analizzaRiga(line, nomeCercato, professore);
                 if (classe != null) {
                     return classe;
@@ -63,7 +61,6 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
 
         String[] parts = line.split(SEP, -1);
 
-        // Guard clause: se non ci sono abbastanza campi, scarta la riga
         if (parts.length < 2) {
             return null;
         }
@@ -86,7 +83,7 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
             try {
                 classe.impostaBudget(Double.parseDouble(parts[2].trim()));
             } catch (NumberFormatException ignored) {
-                // Ignorato volontariamente come da codice originale
+                // Ignorato volontariamente, il budget non è valido
             }
         }
     }
@@ -107,8 +104,7 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                // Delega tutta la logica della singola riga a un helper
-                elaboraRiga(line, professore, classi);
+                elaboraRiga(line, professore, classi); // metodo ausiliario
             }
         } catch (IOException e) {
             throw new DAOException("Errore lettura file classi: " + e.getMessage());
@@ -161,10 +157,10 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
 
         File file = new File(fileName);
 
-        // 1. Fase di Lettura e Aggiornamento
+        // Fase di Lettura e Aggiornamento
         List<String> righe = leggiEAggiornaRighe(file, classe);
 
-        // 2. Fase di Scrittura
+        // Fase di Scrittura
         scriviSuFile(file, righe);
 
         addToCache(classe);

@@ -24,7 +24,7 @@ public class Message {
         this.mittente = mittente;
         this.destinatario = destinatario;
         this.testo = testo;
-        this.timestamp = timestampOriginale; // Usa la data passata dal DB!
+        this.timestamp = timestampOriginale;
     }
 
     public Utente getMittente() { return mittente; }

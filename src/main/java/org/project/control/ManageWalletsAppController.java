@@ -20,13 +20,8 @@ public class ManageWalletsAppController {
 
     private static final int TIMEOUT_MINUTI = 5;
 
-    // ── Consultazione mercato ─────────────────────────────────────────────────
+    // ── Consultazione mercato ───────
 
-    /**
-     * Recupera i dati aggiornati di uno stock dato il suo simbolo.
-     * Accessibile a qualsiasi utente autenticato; l'acquisto è riservato
-     * al solo studente proprietario e gestito da avviaOrdineAcquisto().
-     */
     public StockBean cercaStock(RicercaStockBean input) throws ControllerException {
         String simbolo = input.getSimbolo();
         try {
@@ -42,12 +37,8 @@ public class ManageWalletsAppController {
         }
     }
 
-    // ── Acquisto (solo studente proprietario) ─────────────────────────────────
+    // ── Acquisto (solo studente) ──────
 
-    /**
-     * Avvia un ordine: crea una Transaction PENDING e la salva nella sessione.
-     * Lo studente ha {@value #TIMEOUT_MINUTI} minuti per confermare.
-     */
     public TransactionBean avviaOrdineAcquisto(SessioneBean sessione, AvvioOrdineBean input)
             throws ControllerException {
 
@@ -72,10 +63,7 @@ public class ManageWalletsAppController {
         }
     }
 
-    /**
-     * Conferma l'ordine pending con la quantità scelta dallo studente.
-     * Verifica: timeout, saldo, poi delega l'acquisto a VirtualWallet (Expert).
-     */
+
     public TransactionBean confermaAcquisto(SessioneBean sessione, ConfermaAcquistoBean input)
             throws ControllerException {
 
@@ -148,7 +136,6 @@ public class ManageWalletsAppController {
             walletDAO.aggiornaPortafoglio(wallet);
             sm.setTransazionePending(null);
 
-            // Risultato is always strictly initialized, ternary operator was redundant
             return toTransactionBean(risultato);
 
         } catch (DAOException e) {
@@ -156,14 +143,13 @@ public class ManageWalletsAppController {
         }
     }
 
-    /** Annulla l'ordine pending best-effort. */
     public void annullaOrdine(SessioneBean sessione) throws ControllerException {
         Sessione sm = validaSessione(sessione);
         sm.setTransazionePending(null);
         sm.setStockCorrente(null);
     }
 
-    // ── Portafoglio ───────────────────────────────────────────────────────────
+    // ── Portafoglio ──
 
     public PortafoglioBean ottieniPortafoglio(SessioneBean sessione, UtenteBean input)
             throws ControllerException {
@@ -175,7 +161,7 @@ public class ManageWalletsAppController {
         try {
             Studente studenteLoggato = sm.getStudenteCorrente();
 
-            // Caso 1 — proprietario: lo studente legge il suo
+            // Caso 1 — proprietario: lo studente legge il suo, quindi l'input è null
             if (studenteLoggato != null &&
                     (input == null || input.getEmail().equals(studenteLoggato.presentaEmail()))) {
                 VirtualWallet wallet = sm.getWalletCorrente();
@@ -199,10 +185,7 @@ public class ManageWalletsAppController {
         }
     }
 
-    /**
-     * Restituisce lo storico transazioni del soggetto target.
-     * Stesse regole di accesso di {@link #ottieniPortafoglio}.
-     */
+
     public List<TransactionBean> ottieniStorico(SessioneBean sessione, UtenteBean input)
             throws ControllerException {
 
@@ -230,7 +213,7 @@ public class ManageWalletsAppController {
         }
     }
 
-    // ── Metodi Privati di Supporto (Estratti per abbattere Cognitive Complexity) ─
+    // ── metodi Privati per sonarcloud
 
     private Transaction trovaUltimaTransazione(VirtualWallet wallet, String simbolo) {
         Transaction esistente = null;
@@ -275,7 +258,7 @@ public class ManageWalletsAppController {
         return wallet;
     }
 
-    // ── Conversione model → bean ──────────────────────────────────────────────
+    // ── Conversione model → bean ──────
 
     public PortafoglioBean convertiWalletInBean(VirtualWallet wallet) {
         if (wallet == null) return null;

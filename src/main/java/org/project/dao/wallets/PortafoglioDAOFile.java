@@ -64,7 +64,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         double differenza = budgetAttualeClasse - budgetAssegnatoInPassato;
 
         if (Math.abs(differenza) > 0.01) {
-            applicaDifferenzaBudget(wallet, differenza);
+            applicaDifferenzaBudget(wallet, differenza);   // il budget della classe è stato modificato
             salvaPortafoglio(wallet);
         }
     }
@@ -132,7 +132,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                 }
             }
         } catch (Exception ignored) {
-            // da fare
+            // file non letto
         }
     }
 
@@ -176,7 +176,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         double quantita;
         double prezzo;
 
-        // We expect the current CSV format with 7 fields:
         // email;simbolo;tipo;stato;quantita;prezzo;timestamp
         if (parts.length < 7) {
             throw new IOException("Formato transazione non valido: numero campi < 7");
@@ -215,10 +214,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         addToCache(wallet);
     }
 
-    /**
-     * Aggiorna solo la riga corrispondente allo studente nel file wallet.csv.
-     * Se non esiste, la aggiunge.
-     */
+
     private void aggiornaFileWalletBase(String email, double nuovoSaldo) throws DAOException {
         File originalFile = new File(walletFile);
         File tempFile = new File(walletFile + ".tmp");
@@ -245,7 +241,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                         bw.write(email + CSV_SEPARATOR + nuovoSaldo);
                         utenteTrovato = true;
                     } else {
-                        // Ricopia gli altri utenti senza modifiche
                         bw.write(line);
                     }
                     bw.newLine();
@@ -258,7 +253,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                 }
             }
 
-            // Sostituisce il vecchio file con quello aggiornato
             sostituisciFile(originalFile, tempFile);
 
         } catch (IOException e) {
@@ -266,10 +260,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         }
     }
 
-    /**
-     * Riscrive il file delle posizioni filtrando via quelle vecchie dell'utente
-     * e accodando lo stato attuale della lista.
-     */
+
     private void aggiornaFilePosizioni(String email, List<WalletPosition> posizioniAttuali) throws DAOException {
         File originalFile = new File(posizioniFile);
         File tempFile = new File(posizioniFile + ".tmp");
@@ -313,9 +304,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         }
     }
 
-    /**
-     * Riscrive il file delle transazioni allo stesso modo delle posizioni.
-     */
     private void aggiornaFileTransazioni(String email, List<Transaction> transazioniAttuali) throws DAOException {
         File originalFile = new File(transazioniFile);
         File tempFile = new File(transazioniFile + ".tmp");
@@ -341,7 +329,6 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
                 }
 
                 // Scrivi le transazioni attuali dell'utente
-                // Formato allineato a TransactionDAOFile.toCSV():
                 // email;simbolo;tipo;stato;quantita;prezzo;timestamp
                 for (Transaction t : transazioniAttuali) {
                     bw.write(email + CSV_SEPARATOR +
@@ -362,9 +349,7 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
         }
     }
 
-    /**
-     * Helper per gestire l'operazione sicura di rinomina/sovrascrittura del file
-     */
+
     private void sostituisciFile(File originale, File temporaneo) throws IOException {
         Files.move(temporaneo.toPath(), originale.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }

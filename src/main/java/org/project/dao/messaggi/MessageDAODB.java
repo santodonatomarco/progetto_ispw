@@ -28,7 +28,6 @@ public class MessageDAODB extends MessageDAO {
         String sql = "SELECT mittente_email, destinatario_email, testo, data_invio " +
                 "FROM messaggio WHERE destinatario_email = ? ORDER BY data_invio DESC";
 
-        // ── Passo 1: leggi dati grezzi senza aprire altre query ──────────────────
         record RigaMessaggio(String mittente, String destinatario, String testo, LocalDateTime ts) {}
         List<RigaMessaggio> righe = new ArrayList<>();
 
@@ -46,13 +45,12 @@ public class MessageDAODB extends MessageDAO {
                             rs.getTimestamp("data_invio").toLocalDateTime()
                     ));
                 }
-            } // ← ResultSet chiuso qui
+            }
 
         } catch (SQLException e) {
             throw new DAOException("Errore SQL nel recupero dei messaggi: " + e.getMessage());
         }
 
-        // ── Passo 2: ora risolvi mittente/destinatario senza ResultSet aperto ─────
         List<Message> inbox = new ArrayList<>();
         for (RigaMessaggio r : righe) {
             Utente mittente     = trovaUtente(r.mittente());

@@ -13,8 +13,8 @@ public abstract class WalletPositionDAO extends CachedDAO<WalletPosition> {
      * ATTENZIONE: la chiave è solo il simbolo, non simbolo+email.
      * Due studenti con la stessa posizione (stesso stock) collidono in cache.
      * Per questa ragione rimuoviPosizioniByEmail usa svuotaCache().
-     * Un refactoring futuro dovrebbe usare email + "_" + simbolo come chiave.
      */
+
     @Override
     protected String ottieniChiave(WalletPosition p) {
         return p.stock().simbolo();
@@ -36,10 +36,7 @@ public abstract class WalletPositionDAO extends CachedDAO<WalletPosition> {
         deleteFromCache(p);
     }
 
-    /**
-     * Rimuove tutte le posizioni di uno studente dalla persistenza e dalla cache.
-     * Chiamato dalla cascade delete di PortafoglioDAO — invisibile al controller.
-     */
+
     public void rimuoviPosizioniByEmail(String email) throws DAOException {
         doDeletePosizioniByEmail(email);
         // Stessa motivazione di TransactionDAO: chiave senza email → svuotiamo.

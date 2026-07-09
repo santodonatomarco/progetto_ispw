@@ -88,14 +88,7 @@ public class StudenteDAODB extends StudenteDAO {
         }
     }
 
-    /**
-     * Rimuove lo studente dal DB. Le entità figlie (wallet, transazioni, posizioni)
-     * vengono rimosse prima dalla cascade in StudenteDAO.rimuoviStudente.
-     *
-     * Se il DB ha ON DELETE CASCADE su tutte le FK verso studente.email,
-     * questo DELETE eliminerà automaticamente tutto — in quel caso i doDelete*
-     * degli altri DAO diventano ridondanti ma innocui (effetto idempotente).
-     */
+
     @Override
     protected void doDeleteStudente(String email) throws DAOException {
         String sql = "DELETE FROM studente WHERE email = ?";

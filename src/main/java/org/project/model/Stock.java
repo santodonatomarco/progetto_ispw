@@ -43,7 +43,7 @@ public class Stock extends StockSubject {
         this.settore = sector;
     }
 
-    // Quando si aggiorna il prezzo — notifica automaticamente
+    // metodo usato per observer
     public final void aggiornaPrezzo(double nuovoPrezzo) {
         if (nuovoPrezzo < 0)
             throw new IllegalArgumentException("Prezzo non può essere negativo.");
@@ -52,13 +52,14 @@ public class Stock extends StockSubject {
         notificaObserver();
     }
 
-
+    // metodo usato per observer
     public final void aggiornaVariazioni(double daily, double weekly) {
         this.variazioneGiornaliera = daily;
         this.variazioneSettimanale = weekly;
         notificaObserver();
     }
 
+    // metodo usato per observer
     public final void aggiornaMarketData(double marketCap, double volume) {
         this.marketCap = marketCap;
         this.volumeSettimanale = volume;

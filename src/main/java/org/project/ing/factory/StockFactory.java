@@ -11,7 +11,6 @@ import java.io.IOException;
  */
 public class StockFactory {
 
-    // lazy loading
     private static StockFactory instance = null;
 
     private final StockDataProvider dataProvider;
@@ -20,7 +19,6 @@ public class StockFactory {
         this.dataProvider = new YahooFinanceProvider();
     }
 
-    // Synchronized getter
     public static synchronized StockFactory getInstance() {
         if (instance == null) {
             instance = new StockFactory();

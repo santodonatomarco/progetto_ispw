@@ -4,11 +4,7 @@ import org.project.view.bean.*;
 
 import java.util.List;
 
-/**
- * Contenitore dello stato di navigazione.
- * Vive dentro il Navigator e conserva tutti i bean condivisi tra schermate.
- * Nessun oggetto model — solo bean.
- */
+
 public class Context {
 
     // ── Sessione e utente loggato ─────────────────────────────────────────────
@@ -28,10 +24,7 @@ public class Context {
     private List<TransactionBean>  storicoTransazioni;
 
     // ── Portafoglio esterno (WALLET_STUDENTE) ─────────────────────────────────
-    /**
-     * Studente di cui visualizzare il portafoglio (non proprietario).
-     * Impostato prima di goToWalletStudente(); null = nessuna navigazione esterna attiva.
-     */
+
     private StudenteBean studenteTarget;
 
     // ── Classe e studenti (uso professore e studente della stessa classe) ───────────────────────────────────

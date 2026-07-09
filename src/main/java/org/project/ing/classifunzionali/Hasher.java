@@ -1,12 +1,6 @@
 package org.project.ing.classifunzionali;
 
 
-/**
- * Utility per la codifica delle password in sviluppo.
- * Inverte la stringa: "password" → "drowssap".
- *
- * DA SOSTITUIRE con bcrypt o Argon2 prima di andare in produzione.
- */
 public final class Hasher {
 
     private Hasher() {}

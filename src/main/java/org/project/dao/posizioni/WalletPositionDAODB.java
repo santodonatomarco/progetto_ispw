@@ -33,8 +33,6 @@ public class WalletPositionDAODB extends WalletPositionDAO {
 
     @Override
     protected void doUpdatePosizione(String email, WalletPosition p) throws DAOException {
-        // FIX: aggiunto filtro email_studente — senza, aggiornava la posizione
-        // sullo stesso simbolo per TUTTI gli studenti
         String sql = "UPDATE wallet_position SET quantita = ?, prezzo_medio_acquisto = ? " +
                 "WHERE email_studente = ? AND simbolo = ?";
         try (Connection conn = DBConnection.getInstance().getConnection();
@@ -51,8 +49,6 @@ public class WalletPositionDAODB extends WalletPositionDAO {
 
     @Override
     protected void doDeletePosizione(String email, WalletPosition p) throws DAOException {
-        // FIX: aggiunto filtro email_studente — senza, eliminava la posizione
-        // sullo stesso simbolo per TUTTI gli studenti
         String sql = "DELETE FROM wallet_position WHERE email_studente = ? AND simbolo = ?";
         try (Connection conn = DBConnection.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {

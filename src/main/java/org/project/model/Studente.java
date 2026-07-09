@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Studente extends Utente {
 
-    private String passwordHash; // valorizzato solo se authProvider == LOCAL, altrimenti ""
+    private String passwordHash; // usato solo se authProvider == LOCAL, altrimenti ""
     private SchoolClass schoolClass;
     private VirtualWallet wallet;
     private List<Utente> amici;
@@ -19,7 +19,7 @@ public class Studente extends Utente {
         this.amici = new ArrayList<>();
     }
 
-    // ── Gestione password (solo LOCAL) ────────────────────────────────────────
+    // ── Gestione password (solo LOCAL) ───
 
     public void impostaPasswordHash(String hash) {
         if (hash == null || hash.trim().isEmpty())
@@ -29,7 +29,6 @@ public class Studente extends Utente {
 
     public String getPasswordHash() { return passwordHash; }
 
-    // ── Gestione classe/wallet/amici/alert ───────────────────────────────────
 
     public final void iscriviClasse(SchoolClass classe) {
         if (classe == null)

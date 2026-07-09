@@ -14,7 +14,7 @@ public class SchoolClassDAODemo extends SchoolClassDAO {
 
     private List<SchoolClass> fintoDatabase;
     private ProfessoreDAO professoreDAO;
-    private StudenteDAO studenteDAO;  // iniettato opzionalmente per caricare gli studenti
+    private StudenteDAO studenteDAO;
 
     public SchoolClassDAODemo(ProfessoreDAO professoreDAO) {
         super();

@@ -116,7 +116,7 @@ public class WalletPositionDAOFile extends WalletPositionDAO {
         return lista;
     }
 
-    // ── Utility ──────────────────────────────────────────────────────────────
+    // ── Utility ───
 
     private String toCSV(String email, WalletPosition p) {
         return String.join(SEP,

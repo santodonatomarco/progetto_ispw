@@ -17,7 +17,7 @@ public class WalletPositionDAODemo extends WalletPositionDAO {
 
     @Override
     protected void doUpdatePosizione(String email, WalletPosition p) throws DAOException {
-        // In memoria l'oggetto è già aggiornato per riferimento — nulla da fare
+        // In memoria l'oggetto è già aggiornato per riferimento
     }
 
     @Override
@@ -32,7 +32,7 @@ public class WalletPositionDAODemo extends WalletPositionDAO {
 
     @Override
     protected void doDeletePosizioniByEmail(String email) throws DAOException {
-        fintoDatabase.clear(); // stessa motivazione di TransactionDAODemo
+        fintoDatabase.clear();
     }
 
 

@@ -121,7 +121,7 @@ public class TransactionDAOFile extends TransactionDAO {
         return lista;
     }
 
-    // ── Utility ──────────────────────────────────────────────────────────────
+    // ── Utility ──
 
     private String toCSV(String email, Transaction t) {
         return String.join(SEP,
@@ -143,7 +143,6 @@ public class TransactionDAOFile extends TransactionDAO {
             double quantita;
             double prezzo;
 
-            // We only support the current CSV format with 7 fields
             stato   = StatoTransazione.valueOf(parts[3].trim());
             quantita = Double.parseDouble(parts[4].trim());
             prezzo   = Double.parseDouble(parts[5].trim());
