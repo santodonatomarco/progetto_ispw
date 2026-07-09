@@ -9,12 +9,7 @@ import java.util.List;
 
 public abstract class WalletPositionDAO extends CachedDAO<WalletPosition> {
 
-    /**
-     * La chiave è solo il simbolo, non simbolo+email.
-     * Due studenti con la stessa posizione (stesso stock) collidono in cache.
-     * Per questa ragione rimuoviPosizioniByEmail usa svuotaCache().
-     */
-
+    
     @Override
     protected String ottieniChiave(WalletPosition p) {
         return p.stock().simbolo();
