@@ -11,10 +11,7 @@ public final class DAOFileUtils {
 
     private DAOFileUtils() { /* utility class */}
 
-    /**
-     * Legge tutte le righe non vuote dal file.
-     * Restituisce una lista vuota se il file non esiste.
-     */
+
     public static List<String> leggiRighe(String fileName) throws DAOException {
         File file = new File(fileName);
         List<String> righe = new ArrayList<>();
@@ -31,9 +28,7 @@ public final class DAOFileUtils {
         return righe;
     }
 
-    /**
-     * Sovrascrive il file con le righe fornite (modalità truncate+write).
-     */
+
     public static void scriviRighe(String fileName, List<String> righe) throws DAOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, false))) {
             for (String r : righe) { bw.write(r); bw.newLine(); }
@@ -42,9 +37,7 @@ public final class DAOFileUtils {
         }
     }
 
-    /**
-     * Appende una singola riga in coda al file.
-     */
+
     public static void appendiRiga(String fileName, String riga) throws DAOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
             bw.write(riga);

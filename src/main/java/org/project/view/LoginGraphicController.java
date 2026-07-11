@@ -7,15 +7,7 @@ import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
 
-/**
- * Controller grafico astratto per la schermata di login.
- * Contiene la logica condivisa tra CLI e GUI:
- * - campi email, password, ruolo selezionato
- * - metodo eseguiLogin() che chiama il controller applicativo
- *
- * Le sottoclassi implementano start(), mostraErrore() e showMessage()
- * con la tecnologia concreta (CLI o JavaFX).
- */
+
 public abstract class LoginGraphicController {
 
     protected Navigator navigator;

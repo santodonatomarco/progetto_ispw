@@ -12,15 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-/**
- * Singleton che gestisce il registro centralizzato degli Stock monitorati.
- *
- * Responsabilità:
- * - Evitare duplicati: se due wallet comprano AAPL, usano la stessa istanza Stock
- * - Creare nuovi stock sempre tramite l'API (StockFactory → YahooFinanceAdapter)
- * - Aggiornare periodicamente i prezzi ogni 30 secondi (solo in GUI)
- *   → aggiornaPrezzo() su Stock triggera automaticamente l'observer (WalletPosition + GUI)
- */
+
 public class StockService {
 
     private static final Logger LOG = Logger.getLogger(StockService.class.getName());
@@ -45,9 +37,7 @@ public class StockService {
 
     // ── Recupero stock ────────────────────────────────────────────────────────
 
-    /**
-     * Restituisce lo stock se già monitorato, altrimenti lo crea dall'API e lo registra.
-     */
+
     public Stock ottieniOCreaStock(String simbolo) throws IOException {
         String sym = simbolo.toUpperCase();
         if (stockMonitorati.containsKey(sym)) {
@@ -92,9 +82,7 @@ public class StockService {
                 + INTERVALLO_AGGIORNAMENTO_SECONDI + "s");
     }
 
-    /**
-     * Ferma il polling periodico (da chiamare al logout o alla chiusura dell'app GUI).
-     */
+
     public void fermaAggiornamentoAutomatico() {
         if (scheduler != null) {
             scheduler.shutdownNow();
@@ -102,10 +90,7 @@ public class StockService {
         }
     }
 
-    /**
-     * Aggiornamento manuale immediato di tutti gli stock monitorati.
-     * Usabile anche dalla CLI su richiesta esplicita dell'utente.
-     */
+
     public void aggiornaStocksOra() throws IOException {
         for (Stock stock : stockMonitorati.values()) {
             dataProvider.aggiornaStock(stock);

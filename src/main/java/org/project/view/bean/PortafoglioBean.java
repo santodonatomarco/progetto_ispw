@@ -2,11 +2,7 @@ package org.project.view.bean;
 
 import java.util.List;
 
-/**
- * Bean per il wallet virtuale di uno studente.
- * Aggrega i bean delle posizioni e delle transazioni già "appiattiti",
- * pronti per essere mostrati dalla view senza toccare il model.
- */
+
 public class PortafoglioBean {
 
     private double saldoDisponibile;

@@ -18,9 +18,6 @@ public abstract class ProfessoreDAO extends CachedDAO<Professore> {
         return p;
     }
 
-    /**
-     * Salva un nuovo professore in persistenza e lo aggiunge alla cache.
-     */
 
     public void salvaProfessore(Professore professore) throws DAOException {
         doSaveProfessore(professore);

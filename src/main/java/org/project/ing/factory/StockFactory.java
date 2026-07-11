@@ -6,9 +6,6 @@ import org.project.model.Stock;
 
 import java.io.IOException;
 
-/**
- * Singleton per evitare istanze duplicate del dataProvider.
- */
 public class StockFactory {
 
     private static StockFactory instance = null;

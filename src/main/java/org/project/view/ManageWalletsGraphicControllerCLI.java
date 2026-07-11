@@ -8,22 +8,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
-/**
- * Implementazione CLI del controller grafico ManageWallets.
- * Gestisce in un unico controller tutti i sotto-flussi testuali:
- * – Browsing mercato (ricerca, lista monitorati)
- * – Dettaglio stock + avvio acquisto
- * – Conferma / annullamento ordine
- * – Portafoglio proprio (posizioni + saldo)
- * – Storico transazioni proprio
- * – Portafoglio esterno in sola lettura (studente/professore non proprietario)
- */
+
 public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicController {
 
     private static final NumberFormat VALUTA = NumberFormat.getCurrencyInstance(Locale.ITALY);
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-    // Costanti per risolvere i warning sui duplicati dei literal (SonarQube/SonarLint)
     private static final String BORDER_TOP = "╔══════════════════════════════════════════════╗";
     private static final String BORDER_BOTTOM = "╚══════════════════════════════════════════════╝";
     private static final String LBL_SIMBOLO = "Simbolo";
@@ -40,7 +29,6 @@ public class ManageWalletsGraphicControllerCLI extends ManageWalletsGraphicContr
         super.setNavigator(navigator);
     }
 
-    // ── Punti di ingresso ─────────────────────────────────────────────────────
 
     @Override
     public void start() {

@@ -12,7 +12,6 @@ public abstract class SchoolClassDAO extends CachedDAO<SchoolClass> {
 
     @Override
     protected String ottieniChiave(SchoolClass c) {
-        // Chiave unica: nome della classe + email del professore
         return c.nome() + "|" + c.teacher().presentaEmail();
     }
 

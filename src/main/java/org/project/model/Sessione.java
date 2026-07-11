@@ -2,10 +2,7 @@ package org.project.model;
 
 import java.util.List;
 
-/**
- * Rappresenta il contesto attivo di un utente durante la sua sessione applicativa.
- * Viene creata dal SessionManager al momento del login e distrutta al logout.
- */
+
 public class Sessione {
 
     private int token;

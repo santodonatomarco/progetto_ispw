@@ -16,12 +16,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Controller GUI per la schermata Gestione Classe (professore).
- * Permette di:
- *  - Selezionare una classe esistente e modificarne il budget
- *  - Creare una nuova classe con budget iniziale
- */
+
 public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicController {
 
     // ── Sidebar ───────────────────────────────────────────────────────────────

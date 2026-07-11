@@ -1,9 +1,6 @@
 package org.project.view.bean;
 
-/**
- * Bean per una singola posizione nel wallet (un titolo posseduto).
- * Corrisponde a WalletPosition nel model.
- */
+
 public class WalletPositionBean {
 
     private StockBean stock;

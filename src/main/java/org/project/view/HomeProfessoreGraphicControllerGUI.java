@@ -13,16 +13,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * Implementazione GUI (JavaFX) della schermata Home del Professore.
- * Corrisponde a HomeProfessore.fxml.
- *
- * Mostra:
- *  - riepilogo classi gestite e totale studenti
- *  - card per ogni classe con nome, budget iniziale, numero studenti
- *  - avviso esplicito che il professore non può investire
- *  - accesso al mercato in sola lettura
- */
 public class HomeProfessoreGraphicControllerGUI extends HomeProfessoreGraphicController {
 
     // ── Sidebar ───────────────────────────────────────────────────────────────
@@ -113,10 +103,7 @@ public class HomeProfessoreGraphicControllerGUI extends HomeProfessoreGraphicCon
 
     // ── Costruzione card classe ───────────────────────────────────────────────
 
-    /**
-     * Crea una card HBox per una singola classe.
-     * Struttura: Nome classe | Budget iniziale | N° studenti | Bottone "Gestisci"
-     */
+
     private HBox creaCardClasse(SchoolClassBean classe) {
         HBox card = new HBox(16);
         card.getStyleClass().add("card-professore");

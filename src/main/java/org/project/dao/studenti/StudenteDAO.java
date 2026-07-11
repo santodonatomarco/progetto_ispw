@@ -10,11 +10,6 @@ import java.util.List;
 
 public abstract class StudenteDAO extends CachedDAO<Studente> {
 
-    /**
-     * Iniettato dalla factory dopo la costruzione per evitare la dipendenza
-     * circolare (PortafoglioDAO → StudenteDAO → PortafoglioDAO).
-     * Serve solo a rimuoviStudente: il controller non deve sapere nulla di questo.
-     */
     private PortafoglioDAO portafoglioDAO;
 
     public void setPortafoglioDAO(PortafoglioDAO portafoglioDAO) {

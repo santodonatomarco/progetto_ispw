@@ -8,15 +8,7 @@ import org.project.view.bean.SessioneBean;
 
 import java.util.List;
 
-/**
- * Controller grafico astratto per la schermata Home del Professore.
- *
- * Contiene la logica condivisa tra CLI e GUI:
- *  - avvio schermata con i dati delle classi già in sessione
- *  - navigazione verso Mercato (sola lettura), Gestione Classe, Elenco Studenti
- *
- * Il professore NON può accedere al portafoglio né effettuare ordini.
- */
+
 public abstract class HomeProfessoreGraphicController {
 
     protected Navigator navigator;

@@ -8,10 +8,7 @@ import org.project.view.bean.WalletPositionBean;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Implementazione CLI della schermata Home dello Studente.
- * Mostra portafoglio, posizioni aperte e ultime transazioni su terminale.
- */
+
 public class HomeStudenteGraphicControllerCLI extends HomeStudenteGraphicController {
 
     private final Scanner sc = new Scanner(System.in);

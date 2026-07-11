@@ -1,15 +1,6 @@
 package org.project.view;
 
-/**
- * Navigator CLI — navigazione testuale.
- * Istanzia i controller grafici CLI in lazy loading.
- * Il loop while(running) gira in startUp().
- *
- * MERCATO, CONFERMA_ORDINE, PORTAFOGLIO, STORICO, WALLET_STUDENTE
- * puntano tutti alla stessa istanza di ManageWalletsGraphicControllerCLI
- * ma a entry-point diversi (start, startConfermaOrdine, startPortafoglio,
- * startStorico, startWalletEsterno).
- */
+
 public class NavigatorCLI extends Navigator {
 
     private LoginGraphicControllerCLI            login;
@@ -89,10 +80,7 @@ public class NavigatorCLI extends Navigator {
         getManageWallets().startStorico();
     }
 
-    /**
-     * Visualizza il portafoglio di studenteTarget in sola lettura.
-     * Richiede che impostaStudenteTarget() sia stato chiamato prima.
-     */
+
     @Override
     protected void visualizzaWalletStudente() {
         var target = getStudenteTarget();

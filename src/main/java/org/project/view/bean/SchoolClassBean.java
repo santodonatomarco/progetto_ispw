@@ -2,12 +2,7 @@ package org.project.view.bean;
 
 import java.util.List;
 
-/**
- * Bean per una classe scolastica.
- * Il professore è già disponibile via ProfessoreBean nell'SessioneBean,
- * ma viene incluso anche qui perché un controller che riceve solo
- * questo bean deve poter mostrare tutte le info della classe.
- */
+
 public class SchoolClassBean {
 
     private String nome;

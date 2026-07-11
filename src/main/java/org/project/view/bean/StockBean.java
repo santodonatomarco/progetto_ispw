@@ -1,9 +1,6 @@
 package org.project.view.bean;
 
-/**
- * Bean per trasportare i dati di uno Stock tra controller e view.
- * Non contiene logica né riferimenti al model — solo dati piatti.
- */
+
 public class StockBean {
 
     private String simbolo;

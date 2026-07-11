@@ -6,11 +6,6 @@ import org.project.view.bean.SchoolClassBean;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Implementazione CLI della schermata Home del Professore.
- * Mostra le classi gestite e permette di navigare al mercato (sola lettura)
- * o alla gestione di una classe specifica.
- */
 public class HomeProfessoreGraphicControllerCLI extends HomeProfessoreGraphicController {
 
     private final Scanner sc = new Scanner(System.in);

@@ -157,10 +157,8 @@ public class SchoolClassDAOFile extends SchoolClassDAO {
 
         File file = new File(fileName);
 
-        // Fase di Lettura e Aggiornamento
         List<String> righe = leggiEAggiornaRighe(file, classe);
 
-        // Fase di Scrittura
         scriviSuFile(file, righe);
 
         addToCache(classe);

@@ -6,13 +6,7 @@ import org.project.view.bean.StudenteBean;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Implementazione CLI della schermata Gestione Classe (professore).
- * Permette di:
- *  - Visualizzare le classi esistenti con budget
- *  - Selezionare una classe e modificarne il budget
- *  - Creare una nuova classe
- */
+
 public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicController {
 
     private final Scanner sc = new Scanner(System.in);
@@ -189,10 +183,6 @@ public class GestioneClasseGraphicControllerCLI extends GestioneClasseGraphicCon
 
     // ── Utility input ─────────────────────────────────────────────────────────
 
-    /**
-     * Legge un importo dalla console. Restituisce {@code defaultValue} se l'input è vuoto.
-     * Restituisce -1 se il valore non è un numero valido.
-     */
     private double leggiImporto(String prompt, double defaultValue) {
         System.out.print(prompt);
         String input = sc.nextLine().trim().replace(",", ".");

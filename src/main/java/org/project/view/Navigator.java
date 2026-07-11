@@ -78,10 +78,6 @@ public abstract class Navigator {
     // Wallet esterno (studente target — WALLET_STUDENTE)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Imposta lo studente di cui visualizzare il portafoglio.
-     * Da chiamare prima di goToWalletStudente().
-     */
     public void         impostaStudenteTarget(StudenteBean s){ this.contesto.setStudenteTarget(s); }
     public StudenteBean getStudenteTarget()                  { return this.contesto.getStudenteTarget(); }
 
@@ -101,11 +97,6 @@ public abstract class Navigator {
 
     private void setSchermata(Schermate s) { this.schermataCorrente = s; }
 
-    /**
-     * Esegue la schermata corrente e la azzera prima di delegare.
-     * L'azzeramento anticipato impedisce al loop CLI di ri-eseguire
-     * la stessa schermata dopo che una chiamata ricorsiva è rientrata.
-     */
     protected void nextScreen() {
         if (this.schermataCorrente == null) return;
 
@@ -147,15 +138,11 @@ public abstract class Navigator {
     public void goToConfermaOrdine()   { setSchermata(Schermate.CONFERMA_ORDINE);  nextScreen(); }
     public void goToPortafoglio()      { setSchermata(Schermate.PORTAFOGLIO);      nextScreen(); }
     public void goToStorico()          { setSchermata(Schermate.STORICO);          nextScreen(); }
-    /** Richiede impostaStudenteTarget(bean) prima della chiamata. */
     public void goToWalletStudente()   { setSchermata(Schermate.WALLET_STUDENTE);  nextScreen(); }
     public void goToHomeProfessore()   { setSchermata(Schermate.HOME_PROFESSORE);  nextScreen(); }
     public void goToGestioneClasse()   { setSchermata(Schermate.GESTIONE_CLASSE);  nextScreen(); }
     public void goToInbox()            { setSchermata(Schermate.INBOX);            nextScreen(); }
-
     public void esci() { this.running = false; System.exit(0); }
-
-    // ── Template method — implementati nelle sottoclassi ─────────────────────
 
     protected abstract void visualizzaLogin();
     protected abstract void visualizzaRegistrazione();
@@ -165,10 +152,8 @@ public abstract class Navigator {
     protected abstract void visualizzaConfermaOrdine();
     protected abstract void visualizzaPortafoglio();
     protected abstract void visualizzaStorico();
-    /** Mostra il portafoglio di studenteTarget (lettura). */
     protected abstract void visualizzaWalletStudente();
     protected abstract void visualizzaHomeProfessore();
     protected abstract void visualizzaGestioneClasse();
-    /** Mostra la inbox dell'utente loggato (studente o professore). */
     protected abstract void visualizzaInbox();
 }

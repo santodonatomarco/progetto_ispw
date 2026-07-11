@@ -22,10 +22,6 @@ public abstract class ExchangeMessagesGraphicController {
 
     // ── Operazioni applicative condivise ──────────────────────────────────────
 
-    /**
-     * Recupera tutti i messaggi ricevuti dall'utente loggato.
-     * Restituisce null in caso di errore (già segnalato tramite mostraErrore).
-     */
     protected List<MessageBean> eseguiCaricaInbox() {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
@@ -40,10 +36,7 @@ public abstract class ExchangeMessagesGraphicController {
         }
     }
 
-    /**
-     * Invia un messaggio al destinatario indicato.
-     * Restituisce il bean del messaggio inviato, o null in caso di errore.
-     */
+
     protected MessageBean eseguiInviaMessaggio(String emailDestinatario, String testo) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
@@ -78,12 +71,7 @@ public abstract class ExchangeMessagesGraphicController {
         return sessione != null && sessione.getProfessore() != null;
     }
 
-    /**
-     * Restituisce l'email del professore della classe dello studente loggato.
-     * Utile per pre-popolare il campo "A:" nel form di composizione.
-     * Restituisce null se l'utente è un professore o se lo studente
-     * non è ancora assegnato a una classe.
-     */
+
     protected String getEmailProfessore() {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) return null;
@@ -94,7 +82,6 @@ public abstract class ExchangeMessagesGraphicController {
 
     // ── Navigazione ───────────────────────────────────────────────────────────
 
-    /** Torna alla dashboard corretta in base al ruolo. */
     protected void tornaDashboard() {
         if (isStudente()) {
             navigator.goToHomeStudente();

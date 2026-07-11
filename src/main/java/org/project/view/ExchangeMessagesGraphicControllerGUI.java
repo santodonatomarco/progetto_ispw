@@ -12,10 +12,7 @@ import org.project.view.bean.StudenteBean;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * Controller GUI (JavaFX) per la schermata Inbox / Exchange Messages.
- * Corrisponde a Inbox.fxml — caricato con Approccio A (setController).
- */
+
 public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphicController {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -243,13 +240,13 @@ public class ExchangeMessagesGraphicControllerGUI extends ExchangeMessagesGraphi
     // ── Utility visibilità ────────────────────────────────────────────────────
 
     private void mostraSezione(VBox box)  {
-        if (box == null) return; // guard per FXML che potrebbe non contenere la sezione
+        if (box == null) return;
         box.setVisible(true);
         box.setManaged(true);
     }
 
     private void nascondiSezione(VBox box) {
-        if (box == null) return; // guard per FXML che potrebbe non contenere la sezione
+        if (box == null) return;
         box.setVisible(false);
         box.setManaged(false);
     }

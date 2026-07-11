@@ -10,10 +10,6 @@ public class WalletFactory {
         throw new IllegalStateException("Utility class - Non istanziare");
     }
 
-    /**
-     * Crea un nuovo portafoglio per lo studente, prelevando
-     * automaticamente il budget iniziale stabilito dal professore per quella classe.
-     */
     public static VirtualWallet creaWalletPerStudente(Studente studente) {
         if (studente == null) {
             throw new IllegalArgumentException("Lo studente non può essere nullo");

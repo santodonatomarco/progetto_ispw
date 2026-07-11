@@ -4,10 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 
-/**
- * Implementazione GUI (JavaFX) della schermata di login.
- * Corrisponde al file Login.fxml — due pannelli affiancati: Studente | Professore.
- */
+
 public class LoginGraphicControllerGUI extends LoginGraphicController {
 
     // ── Sezione Studente ──────────────────────────────────────────────────────
@@ -92,10 +89,6 @@ public class LoginGraphicControllerGUI extends LoginGraphicController {
 
     // ── Feedback errori ───────────────────────────────────────────────────────
 
-    /**
-     * Chiamato dalla classe astratta — smista all'etichetta corretta
-     * in base all'ultimo ruolo selezionato.
-     */
     @Override
     protected void mostraErrore(String msg) {
         if (super.isStudente) {

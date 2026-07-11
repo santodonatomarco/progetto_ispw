@@ -8,22 +8,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Objects;
 
-/**
- * Navigator GUI — gestisce la navigazione JavaFX.
- *
- * ── Strategia di caricamento FXML ────────────────────────────────────────────
- * Approccio A  (caricaFXML):       controller istanziato qui, passato via
- *                                   setController(). L'FXML non dichiara fx:controller.
- * Approccio B  (caricaManageWallets): il controller è dichiarato nell'FXML con
- *                                   fx:controller; lo recuperiamo via getController()
- *                                   dopo il load() e completiamo il wiring.
- *
- * ── Caso d'uso ManageWallets ─────────────────────────────────────────────────
- * Tutte le schermate del caso d'uso (MERCATO, CONFERMA_ORDINE, PORTAFOGLIO,
- * STORICO, WALLET_STUDENTE) condividono la stessa istanza ManageWalletsGraphicControllerGUI
- * e la stessa view (ManageWallets.fxml); ogni chiamata attiva un diverso
- * entry-point (start, startConfermaOrdine, startPortafoglio, ...).
- */
 public class NavigatorGUI extends Navigator {
 
     private final Stage stage;
@@ -61,7 +45,6 @@ public class NavigatorGUI extends Navigator {
         stage.show();
     }
 
-    // ── Approccio A: setController() ─────────────────────────────────────────
 
     private <T> T caricaFXML(String nomeFile, Object controller) {
         try {
@@ -76,7 +59,6 @@ public class NavigatorGUI extends Navigator {
         }
     }
 
-    // ── Approccio B: getController() — ManageWallets.fxml ────────────────────
 
     private ManageWalletsGraphicControllerGUI caricaManageWallets() {
         try {
@@ -162,10 +144,7 @@ public class NavigatorGUI extends Navigator {
         mostraSchermata(this.manageWallets.getView());
     }
 
-    /**
-     * Visualizza il portafoglio di studenteTarget in sola lettura.
-     * Richiede impostaStudenteTarget() prima della chiamata.
-     */
+
     @Override
     protected void visualizzaWalletStudente() {
         var target = getStudenteTarget();

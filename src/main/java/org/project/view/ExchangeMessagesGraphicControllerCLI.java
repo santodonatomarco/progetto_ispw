@@ -6,14 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Implementazione CLI della schermata Inbox / Exchange Messages.
- *
- * Permette di:
- *  - Visualizzare i messaggi ricevuti
- *  - Inviare un messaggio a un destinatario
- *    (per lo studente il campo "A:" è pre-compilato con l'email del professore)
- */
 public class ExchangeMessagesGraphicControllerCLI extends ExchangeMessagesGraphicController {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");

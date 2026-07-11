@@ -38,11 +38,6 @@ public abstract class CachedDAO<T> {
         }
     }
 
-    /**
-     * Rimuove dalla cache l'entry con questa chiave, senza dover avere
-     * l'oggetto in mano. Utile nella cascade delete (es. rimuoviStudente
-     * conosce l'email ma non ha necessariamente il Studente in memoria).
-     */
     public void deleteFromCacheByKey(String key) {
         this.cache.remove(key);
     }

@@ -5,10 +5,7 @@ import org.project.ing.enumerations.TipoTransazione;
 
 import java.time.LocalDateTime;
 
-/**
- * Bean per una singola transazione (acquisto o vendita).
- * Corrisponde a Transaction nel model.
- */
+
 public class TransactionBean {
 
     private StockBean stock;

@@ -7,15 +7,7 @@ import org.project.view.bean.*;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Controller grafico astratto per la schermata Gestione Classe (professore).
- * Logica condivisa tra CLI e GUI:
- * - caricamento classi del professore
- * - creazione nuova classe
- * - impostazione budget su classe esistente
- * - navigazione
- * Le sottoclassi implementano la visualizzazione concreta (CLI o JavaFX).
- */
+
 public abstract class GestioneClasseGraphicController {
 
     // ── Costanti ──────────────────────────────────────────────────────────────

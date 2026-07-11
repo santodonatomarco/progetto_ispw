@@ -199,16 +199,12 @@ public class PortafoglioDAOFile extends PortafoglioDAO {
 
         String email = wallet.proprietario().presentaEmail();
 
-        // 1. Aggiorna il file base del wallet (il saldo)
         aggiornaFileWalletBase(email, wallet.saldoDisponibile());
 
-        // 2. Aggiorna le posizioni associate all'utente
         aggiornaFilePosizioni(email, wallet.posizioni());
 
-        // 3. Aggiorna le transazioni associate all'utente
         aggiornaFileTransazioni(email, wallet.transazioni());
 
-        // 4. Infine, sincronizza la cache ereditata da CachedDAO
         addToCache(wallet);
     }
 

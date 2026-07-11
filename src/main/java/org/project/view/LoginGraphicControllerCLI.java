@@ -2,10 +2,7 @@ package org.project.view;
 
 import java.util.Scanner;
 
-/**
- * Implementazione CLI della schermata di login.
- * Mostra due sezioni: Studente e Professore, con i relativi link alla registrazione.
- */
+
 public class LoginGraphicControllerCLI extends LoginGraphicController {
 
     private final Scanner sc = new Scanner(System.in);

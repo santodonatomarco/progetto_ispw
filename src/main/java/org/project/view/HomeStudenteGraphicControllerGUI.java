@@ -17,14 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Implementazione GUI (JavaFX) della schermata Home dello Studente.
- * Corrisponde a HomeStudente.fxml.
- *
- * Popola le carte riepilogative, la tabella delle posizioni aperte e
- * le ultime transazioni leggendo i dati già caricati nel Navigator (Context)
- * dal LoginAppController al momento del login.
- */
+
 public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicController {
 
     // ── Costanti di Stile ─────────────────────────────────────────────────────
@@ -165,10 +158,6 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
 
     // ── Costruzione righe dinamiche ───────────────────────────────────────────
 
-    /**
-     * Crea una riga HBox per una posizione aperta nel portafoglio.
-     * Struttura: Simbolo + Nome | Quantità | Prezzo medio | Valore attuale | P/L
-     */
     private HBox creaRigaPosizione(WalletPositionBean pos) {
         HBox riga = new HBox();
         riga.getStyleClass().add(STYLE_CARD_TRANSAZIONE);
@@ -202,9 +191,6 @@ public class HomeStudenteGraphicControllerGUI extends HomeStudenteGraphicControl
         return riga;
     }
 
-    /**
-     * Crea una riga HBox per una transazione nello storico recente.
-     */
     private HBox creaRigaTransazione(TransactionBean tx) {
         HBox riga = new HBox(12);
         riga.getStyleClass().add(STYLE_CARD_TRANSAZIONE);

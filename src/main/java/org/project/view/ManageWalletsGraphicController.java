@@ -8,21 +8,7 @@ import org.project.view.bean.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controller grafico astratto per il caso d'uso "Manage Wallets".
- *
- * Unifica in un solo controller tutti i sotto-flussi visivi:
- *
- *  ┌─ start()                → browsing mercato
- *  ├─ startConfermaOrdine()  → pannello conferma acquisto
- *  ├─ startPortafoglio()     → portafoglio PROPRIO (studente proprietario)
- *  ├─ startStorico()         → storico transazioni PROPRIO
- *  └─ startWalletEsterno()   → portafoglio/storico DI UN ALTRO studente
- *                              (studente stessa classe | professore)
- *
- * La logica condivisa (esegui*) delega a ManageWalletsAppController.
- * Le sottoclassi implementano la presentazione concreta (CLI o JavaFX).
- */
+
 public abstract class ManageWalletsGraphicController {
 
     protected Navigator navigator;
@@ -36,28 +22,15 @@ public abstract class ManageWalletsGraphicController {
         if (sessione != null)
             this.isStudente = (sessione.getStudente() != null);
     }
-
-    // ── Punti di ingresso ─────────────────────────────────────────────────────
-
-    /** Schermata principale: browsing mercato + lista stock monitorati. */
     public abstract void start();
 
-    /** Pannello di conferma ordine (chiamato dopo avviaOrdineAcquisto). */
     public abstract void startConfermaOrdine();
 
-    /** Portafoglio PROPRIO: posizioni aperte + saldo. */
     public abstract void startPortafoglio();
 
-    /** Storico transazioni PROPRIO. */
     public abstract void startStorico();
 
-    /**
-     * Portafoglio di un ALTRO studente in sola lettura.
-     * Usato da professore → GestioneClasse → "Visualizza wallet"
-     * e da studente → ElencoStudenti → "Visualizza wallet compagno".
-     *
-     * @param studenteTarget il cui portafoglio mostrare (non null)
-     */
+
     public abstract void startWalletEsterno(StudenteBean studenteTarget);
 
     // ── Logica condivisa — Mercato ────────────────────────────────────────────
@@ -168,10 +141,6 @@ public abstract class ManageWalletsGraphicController {
 
     // ── Logica condivisa — Portafoglio / Storico ──────────────────────────────
 
-    /**
-     * Carica il portafoglio del proprietario corrente e chiama mostraPortafoglio().
-     * emailTarget null = proprio wallet.
-     */
     protected void eseguiCaricaPortafoglio(String emailTarget) {
         SessioneBean sessione = navigator.getSessione();
         if (sessione == null) {
@@ -254,23 +223,7 @@ public abstract class ManageWalletsGraphicController {
     protected abstract void mostraCaricamento(boolean visible);
     protected abstract void mostraErrore(String msg);
     protected abstract void showMessage(String msg);
-
-    /** Chiamato dopo confermaAcquisto() riuscita. */
     protected abstract void mostraAcquistoCompletato(TransactionBean transazione);
-
-    /**
-     * Mostra il portafoglio.
-     *
-     * @param portafoglio  bean con saldo, posizioni, transazioni
-     * @param isProprietario true se il richiedente è il titolare del wallet
-     */
     protected abstract void mostraPortafoglio(PortafoglioBean portafoglio, boolean isProprietario);
-
-    /**
-     * Mostra lo storico transazioni.
-     *
-     * @param storico      lista delle transazioni
-     * @param emailTarget  email del proprietario; null = proprio storico
-     */
     protected abstract void mostraStorico(List<TransactionBean> storico, String emailTarget);
 }
