@@ -107,10 +107,14 @@ public abstract class GestioneClasseGraphicController {
             return false;
         }
         try {
-            new GestioneClasseAppController().aggiungiStudente(sessione, email, nomeClasse);
-            mostraSuccesso("Studente " + email + " aggiunto alla classe " + nomeClasse
+            AggiungiStudenteBean input = new AggiungiStudenteBean(email, nomeClasse);
+            new GestioneClasseAppController().aggiungiStudente(sessione, input);
+            mostraSuccesso("Studente " + input.getEmailStudente() + " aggiunto alla classe " + input.getNomeClasse()
                     + ". Potrà registrarsi con questa email.");
             return true;
+        } catch (IllegalArgumentException e) {
+            mostraErrore("Errore di sintassi: " + e.getMessage());
+            return false;
         } catch (ControllerException e) {
             mostraErrore(e.getMessage());
             return false;
@@ -124,8 +128,12 @@ public abstract class GestioneClasseGraphicController {
             return Collections.emptyList();
         }
         try {
+            OttieniStudentiClasseBean input = new OttieniStudentiClasseBean(nomeClasse);
             return new GestioneClasseAppController()
-                    .getStudentiDellaClasseProfessore(sessione, nomeClasse);
+                    .getStudentiDellaClasseProfessore(sessione, input);
+        } catch (IllegalArgumentException e) {
+            mostraErrore("Errore di sintassi: " + e.getMessage());
+            return Collections.emptyList();
         } catch (ControllerException e) {
             mostraErrore("Impossibile caricare gli studenti: " + e.getMessage());
             return Collections.emptyList();

@@ -9,6 +9,8 @@ import org.project.ing.persistenza.DAOFactory;
 import org.project.model.*;
 import org.project.view.bean.*;
 import org.project.view.bean.StudenteBean;
+import org.project.view.bean.AggiungiStudenteBean;
+import org.project.view.bean.OttieniStudentiClasseBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,13 +137,8 @@ public class GestioneClasseAppController {
     }
 
 
-    public StudenteBean aggiungiStudente(SessioneBean sessione, String emailStudente, String nomeClasse)
+    public StudenteBean aggiungiStudente(SessioneBean sessione, AggiungiStudenteBean input)
             throws ControllerException {
-
-        if (emailStudente == null || emailStudente.isBlank() || !emailStudente.contains("@"))
-            throw new ControllerException("Email non valida.");
-        if (nomeClasse == null || nomeClasse.isBlank())
-            throw new ControllerException("Nome classe non valido.");
 
         Sessione sessioneModel = SessionManager.getInstance().ottieniSessione(sessione.getId());
         if (sessioneModel == null)
@@ -157,25 +154,25 @@ public class GestioneClasseAppController {
 
         try {
             // 1. Verifica che la classe esista e appartenga a questo professore
-            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(input.getNomeClasse(), professore);
             if (classe == null)
-                throw new ControllerException("Classe \"" + nomeClasse + "\" non trovata.");
+                throw new ControllerException("Classe \"" + input.getNomeClasse() + "\" non trovata.");
 
             // 2. Verifica che l'email non sia già registrata
-            Studente esistente = studenteDAO.getStudenteByEmail(emailStudente.trim().toLowerCase());
+            Studente esistente = studenteDAO.getStudenteByEmail(input.getEmailStudente());
             if (esistente != null)
                 throw new ControllerException("Esiste già uno studente con questa email, dunque riprova.");
 
             // 3. Crea lo studente pending: solo email e classe, il nome arriverà alla registrazione
             Studente pending = new Studente(
-                    emailStudente.trim().toLowerCase(), "—", "—",
+                    input.getEmailStudente(), "—", "—",
                     org.project.ing.enumerations.AuthProvider.LOCAL);
             pending.iscriviClasse(classe);
 
             studenteDAO.salvaStudente(pending);
 
             StudenteBean bean = new StudenteBean(pending.presentaEmail(), "—", "—");
-            bean.setNomeClasse(nomeClasse);
+            bean.setNomeClasse(input.getNomeClasse());
             return bean;
 
         } catch (DAOException e) {
@@ -206,7 +203,7 @@ public class GestioneClasseAppController {
     }
 
 
-    public List<StudenteBean> getStudentiDellaClasseProfessore(SessioneBean sessione, String nomeClasse)
+    public List<StudenteBean> getStudentiDellaClasseProfessore(SessioneBean sessione, OttieniStudentiClasseBean input)
             throws ControllerException {
 
         Professore professore = validaSessioneEOttieniProfessore(sessione,
@@ -217,16 +214,16 @@ public class GestioneClasseAppController {
         StudenteDAO studenteDAO  = factory.createStudenteDAO();
 
         try {
-            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(nomeClasse, professore);
+            SchoolClass classe = classeDAO.getClasseByNomeEProfessore(input.getNomeClasse(), professore);
             if (classe == null)
-                throw new ControllerException("Classe \"" + nomeClasse + "\" non trovata.");
+                throw new ControllerException("Classe \"" + input.getNomeClasse() + "\" non trovata.");
 
             List<Studente> studenti = studenteDAO.getStudentiClasse(classe);
             List<StudenteBean> beans = new ArrayList<>();
             if (studenti != null) {
                 for (Studente s : studenti) {
                     StudenteBean b = new StudenteBean(s.presentaEmail(), s.presentaNome(), s.presentaCognome());
-                    b.setNomeClasse(nomeClasse);
+                    b.setNomeClasse(input.getNomeClasse());
                     beans.add(b);
                 }
             }

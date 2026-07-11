@@ -11,6 +11,7 @@ import org.project.view.bean.ProfessoreBean;
 import org.project.view.bean.SchoolClassBean;
 import org.project.view.bean.SessioneBean;
 import org.project.view.bean.StudenteBean;
+import org.project.view.bean.OttieniStudentiClasseBean;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -263,8 +264,9 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
         if (sessione == null) return;
 
         try {
+            OttieniStudentiClasseBean input = new OttieniStudentiClasseBean(nomeClasse);
             List<StudenteBean> studenti = new GestioneClasseAppController()
-                    .getStudentiDellaClasseProfessore(sessione, nomeClasse);
+                    .getStudentiDellaClasseProfessore(sessione, input);
 
             if (studenti == null || studenti.isEmpty()) {
                 if (lblNessunoStudente != null) {
@@ -290,6 +292,8 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
                 vboxStudentiAnteprima.getChildren().add(altri);
             }
 
+        } catch (IllegalArgumentException e) {
+            // silenzioso nell'anteprima per errori di sintassi
         } catch (ControllerException e) {
             // silenzioso nell'anteprima, l'utente può cliccare "Vedi elenco"
         }
