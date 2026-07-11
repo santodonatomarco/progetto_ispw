@@ -292,10 +292,8 @@ public class GestioneClasseGraphicControllerGUI extends GestioneClasseGraphicCon
                 vboxStudentiAnteprima.getChildren().add(altri);
             }
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ControllerException e) {
             // silenzioso nell'anteprima per errori di sintassi
-        } catch (ControllerException e) {
-            // silenzioso nell'anteprima, l'utente può cliccare "Vedi elenco"
         }
     }
 
